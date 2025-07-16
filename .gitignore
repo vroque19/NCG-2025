@@ -3,4 +3,5 @@
 *.log
 *.mk
 *.launch
-Makefile
+/.vscode
+/.settings
