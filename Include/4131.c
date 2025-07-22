@@ -16,14 +16,15 @@ void print_buff(const uint8_t *buff, size_t len) {
     printf("Sending ");
     for(int i = 0; i < len; i++) {
         printf(" 0x%2X ", buff[i]);
-        MXC_Delay(MXC_DELAY_USEC(100));
+        // MXC_Delay(MXC_DELAY_USEC(100));
     }
+    printf("\n");
     printf("\n");
 }
 
 int spi_send_data(const uint8_t *tx_data, const uint8_t *rx_data, size_t len)
 {
-   // MXC_GPIO_OutClr(CS_PORT, CS_PIN); // ASSERT Chip Select (CS)
+   MXC_GPIO_OutClr(CS_PORT, CS_PIN); // ASSERT Chip Select (CS)
     
     print_buff(tx_data, len);
     // INITIALIZE MAIN REQUEST PARAMETERS
@@ -40,62 +41,136 @@ int spi_send_data(const uint8_t *tx_data, const uint8_t *rx_data, size_t len)
     main_req.ssDeassert = 1;
     // COMPLETE TRANSACTION
     int res = MXC_SPI_MasterTransaction(&main_req);
-    
     //MXC_GPIO_OutSet(CS_PORT, CS_PIN); // DEASSERT CS
-    //MXC_Delay(200);
     if (res != E_NO_ERROR)
     {
         printf("Error in transaction %d\n", res);
     }
     return res;
 }
-void write_mem_map(void) {
-    set_ctrl();
-    set_status();
-    set_channel_0();
-    set_channel_m();
-}
 
 void set_reg( uint8_t reg_addr, uint8_t *data, size_t bytes) {
+    bytes += 1;
     uint8_t tx_buff[bytes];
     uint8_t command = reg_addr & (0x7F);
     tx_buff[0] = command;
-    bytes += 1;
     for(int i = 0; i < bytes; i++) {
         tx_buff[i+1] = data[i];
     }
     printf("Setting register 0x%2X \n", reg_addr);
-    spi_send_data(tx_buff, main_rx, bytes+1);
-    return;
+    spi_send_data(tx_buff, main_rx, bytes);
+}
+
+void set_misc(void) {
+    size_t bytes = 2;
+    uint8_t tx_data[] = {0x00, 0x00};
+    set_reg(ADC_MISC, tx_data, bytes);
+}
+
+void set_gain_n(void) {
+    size_t bytes = 2;
+    int n = 8;
+    uint8_t tx_data[] = {0x55, 0xC6};
+    for(int i = 0; i < n; i++) {
+        set_reg(ADC_GAIN_X(i), tx_data, bytes);
+    }
+}
+
+void set_offset_n(void) {
+    size_t bytes = 2;
+    uint8_t tx_data[] = {0x80, 0x00};
+    int n = 2;
+    for(int i = 0; i < n; i++) {
+        set_reg(ADC_OFFSET_X(i), tx_data, bytes);
+    }
 }
 
 void set_channel_m(void) {
     size_t bytes = 3;
     uint8_t tx_data[] = {0x00, 0x01, 0x00};
-    for(int i = 1; i < 9; i++) {
+    int m = 9;
+    for(int i = 1; i < m; i++) {
         set_reg(ADC_CHANNEL_X(i), tx_data, bytes);
     }
     return;
+}
 
+void set_config_n(void) {
+    size_t bytes = 2;
+    int n = 2;
+    uint8_t tx_data[] = {0x0, 0x0C};
+    for(int i = 0; i < n; i++) {
+        if(i > 1) {
+            tx_data[1] = 0x0;
+        }
+        set_reg(ADC_CONFIG_X(i), tx_data, bytes);
+    }
+}
+
+void set_filter_n(void) {
+    size_t bytes = 3;
+    int n = 8;
+    uint8_t tx_data[] = {0x0, 0x20, 0xA0};
+    for(int i = 0; i < n; i++) {
+        if (i > 1) {
+            tx_data[2] = 0x30;
+        }
+        set_reg(ADC_FILTER_X(i), tx_data, bytes);
+    }
 }
 
 void set_channel_0(void) {
     size_t bytes = 3;
     uint8_t tx_data[] = {0x08, 0x01, 0x00};
     set_reg(ADC_CHANNEL_X(0), tx_data, bytes);
-    return;
 }
 
 void set_status(void) {
     size_t bytes = 1;
     uint8_t tx_data[] = {0x90};
     set_reg(ADC_STATUS, tx_data, bytes);
-    return;
 }   
 
 void set_ctrl(void) {
     size_t bytes = 2;
     uint8_t tx_data[] = {0x01, 0x00};
     set_reg(ADC_CONTROL, tx_data, bytes);
-    return;
+}
+
+void set_data(void) {
+    size_t bytes = 2;
+    uint8_t tx_data[] = {0x00, 0x00};
+    set_reg(ADC_DATA, tx_data, bytes);
+}
+
+void set_io_ctrl(void) {
+    size_t bytes = 2;
+    uint8_t tx_data[] = {0x00, 0x00};
+    set_reg(ADC_IO_CONTROL, tx_data, bytes);
+}
+void set_vbias_ctrl(void) {
+    size_t bytes = 2;
+    uint8_t tx_data[] = {0x00, 0x00};
+    set_reg(ADC_VBIAS_CONTROL, tx_data, bytes);
+}
+
+void set_mclk_count(void) {
+    size_t bytes = 1;
+    set_reg(ADC_MCLK_COUNT, 0x00, bytes);
+}
+
+void write_mem_map(void) {
+    // write to 4131 registers to configure for AIN0-AIN5
+    set_status();
+    set_ctrl();
+    set_data();
+    set_io_ctrl();
+    set_vbias_ctrl();
+    set_mclk_count();
+    set_channel_0();
+    set_channel_m();
+    set_config_n();
+    set_filter_n();
+    set_gain_n();
+    set_misc();
 }
