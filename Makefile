@@ -157,6 +157,7 @@ export CMSIS_ROOT
 # Where to find source files for this project.
 VPATH += .
 VPATH += src
+VPATH += include
 VPATH := $(VPATH)
 
 # Where to find header files for this project
@@ -231,6 +232,7 @@ MXC_OPTIMIZE_CFLAGS ?= -Og
 # Set compiler flags
 PROJ_CFLAGS += -Wall # Enable warnings
 PROJ_CFLAGS += -DMXC_ASSERT_ENABLE
+# PROJ_CFLAGS += -H
 
 # Set hardware floating point acceleration.
 # Options are:
