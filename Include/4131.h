@@ -44,6 +44,7 @@ void set_offset_n(void);
 void set_gain_n(void);
 void set_misc(void);
 void write_mem_map(void);
-
+void read_reg(uint8_t reg_addr, size_t bytes);
+void read_adc_id(void);
 
 #endif // 4131_H_
