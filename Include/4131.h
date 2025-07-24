@@ -26,7 +26,7 @@
 #define SPI_MAIN MXC_SPI1
 #define SPI_MASTER_SSIDX 0
 #define VALUE 0xFF
-#define SPI_SPEED 5000000 // 5 MHz
+#define SPI_SPEED 100000 // 100k
 #define CS_PIN MXC_GPIO_PIN_23
 #define CS_PORT MXC_GPIO0
 #define TX_DATA_LEN 4
@@ -46,5 +46,5 @@ void set_misc(void);
 void write_mem_map(void);
 void read_reg(uint8_t reg_addr, size_t bytes);
 void read_adc_id(void);
-
+void read_adc_conversion(void);
 #endif // 4131_H_
