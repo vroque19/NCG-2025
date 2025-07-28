@@ -6,10 +6,10 @@
 #define ADC_DATA         0x02 // 
 #define ADC_IO_CONTROL   0x03
 #define ADC_VBIAS_CONTROL       0x04
-// #define ADC_ID           0x05
+#define ADC_ID           0x05
 // 16-Bit WLCSP Model ID. These bits are set by default for each model and are read only.
-// #define ADC_ERROR        0x06
-// #define ADC_ERROR_EN     0x07
+#define ADC_ERROR        0x06
+#define ADC_ERROR_EN     0x07
 #define ADC_MCLK_COUNT   0x08
 // The channel
 // for each channel, a predefined ADC setup can be selected
@@ -31,6 +31,7 @@
 #define CS_PORT MXC_GPIO0
 #define TX_DATA_LEN 4
 
+void spi_main_init(void);
 void print_buff(const uint8_t *buff, size_t len);
 int spi_send_data(const uint8_t *tx_data, const uint8_t *rx_data, size_t len);
 void set_reg( uint8_t reg_addr, uint8_t *data, size_t bytes);
@@ -44,7 +45,8 @@ void set_offset_n(void);
 void set_gain_n(void);
 void set_misc(void);
 void write_mem_map(void);
-void read_reg(uint8_t reg_addr, size_t bytes);
+uint8_t * spi_read_reg(uint8_t reg_addr, size_t bytes);
 void read_adc_id(void);
 void read_adc_conversion(void);
+void read_status(void);
 #endif // 4131_H_
