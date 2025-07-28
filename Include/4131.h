@@ -45,7 +45,7 @@ void set_offset_n(void);
 void set_gain_n(void);
 void set_misc(void);
 void write_mem_map(void);
-uint8_t * spi_read_reg(uint8_t reg_addr, size_t bytes);
+void spi_read_reg(uint8_t reg_addr, size_t bytes);
 void read_adc_id(void);
 void read_adc_conversion(void);
 void read_status(void);

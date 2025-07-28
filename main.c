@@ -2,6 +2,7 @@
 #include <stdint.h>
 #include <string.h>
 #include <stddef.h>
+#include <math.h>
 #include "mxc_device.h"
 #include "mxc_delay.h"
 #include "mxc_pins.h"
@@ -9,6 +10,8 @@
 #include "led.h"
 #include "spi.h"
 #include "include/4131.h"
+
+uint32_t bytes_to_dec(uint8_t *bytes);
 
 void spi_main_init(void)
 {
@@ -40,10 +43,16 @@ void spi_main_init(void)
     printf("SPI Master Initialization Complete. Speed: %d Hz\n", SPI_SPEED);
 }
 
-// TODO Configure the AD4131
-/*
+uint32_t bytes_to_dec(uint8_t *bytes) {
+    uint32_t decimal = 0;
+    for(uint8_t i = 0; i < 3; i++) {
+        decimal = (decimal << 8) | bytes[i];
+        printf("0x%2X\n", bytes[i]);
+    }
+    printf("reading: %d", decimal);
 
-*/
+    return decimal;
+}
 
 void test_spi_send(void)
 {
@@ -69,7 +78,12 @@ int main(void)
     write_mem_map();
     // read_status();
     read_adc_id();
-    read_adc_conversion();
+    while(1) {
+        read_adc_conversion();
+        // uint32_t decimal = bytes_to_dec(value);
+        // printf("reading: %d\n\n", decimal);
+        MXC_Delay(MXC_DELAY_MSEC(1000));
+    }
     // read_status();
     MXC_SPI_Shutdown(SPI_MAIN);
     return E_NO_ERROR;

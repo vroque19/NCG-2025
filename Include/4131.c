@@ -12,20 +12,24 @@
 uint8_t main_rx[TX_DATA_LEN];
 
   
+// prints transmitting buffer
 void print_buff(const uint8_t *buff, size_t len) {
     printf("Sending %d bytes:", len);
     for(int i = 0; i < len; i++) {
         printf(" 0x%2X ", buff[i]);
-        // MXC_Delay(MXC_DELAY_USEC(100));
     }
     printf("\n");
 }
 
+// print received buffer in hex and decimal
 void print_buff_received(const uint8_t *buff, size_t len) {
     printf("Received ");
+    uint32_t decimal = 0;
     for(int i = 0; i < len; i++) {
         printf(" 0x%2X ", buff[i]);
+        decimal = (decimal << 8) | buff[i];
     }
+    printf("\nreading: %d", decimal);
     printf("\n");
     printf("\n");
 }
@@ -70,7 +74,7 @@ void set_reg( uint8_t reg_addr, uint8_t *data, size_t bytes) {
     spi_send_data(tx_buff, main_rx, bytes);
 }
 
-void read_reg(uint8_t reg_addr, size_t bytes) {
+void spi_read_reg(uint8_t reg_addr, size_t bytes) {
     bytes += 1;
     uint8_t tx_buff[bytes];
     tx_buff[0] = reg_addr | 0x40; // Set MSB
@@ -154,9 +158,12 @@ void set_config_n(void) {
 void set_filter_n(void) {
     size_t bytes = 3;
     int n = 7;
+    // filter mode: sinc^3 standalone filter
+    // ODR: 160 sps
     uint8_t tx_data[] = {0x0, 0x20, 0xA0};
     for(int i = 0; i <= n; i++) {
         if (i > 1) {
+            // 48 sps
             tx_data[2] = 0x30;
         }
         set_reg(ADC_FILTER_X(i), tx_data, bytes);
@@ -223,15 +230,15 @@ void write_mem_map(void) {
 
 void read_adc_id(void) {
     size_t bytes = 2;
-    read_reg(ADC_ID, bytes);
+    spi_read_reg(ADC_ID, bytes);
 }
 
 void read_adc_conversion(void) {
     size_t bytes = 3;
-    read_reg(ADC_DATA, bytes);
+    spi_read_reg(ADC_DATA, bytes);
 }
 
 void read_status(void) {
     size_t bytes = 2;
-    read_reg(ADC_STATUS, bytes);
+    spi_read_reg(ADC_STATUS, bytes);
 }
