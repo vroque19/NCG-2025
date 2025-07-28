@@ -1,0 +1,6 @@
+/.settings
+/.vscode
+/build
+/ex
+project.mk
+flash.log
