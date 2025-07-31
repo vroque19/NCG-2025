@@ -11,7 +11,63 @@
 #include "4131.h"
 uint8_t main_rx[TX_DATA_LEN];
 
-  
+void spi_main_init(void)
+{
+    // INIT SPI
+    if (MXC_SPI_Init(SPI_MAIN, 1, 0, 1, 0, SPI_SPEED) != E_NO_ERROR)
+    {
+        printf("\nSPI MASTER INITIALIZATION ERROR\n");
+        while (1)
+        {
+        }
+    }
+    // SET DATA SIZE
+    MXC_SPI_SetDataSize(SPI_MAIN, WORD_SIZE);
+    // SET MODE
+    MXC_SPI_SetMode(MXC_SPI1, SPI_MODE_3);
+    // SET WIDTH
+    MXC_SPI_SetWidth(SPI_MAIN, SPI_WIDTH_STANDARD);
+    // SET GPIO FOR SPI
+    const mxc_gpio_cfg_t gpio_cfg_spi1_vddioh = { MXC_GPIO1, (MXC_GPIO_PIN_26 | MXC_GPIO_PIN_28 | MXC_GPIO_PIN_23 |MXC_GPIO_PIN_29),
+        MXC_GPIO_FUNC_ALT1, MXC_GPIO_PAD_NONE, MXC_GPIO_VSSEL_VDDIOH, MXC_GPIO_DRVSTR_0 };
+
+    if (MXC_GPIO_Config(&gpio_cfg_spi1_vddioh) != E_NO_ERROR)
+    {
+        printf("\nCS PIN CONFIGURATION ERROR\n");
+        while (1)
+        {
+        }
+    }
+    printf("SPI Master Initialization Complete. Speed: %d Hz\n", SPI_SPEED);
+}
+
+// uint32_t bytes_to_dec(uint8_t *bytes) {
+//     uint32_t decimal = 0;
+//     for(uint8_t i = 0; i < 3; i++) {
+//         decimal = (decimal << 8) | bytes[i];
+//         printf("0x%2X\n", bytes[i]);
+//     }
+//     printf("reading: %d", decimal);
+
+//     return decimal;
+// }
+
+void test_spi_send(void)
+{
+    uint8_t main_rx[TX_DATA_LEN];
+    uint8_t tx_buff[] = {0x02, 0x03, 0x04};
+    printf("Sending %d bytes\n", TX_DATA_LEN);
+    printf("\n");
+    int result = spi_send_data(tx_buff, main_rx, 3);
+    if (result != E_NO_ERROR)
+    {
+        printf("ERROR\n");
+    }
+    else
+    {
+        printf("\n");
+    }
+}
 // prints transmitting buffer
 void print_buff(const uint8_t *buff, size_t len) {
     printf("Sending %d bytes:", len);
@@ -24,14 +80,22 @@ void print_buff(const uint8_t *buff, size_t len) {
 // print received buffer in hex and decimal
 void print_buff_received(const uint8_t *buff, size_t len) {
     printf("Received ");
-    uint32_t decimal = 0;
     for(int i = 0; i < len; i++) {
         printf(" 0x%2X ", buff[i]);
-        decimal = (decimal << 8) | buff[i];
     }
-    printf("\nreading: %d", decimal);
     printf("\n");
     printf("\n");
+}
+
+uint32_t hex_to_code(const uint8_t *buff, size_t len) {
+    uint32_t decimal = 0;
+    for(int i = 0; i < len; i++) {
+        decimal = (decimal<<8) | buff[i];
+    }
+    // printf("\nreading: %d", decimal);
+    // printf("\n");
+    // printf("\n");
+    return decimal;
 }
 
 int spi_send_data(const uint8_t *tx_data, const uint8_t *rx_data, size_t len)
@@ -74,7 +138,7 @@ void set_reg( uint8_t reg_addr, uint8_t *data, size_t bytes) {
     spi_send_data(tx_buff, main_rx, bytes);
 }
 
-void spi_read_reg(uint8_t reg_addr, size_t bytes) {
+void spi_read_reg(uint8_t *rx_data, uint8_t reg_addr, size_t bytes) {
     bytes += 1;
     uint8_t tx_buff[bytes];
     tx_buff[0] = reg_addr | 0x40; // Set MSB
@@ -103,10 +167,9 @@ void spi_read_reg(uint8_t reg_addr, size_t bytes) {
         printf("Error in transaction %d\n", res);
     }
     
-    // memcpy(data, &rx_buff[1], bytes - 1);
-    // print_buff_received(rx_buff, bytes-1);
     printf("Reading register 0x%2X \n", reg_addr);
     print_buff_received(rx_buff, bytes-1);
+    memcpy(rx_data, rx_buff, bytes-1);
 }
 
 void set_misc(void) {
@@ -199,6 +262,7 @@ void set_io_ctrl(void) {
     uint8_t tx_data[] = {0x00, 0x00};
     set_reg(ADC_IO_CONTROL, tx_data, bytes);
 }
+
 void set_vbias_ctrl(void) {
     size_t bytes = 2;
     uint8_t tx_data[] = {0x00, 0x00};
@@ -230,15 +294,41 @@ void write_mem_map(void) {
 
 void read_adc_id(void) {
     size_t bytes = 2;
-    spi_read_reg(ADC_ID, bytes);
+    uint8_t rx_data[bytes];
+    spi_read_reg(rx_data, ADC_ID, bytes);
+    printf("repeating....\n");
+    print_buff_received(rx_data, bytes);
+    
+
 }
 
-void read_adc_conversion(void) {
-    size_t bytes = 3;
-    spi_read_reg(ADC_DATA, bytes);
+void read_adc_conversion(uint8_t* rx_data, size_t bytes) {
+    printf("repeating....\n");
+    spi_read_reg(rx_data, ADC_DATA, bytes);
+    uint32_t code = 0;
+
+    print_buff_received(rx_data, bytes);
+    code = hex_to_code(rx_data, bytes);
+    printf("\nThis is my code: %d\n", code);
+
 }
 
 void read_status(void) {
     size_t bytes = 2;
-    spi_read_reg(ADC_STATUS, bytes);
+    uint8_t rx_data[bytes];
+    spi_read_reg(rx_data, ADC_STATUS, bytes);
+    printf("repeating....\n");
+
+    print_buff_received(rx_data, bytes);
+
+}
+
+uint32_t get_adc_data(void) {
+    size_t bytes = 3;
+    uint8_t rx_data[bytes];
+    spi_read_reg(rx_data, ADC_DATA, bytes);
+    uint32_t code = 0;
+    code = hex_to_code(rx_data, bytes);
+    return code;
+
 }
