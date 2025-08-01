@@ -10,81 +10,27 @@
 #include "led.h"
 #include "spi.h"
 #include "include/4131.h"
+#include "include/load_cell.h"
 
-uint32_t bytes_to_dec(uint8_t *bytes);
-
-void spi_main_init(void)
-{
-    // INIT SPI
-    if (MXC_SPI_Init(SPI_MAIN, 1, 0, 1, 0, SPI_SPEED) != E_NO_ERROR)
-    {
-        printf("\nSPI MASTER INITIALIZATION ERROR\n");
-        while (1)
-        {
-        }
-    }
-    // SET DATA SIZE
-    MXC_SPI_SetDataSize(SPI_MAIN, WORD_SIZE);
-    // SET MODE
-    MXC_SPI_SetMode(MXC_SPI1, SPI_MODE_3);
-    // SET WIDTH
-    MXC_SPI_SetWidth(SPI_MAIN, SPI_WIDTH_STANDARD);
-    // SET GPIO FOR SPI
-    const mxc_gpio_cfg_t gpio_cfg_spi1_vddioh = { MXC_GPIO1, (MXC_GPIO_PIN_26 | MXC_GPIO_PIN_28 | MXC_GPIO_PIN_23 |MXC_GPIO_PIN_29),
-        MXC_GPIO_FUNC_ALT1, MXC_GPIO_PAD_NONE, MXC_GPIO_VSSEL_VDDIOH, MXC_GPIO_DRVSTR_0 };
-
-    if (MXC_GPIO_Config(&gpio_cfg_spi1_vddioh) != E_NO_ERROR)
-    {
-        printf("\nCS PIN CONFIGURATION ERROR\n");
-        while (1)
-        {
-        }
-    }
-    printf("SPI Master Initialization Complete. Speed: %d Hz\n", SPI_SPEED);
-}
-
-uint32_t bytes_to_dec(uint8_t *bytes) {
-    uint32_t decimal = 0;
-    for(uint8_t i = 0; i < 3; i++) {
-        decimal = (decimal << 8) | bytes[i];
-        printf("0x%2X\n", bytes[i]);
-    }
-    printf("reading: %d", decimal);
-
-    return decimal;
-}
-
-void test_spi_send(void)
-{
-    uint8_t main_rx[TX_DATA_LEN];
-    uint8_t tx_buff[] = {0x02, 0x03, 0x04};
-    printf("Sending %d bytes\n", TX_DATA_LEN);
-    printf("\n");
-    int result = spi_send_data(tx_buff, main_rx, 3);
-    if (result != E_NO_ERROR)
-    {
-        printf("ERROR\n");
-    }
-    else
-    {
-        printf("\n");
-    }
-}
 
 int main(void)
 {
     spi_main_init();
-    read_adc_conversion();
     write_mem_map();
-    // read_status();
     read_adc_id();
+    uint32_t base1 = calibrate();
+    MXC_Delay(MXC_DELAY_MSEC(1000));
+    set_channel_2();
+    uint32_t base2 = calibrate();
+    MXC_Delay(MXC_DELAY_MSEC(1000));
     while(1) {
-        read_adc_conversion();
-        // uint32_t decimal = bytes_to_dec(value);
-        // printf("reading: %d\n\n", decimal);
+        set_channel_0();
+        load_cell_1_read(base1);
+        MXC_Delay(MXC_DELAY_MSEC(1000));
+        set_channel_2();
+        load_cell_2_read(base2);
         MXC_Delay(MXC_DELAY_MSEC(1000));
     }
-    // read_status();
     MXC_SPI_Shutdown(SPI_MAIN);
     return E_NO_ERROR;
 }

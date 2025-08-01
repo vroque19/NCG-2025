@@ -24,7 +24,7 @@ uint32_t get_average(uint32_t *list, uint8_t n) {
 
 
 uint32_t get_calibration_data(void) {
-    int n = 3;
+    int n = 10;
     uint32_t data[n];
     for(int i = 0; i < n; i++) {
         data[i] = get_adc_data();
@@ -34,6 +34,7 @@ uint32_t get_calibration_data(void) {
     }
     uint32_t res = get_average(data, n);
     // printf("resulting avg: %d\n\n", res);
+
     return res;
 }
 
@@ -62,7 +63,7 @@ void load_cell_1_read(uint32_t base) {
     double conversion_factor = 0.766561084;
     double weight = code_to_grams(base, code, conversion_factor);
 
-    printf("Weight in grams: %.2fg\n\n", weight);
+    printf("Load cell 1 Weight in grams: %.2fg\n\n", weight);
 
 }
 void load_cell_2_read(uint32_t base) {
@@ -70,7 +71,7 @@ void load_cell_2_read(uint32_t base) {
     uint32_t code = get_adc_data();
     double conversion_factor = 0.7532382584;
     double weight = code_to_grams(base, code, conversion_factor);
-    printf("Weight in grams: %.2fg\n\n", weight);
+    printf("Load cell 2 Weight in grams: %.2fg\n\n", weight);
 
 
 }
