@@ -41,22 +41,12 @@ void spi_main_init(void)
     printf("SPI Master Initialization Complete. Speed: %d Hz\n", SPI_SPEED);
 }
 
-// uint32_t bytes_to_dec(uint8_t *bytes) {
-//     uint32_t decimal = 0;
-//     for(uint8_t i = 0; i < 3; i++) {
-//         decimal = (decimal << 8) | bytes[i];
-//         printf("0x%2X\n", bytes[i]);
-//     }
-//     printf("reading: %d", decimal);
-
-//     return decimal;
-// }
 
 void test_spi_send(void)
 {
     uint8_t main_rx[TX_DATA_LEN];
     uint8_t tx_buff[] = {0x02, 0x03, 0x04};
-    printf("Sending %d bytes\n", TX_DATA_LEN);
+    // printf("Sending %d bytes\n", TX_DATA_LEN);
     printf("\n");
     int result = spi_send_data(tx_buff, main_rx, 3);
     if (result != E_NO_ERROR)
@@ -70,7 +60,7 @@ void test_spi_send(void)
 }
 // prints transmitting buffer
 void print_buff(const uint8_t *buff, size_t len) {
-    printf("Sending %d bytes:", len);
+    // printf("Sending %d bytes:", len);
     for(int i = 0; i < len; i++) {
         printf(" 0x%2X ", buff[i]);
     }
@@ -79,9 +69,8 @@ void print_buff(const uint8_t *buff, size_t len) {
 
 // print received buffer in hex and decimal
 void print_buff_received(const uint8_t *buff, size_t len) {
-    printf("Received ");
     for(int i = 0; i < len; i++) {
-        printf(" 0x%2X ", buff[i]);
+        printf(" 0x%2d", buff[i]);
     }
     printf("\n");
     printf("\n");
@@ -134,7 +123,7 @@ void set_reg( uint8_t reg_addr, uint8_t *data, size_t bytes) {
     for(int i = 0; i < bytes; i++) {
         tx_buff[i+1] = data[i];
     }
-    printf("Setting register 0x%2X \n", reg_addr);
+    // printf("Setting register 0x%2X \n", reg_addr);
     spi_send_data(tx_buff, main_rx, bytes);
 }
 
@@ -146,7 +135,7 @@ void spi_read_reg(uint8_t *rx_data, uint8_t reg_addr, size_t bytes) {
         tx_buff[i] = 0x00; // Fill with zeros
     }
     uint8_t rx_buff[bytes];
-    print_buff(tx_buff, bytes);
+    // print_buff(tx_buff, bytes);
     // INITIALIZE MAIN REQUEST PARAMETERS
     mxc_spi_req_t main_req;
     main_req.spi = SPI_MAIN;
@@ -166,9 +155,11 @@ void spi_read_reg(uint8_t *rx_data, uint8_t reg_addr, size_t bytes) {
     {
         printf("Error in transaction %d\n", res);
     }
-    
-    printf("Reading register 0x%2X \n", reg_addr);
-    print_buff_received(rx_buff, bytes-1);
+    // if(reg_addr == ADC_DATA) {
+    //     printf("Reading status after read"); // rdy should be 1
+    //     read_status();
+    // }
+
     memcpy(rx_data, rx_buff, bytes-1);
 }
 
@@ -233,21 +224,93 @@ void set_filter_n(void) {
     }
 }
 
+// proposed refinement
+
+void configure_adc_channel(uint8_t channel_idx, uint8_t enable_bit) {
+    uint8_t ain_m[] = {0x01, 0x43, 0x85};
+    size_t bytes = 3;
+    uint8_t tx_data[3];
+    tx_data[0] = enable_bit;
+    if(enable_bit == 0) {
+        tx_data[1] = 0x01; // disable
+    } else {
+        tx_data[1] = ain_m[channel_idx];  // a inp
+    }
+    tx_data[2] = 0x00;       // Other channel specific settings (keep as 0x00 for now)
+
+    printf("Configuring ADC_CHANNEL_X(%d) with [0x%02X, 0x%02X, 0x%02X]\n",
+           channel_idx, tx_data[0], tx_data[1], tx_data[2]);
+    set_reg(ADC_CHANNEL_X(channel_idx), tx_data, bytes);
+}
+
+uint32_t get_data_from_channel(uint8_t channel_idx) {
+    uint8_t rx_data[3];
+    uint32_t code = 0;
+    size_t bytes = 3;
+
+    configure_adc_channel(channel_idx, 0x80);
+    MXC_Delay(MXC_DELAY_MSEC(500));
+    // Poll ADC Status
+    uint8_t status_byte[1];
+    int timeout_ms = 500; // Max time to wait for data (adjust as needed)
+    int elapsed_ms = 0;
+
+    printf("Waiting for data ready on channel %d...\n", channel_idx);
+    do {
+        spi_read_reg(status_byte, ADC_STATUS, 1); // Read 1 byte from Status register
+        // printf("Status: 0x%02X\n", status_byte[0]); // For debugging
+        if (status_byte[0] & 0x01) { // Example: assuming bit 0 of status indicates data ready
+            printf("Data ready!\n");
+            break;
+        }
+        MXC_Delay(MXC_DELAY_USEC(500)); // Small delay between status polls
+        elapsed_ms += 1; // Assuming 0.5ms delay for simplicity. Adjust if needed.
+    } while (elapsed_ms < timeout_ms * 2); // Poll for timeout_ms (2 * 0.5ms/poll)
+
+    if (elapsed_ms >= timeout_ms * 2) {
+        printf("Timeout waiting for ADC data on channel %d!\n", channel_idx);
+        return 0; // Or handle error appropriately
+    }
+    // Step 3: Read the ADC data
+    spi_read_reg(rx_data, ADC_DATA, bytes);
+    code = hex_to_code(rx_data, bytes);
+
+    printf("Read from Channel %d: Code = %d\n\n", channel_idx, code);
+    configure_adc_channel(channel_idx, 0x00);
+    return code;
+
+}
+
 void set_channel_0(void) {
     size_t bytes = 3;
     uint8_t tx_data[] = {0x80, 0x01, 0x00};
     set_reg(ADC_CHANNEL_X(0), tx_data, bytes);
+    // uint8_t disable[] = {0x00, 0x01, 0x00};
+    // set_reg(ADC_CHANNEL_X(1), disable, bytes);
+    // set_reg(ADC_CHANNEL_X(2), disable, bytes);
 }
 
-void set_status(void) {
-    size_t bytes = 1;
-    uint8_t tx_data[] = {0x90};
-    set_reg(ADC_STATUS, tx_data, bytes);
-}   
+void set_channel_1(void) {
+    size_t bytes = 3;
+    uint8_t tx_data[] = {0x80, 0x43, 0x00};
+    set_reg(ADC_CHANNEL_X(1), tx_data, bytes);
+    uint8_t disable[] = {0x00, 0x01, 0x00};
+    set_reg(ADC_CHANNEL_X(0), disable, bytes);
+    // set_reg(ADC_CHANNEL_X(2), disable, bytes);
+    
+}
+
+void set_channel_2(void) {
+    size_t bytes = 3;
+    uint8_t tx_data[] = {0x80, 0x85, 0x00};
+    set_reg(ADC_CHANNEL_X(2), tx_data, bytes);
+}
+
+
 
 void set_ctrl(void) {
     size_t bytes = 2;
-    uint8_t tx_data[] = {0x01, 0x00};
+    uint8_t tx_data[] = {0x01, 0x02};
     set_reg(ADC_CONTROL, tx_data, bytes);
 }
 
@@ -282,8 +345,8 @@ void write_mem_map(void) {
     set_io_ctrl();
     set_vbias_ctrl();
     // set_mclk_count();
-    set_channel_0();
-    set_channel_m();
+    // set_channel_0();
+    // set_channel_m();
     set_config_n();
     set_filter_n();
     set_offset_n();
@@ -296,31 +359,31 @@ void read_adc_id(void) {
     size_t bytes = 2;
     uint8_t rx_data[bytes];
     spi_read_reg(rx_data, ADC_ID, bytes);
-    printf("repeating....\n");
     print_buff_received(rx_data, bytes);
     
-
 }
 
-void read_adc_conversion(uint8_t* rx_data, size_t bytes) {
+void read_adc_conversion(void) {
     printf("repeating....\n");
+    size_t bytes = 3;
+    uint8_t rx_data[] = {0x0, 0x0, 0x0}; 
+    // rx_data will filled with data from data reg
     spi_read_reg(rx_data, ADC_DATA, bytes);
     uint32_t code = 0;
 
-    print_buff_received(rx_data, bytes);
+    // print_buff_received(rx_data, bytes);
     code = hex_to_code(rx_data, bytes);
     printf("\nThis is my code: %d\n", code);
 
 }
 
-void read_status(void) {
+uint8_t read_status(void) {
     size_t bytes = 2;
     uint8_t rx_data[bytes];
     spi_read_reg(rx_data, ADC_STATUS, bytes);
-    printf("repeating....\n");
-
+    printf("Status Register:\n");
     print_buff_received(rx_data, bytes);
-
+    return rx_data[0];
 }
 
 uint32_t get_adc_data(void) {
