@@ -1,14 +1,5 @@
-#include <stdio.h>
-#include <stdint.h>
-#include <string.h>
-#include <stddef.h>
-#include "mxc_device.h"
-#include "mxc_delay.h"
-#include "mxc_pins.h"
-#include "uart.h"
-#include "led.h"
-#include "spi.h"
 #include "4131.h"
+
 uint8_t main_rx[TX_DATA_LEN];
 
 void spi_main_init(void)
@@ -81,17 +72,13 @@ uint32_t hex_to_code(const uint8_t *buff, size_t len) {
     for(int i = 0; i < len; i++) {
         decimal = (decimal<<8) | buff[i];
     }
-    // printf("\nreading: %d", decimal);
-    // printf("\n");
-    // printf("\n");
+
     return decimal;
 }
 
 int spi_send_data(const uint8_t *tx_data, const uint8_t *rx_data, size_t len)
 {
-   MXC_GPIO_OutClr(CS_PORT, CS_PIN); // ASSERT Chip Select (CS)
-    
-    // print_buff(tx_data, len);
+    MXC_GPIO_OutClr(CS_PORT, CS_PIN); // ASSERT Chip Select (CS)
     // INITIALIZE MAIN REQUEST PARAMETERS
     mxc_spi_req_t main_req;
     main_req.spi = SPI_MAIN;
@@ -224,89 +211,21 @@ void set_filter_n(void) {
     }
 }
 
-// proposed refinement
-
 void configure_adc_channel(uint8_t channel_idx, uint8_t enable_bit) {
-    uint8_t ain_m[] = {0x01, 0x43, 0x85};
+    uint8_t ain_m[] = {0x01, 0x43, 0x85}; // array of ain for channels 0-2
     size_t bytes = 3;
     uint8_t tx_data[3];
     tx_data[0] = enable_bit;
     if(enable_bit == 0) {
-        tx_data[1] = 0x01; // disable
+        tx_data[1] = 0x00; // no ain
     } else {
-        tx_data[1] = ain_m[channel_idx];  // a inp
+        tx_data[1] = ain_m[channel_idx]; // select ain
     }
-    tx_data[2] = 0x00;       // Other channel specific settings (keep as 0x00 for now)
-
-    printf("Configuring ADC_CHANNEL_X(%d) with [0x%02X, 0x%02X, 0x%02X]\n",
-           channel_idx, tx_data[0], tx_data[1], tx_data[2]);
+    tx_data[2] = 0x00; // Other channel settings (NA)
+    // printf("Configuring ADC_CHANNEL_X(%d) with [0x%02X, 0x%02X, 0x%02X]\n",
+        //    channel_idx, tx_data[0], tx_data[1], tx_data[2]);
     set_reg(ADC_CHANNEL_X(channel_idx), tx_data, bytes);
 }
-
-uint32_t get_data_from_channel(uint8_t channel_idx) {
-    uint8_t rx_data[3];
-    uint32_t code = 0;
-    size_t bytes = 3;
-
-    configure_adc_channel(channel_idx, 0x80);
-    MXC_Delay(MXC_DELAY_MSEC(500));
-    // Poll ADC Status
-    uint8_t status_byte[1];
-    int timeout_ms = 500; // Max time to wait for data (adjust as needed)
-    int elapsed_ms = 0;
-
-    printf("Waiting for data ready on channel %d...\n", channel_idx);
-    do {
-        spi_read_reg(status_byte, ADC_STATUS, 1); // Read 1 byte from Status register
-        // printf("Status: 0x%02X\n", status_byte[0]); // For debugging
-        if (status_byte[0] & 0x01) { // Example: assuming bit 0 of status indicates data ready
-            printf("Data ready!\n");
-            break;
-        }
-        MXC_Delay(MXC_DELAY_USEC(500)); // Small delay between status polls
-        elapsed_ms += 1; // Assuming 0.5ms delay for simplicity. Adjust if needed.
-    } while (elapsed_ms < timeout_ms * 2); // Poll for timeout_ms (2 * 0.5ms/poll)
-
-    if (elapsed_ms >= timeout_ms * 2) {
-        printf("Timeout waiting for ADC data on channel %d!\n", channel_idx);
-        return 0; // Or handle error appropriately
-    }
-    // Step 3: Read the ADC data
-    spi_read_reg(rx_data, ADC_DATA, bytes);
-    code = hex_to_code(rx_data, bytes);
-
-    printf("Read from Channel %d: Code = %d\n\n", channel_idx, code);
-    configure_adc_channel(channel_idx, 0x00);
-    return code;
-
-}
-
-void set_channel_0(void) {
-    size_t bytes = 3;
-    uint8_t tx_data[] = {0x80, 0x01, 0x00};
-    set_reg(ADC_CHANNEL_X(0), tx_data, bytes);
-    // uint8_t disable[] = {0x00, 0x01, 0x00};
-    // set_reg(ADC_CHANNEL_X(1), disable, bytes);
-    // set_reg(ADC_CHANNEL_X(2), disable, bytes);
-}
-
-void set_channel_1(void) {
-    size_t bytes = 3;
-    uint8_t tx_data[] = {0x80, 0x43, 0x00};
-    set_reg(ADC_CHANNEL_X(1), tx_data, bytes);
-    uint8_t disable[] = {0x00, 0x01, 0x00};
-    set_reg(ADC_CHANNEL_X(0), disable, bytes);
-    // set_reg(ADC_CHANNEL_X(2), disable, bytes);
-    
-}
-
-void set_channel_2(void) {
-    size_t bytes = 3;
-    uint8_t tx_data[] = {0x80, 0x85, 0x00};
-    set_reg(ADC_CHANNEL_X(2), tx_data, bytes);
-}
-
-
 
 void set_ctrl(void) {
     size_t bytes = 2;
@@ -344,9 +263,6 @@ void write_mem_map(void) {
     // set_data();
     set_io_ctrl();
     set_vbias_ctrl();
-    // set_mclk_count();
-    // set_channel_0();
-    // set_channel_m();
     set_config_n();
     set_filter_n();
     set_offset_n();
@@ -361,20 +277,6 @@ void read_adc_id(void) {
     spi_read_reg(rx_data, ADC_ID, bytes);
     print_buff_received(rx_data, bytes);
     
-}
-
-void read_adc_conversion(void) {
-    printf("repeating....\n");
-    size_t bytes = 3;
-    uint8_t rx_data[] = {0x0, 0x0, 0x0}; 
-    // rx_data will filled with data from data reg
-    spi_read_reg(rx_data, ADC_DATA, bytes);
-    uint32_t code = 0;
-
-    // print_buff_received(rx_data, bytes);
-    code = hex_to_code(rx_data, bytes);
-    printf("\nThis is my code: %d\n", code);
-
 }
 
 uint8_t read_status(void) {
@@ -393,5 +295,4 @@ uint32_t get_adc_data(void) {
     uint32_t code = 0;
     code = hex_to_code(rx_data, bytes);
     return code;
-
 }

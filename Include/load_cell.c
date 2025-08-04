@@ -23,35 +23,29 @@ uint32_t get_average(uint32_t *list, uint8_t n) {
 
 
 uint32_t get_calibration_data(void) {
-    int n = 50;
+    int n = 10;
     uint32_t data[n];
+    MXC_Delay(MXC_DELAY_MSEC(250));
     for(int i = 0; i < n; i++) {
         data[i] = get_adc_data();
         MXC_Delay(MXC_DELAY_MSEC(10));
-
     }
     uint32_t res = get_average(data, n);
-    // printf("resulting avg: %d\n\n", res);
-
     return res;
 }
 
-uint32_t calibrate_0(void) {
-    printf("~~Taring scale 0~~\n");
+uint32_t calibrate(uint8_t idx) {
+    configure_adc_channel(idx, 0x80); // enable
+    printf("~~Taring scale %d~~\n", idx);
+    
     uint32_t base = get_calibration_data();
-    printf("~~Calibration Complete~~\n");
-    return base;
-}
-
-uint32_t calibrate_1(void) {
-    printf("~~Taring scale 1~~\n");
-    uint32_t base = get_calibration_data();
-    printf("~~Calibration Complete~~\n");
+    configure_adc_channel(idx, 0x00); // disable
+    printf("~~Calibration %d Complete~~\n", idx);
     return base;
 }
 
 double code_to_grams(uint32_t base, uint32_t code, double conversion_factor){
-    printf("Code - Reference :%d - %d\n", code, base);
+    printf("Code - Reference : %d - %d\n", code, base);
     double delta = abs((int)code - (int)base);
     if(delta > 1) {
         double grams = delta * conversion_factor;
@@ -60,63 +54,20 @@ double code_to_grams(uint32_t base, uint32_t code, double conversion_factor){
     return 0;
 }
 
-
-// void load_cell_0_read(uint32_t base) {
-//     // printf("0.00~=code: %d\n\n", base);
-//     // set_channel_0();
-//     // uint32_t code = get_data_from_channel(0);
-//     uint32_t code = get_adc_data();
-//     double conversion_factor = 0.766561084;
-//     double weight = code_to_grams(base, code, conversion_factor);
-//     // FILE *file;
-//     // file = fopen("load0_1.txt", "w");
-//     // if(file == NULL) {
-//     //     return;
-//     // }
-//     // fprintf(file, "Enabling both channels and letting the handler poll both channels\n");
-//     // fprintf(file, "Expected 0g - Got %dg\n", weight);
-//     printf("Load cell 1 Weight in grams: %.2fg\n", weight);
-
-// }
-
-// void load_cell_1_read(uint32_t base) {
-//     // set_channel_1();
-//     uint32_t code = get_adc_data();
-//     double conversion_factor = 0.7532382584;
-//     double weight = code_to_grams(base, code, conversion_factor);
-//     // FILE *file;
-//     // file = fopen("load1_1.txt", "w");
-//     // if(file == NULL) {
-//     //     return;
-//     // }
-//     // fprintf(file, "Enabling both channels and letting the handler poll both channels\n");
-//     // fprintf(file, "Expected 0g - Got %dg\n", weight);
-//     printf("Load cell 2 Weight in grams: %.2fg\n\n", weight);
-
-
-// }
-
 void get_load_cell_data(uint8_t channel_idx, uint32_t base) {
     // channel configuration
     configure_adc_channel(channel_idx, 0x80);
-    // check the status
-    printf("Waiting for data ready on channel %d...\n", channel_idx);
-    uint8_t rdy = read_status();
-    // while((rdy & 0x10) != 0) {
-    //     printf("Waiting for the ready bit %d to flip", rdy);
-    //     MXC_Delay(MXC_DELAY_MSEC(500));
-    // }
-    // printf("Ready!!!");
-    // get data
-    MXC_Delay(MXC_DELAY_MSEC(1500));
+    // delay 250 ms then read data
+    MXC_Delay(MXC_DELAY_MSEC(250));
     uint32_t code = get_adc_data();
-    read_status();
-    double conversion_factor = 0.7532382584;
-    double weight = code_to_grams(base, code, conversion_factor);
-    // disable channel
-    printf("Load cell %d Weight in grams: %.2fg\n\n", channel_idx, weight);
-    configure_adc_channel(channel_idx, 0x00);
+    // check the status
     // read_status();
-
-
+    double conversion_factors[] = {0.766561084, 0.7532382584, 1.886107331};
+    double weight = code_to_grams(base, code, conversion_factors[channel_idx]);
+    // disable channel
+    printf("***********\n");
+    printf("Load cell %d weight in grams: %.2fg\n", channel_idx, weight);
+    printf("***********\n");
+    configure_adc_channel(channel_idx, 0x00);
+    printf("\n");
 }

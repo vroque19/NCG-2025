@@ -1,5 +1,15 @@
 #ifndef _4131_H_
 #define _4131_H_
+#include <stdio.h>
+#include <stdint.h>
+#include <string.h>
+#include <stddef.h>
+#include "mxc_device.h"
+#include "mxc_delay.h"
+#include "mxc_pins.h"
+#include "uart.h"
+#include "led.h"
+#include "spi.h"
 // move to header file
 #define ADC_STATUS 0x00 //
 #define ADC_CONTROL  0x01 //
@@ -35,10 +45,7 @@ void spi_main_init(void);
 void print_buff(const uint8_t *buff, size_t len);
 int spi_send_data(const uint8_t *tx_data, const uint8_t *rx_data, size_t len);
 void set_reg( uint8_t reg_addr, uint8_t *data, size_t bytes);
-void set_channel_0(void);
-void set_channel_m(void);
-void set_channel_1(void);
-void set_channel_2(void); 
+
 void set_status(void);
 void set_ctrl(void);
 void set_config_n(void);
@@ -52,7 +59,6 @@ void read_adc_id(void);
 void read_adc_conversion(void);
 uint32_t get_adc_data(void);
 uint8_t read_status(void);
-void spi_main_init(void);
 uint32_t bytes_to_dec(uint8_t *bytes);
 void test_spi_send(void);
 uint32_t hex_to_code(const uint8_t *buff, size_t len);
