@@ -60,7 +60,7 @@ void tmc5272_init(uint16_t icID)
 	tmc5272_writeRegister(0, 0x04, 	0x60223B19, NULL); 		// writing value 0x60223B19 = 1612856089 = 0.0 to address 2 = 0x04(IOIN)
 	tmc5272_writeRegister(0, 0x05, 	0x0000000F, NULL); 		// writing value 0x0000000F = 15 = 0.0 to address 3 = 0x05(DRV_CONF)
 	tmc5272_writeRegister(0, 0x06, 	0x00000000, NULL); 		// writing value 0x00000000 = 0 = 0.0 to address 4 = 0x06(GLOBAL_SCALER)
-	tmc5272_writeRegister(0, 0x07, 	0x00000001, NULL); 		// writing value 0x00000001 = 1 = 0.0 to address 5 = 0x07(RAMPMODE)
+	tmc5272_writeRegister(0, 0x07, 	0x0000000F, NULL); 		// writing value 0x0000000F = 15 = 0.0 to address 5 = 0x07(RAMPMODE) <- HOLD M0 M1
 	tmc5272_writeRegister(0, 0x08, 	0x00000009, NULL); 		// writing value 0x00000009 = 9 = 0.0 to address 6 = 0x08(MSLUT_ADDR)
 	tmc5272_writeRegister(0, 0x09, 	0xFFFF8056, NULL); 		// writing value 0xFFFF8056 = 0 = 0.0 to address 7 = 0x09(MSLUT_DATA)
 	tmc5272_writeRegister(0, 0x10, 	0xFFFFFFFF, NULL); 		// writing value 0xFFFFFFFF = 0 = 0.0 to address 8 = 0x10(M0_X_COMPARE)
