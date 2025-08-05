@@ -15,57 +15,38 @@
 #include <stddef.h>
 #include "TMC5272_HW_Abstraction.h"
 
-/*******************************************************************************
-* API Configuration Defines
-* These control optional features of the TMC-API implementation.
-* These can be commented in/out here or defined from the build system.
-*******************************************************************************/
+/* Functions */
 
-// Uncomment if you want to save space.....
-// and put the table into your own .c file
-//#define TMC_API_EXTERNAL_CRC_TABLE 1
-
-// Default Register values
-#define R00 0x00000008  // GCONF
-#define R0A 0x00000020  // DRVCONF
-#define R10 0x00070A03  // IHOLD_IRUN
-#define R11 0x0000000A  // TPOWERDOWN
-#define R2A 0x0000000A  // D1
-#define R2B 0x0000000A  // VSTOP
-#define R30 0x0000000A  // D2
-
-#define R3A 0x00010000  // ENC_CONST
-
-#define R52 0x0B920F25  // OTW_OV_VTH
-#define R60 0xAAAAB554  // MSLUT[0]
-#define R61 0x4A9554AA  // MSLUT[1]
-#define R62 0x24492929  // MSLUT[2]
-#define R63 0x10104222  // MSLUT[3]
-#define R64 0xFBFFFFFF  // MSLUT[4]
-#define R65 0xB5BB777D  // MSLUT[5]
-#define R66 0x49295556  // MSLUT[6]
-#define R67 0x00404222  // MSLUT[7]
-#define R68 0xFFFF8056  // MSLUT[8]
-#define R69 0x00F70000  // MSLUT[9]
-
-#define R6C 0x00410153  // CHOPCONF
-#define R70 0xC44C001E  // PWMCONF
-#define R74 0x00000000  // PWMCONF
-
-typedef enum {
-	IC_BUS_SPI,
-	IC_BUS_UART,
-} TMC5272BusType;
-
-// => TMC-API wrapper
+// Low-Level Communications
+// TMC-API
 extern void tmc5272_readWriteSPI(uint16_t icID, uint8_t *tx_data, size_t dataLength, uint8_t* rx_data);
 extern uint8_t tmc5272_getNodeAddress(uint16_t icID);
-// => TMC-API wrapper
 
+// TMC-API Wrappers
 int32_t tmc5272_readRegister(uint16_t icID, uint8_t address, uint8_t* spi_status);
 void tmc5272_writeRegister(uint16_t icID, uint8_t address, int32_t value, uint8_t* spi_status);
-void tmc5272_rotateMotor(uint16_t icID, uint8_t motor, int32_t velocity);
 
+// Part Initialization
+void tmc5272_init(uint16_t icID);
+
+// Movement Commands
+uint32_t tmc5272_getPosition(uint16_t icID, uint8_t motor);
+int32_t tmc5272_getVelocity(uint16_t icID, uint8_t motor);
+bool tmc5272_isAtTargetVelocity(uint16_t icID, uint8_t motor);
+bool tmc5272_isAtTargetPosition(uint16_t icID, uint8_t motor);
+
+void tmc5272_setHomePosition(uint16_t icID, uint8_t motor, uint32_t position);
+void tmc5272_setVelocityCurve(uint16_t icID, uint8_t motor, uint32_t vmax, uint32_t amax);
+
+// Velocity Mode
+void tmc5272_rotateAtVelocity(uint16_t icID, uint8_t motor, int32_t velocity, uint32_t acceleration);
+
+// Position Mode
+void tmc5272_rotateToPosition(uint16_t icID, uint8_t motor, uint32_t position);
+void tmc5272_rotateByMicrosteps(uint16_t icID, uint8_t motor, int32_t usteps);
+
+
+// TMC-API Boilerplate: Field + Field Functions
 typedef struct
 {
     uint32_t mask;
