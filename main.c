@@ -78,39 +78,61 @@ int main(void)
 		printf("tmc5272 velocity: %d \n", tmc5272_getVelocity(0, 0));
 	}
 
+	// WAIT
+	printf("PB to continue \n\n");
+	while(!PB_IsPressedAny()) {}
+
 	// Rotate the other way
 	printf("Rotating other way...\n");
-	tmc5272_rotateAtVelocity(0, 0, -10000, ACC);
+	tmc5272_rotateAtVelocity(0, 0, -100000, ACC);
 	while(!tmc5272_isAtTargetVelocity(0,0)) {
 		printf("tmc5272 velocity: %d \n", tmc5272_getVelocity(0, 0));
 	}
 
 	// Slow to a stop
-	tmc5272_rotateAtVelocity(0, 0, 0, ACC);
+	tmc5272_rotateAtVelocity(0, 0, 0, ACC*2);
 	while(!tmc5272_isAtTargetVelocity(0,0)) {
 		printf("tmc5272 velocity: %d \n", tmc5272_getVelocity(0, 0));
 	}
     
-	// Get/set home position
+	// WAIT
+	printf("PB to continue \n\n");
+	while(!PB_IsPressedAny()) {}
+
+
+	// Set home position as current position + 1000 usteps
 	uint32_t position = tmc5272_getPosition(0, 0);
 	printf("Current Position: %d \n", position);
 	tmc5272_setHomePosition(0, 0, position + 1000);
 	position = tmc5272_getPosition(0, 0);
 	printf("Now reads as %d \n", position);
 
+	// WAIT
+	printf("PB to continue \n\n");
+	while(!PB_IsPressedAny()) {}
+
 	// Positioning Tests
 	// Set velocity curve and rotate fixed amounts
 	printf("Set velocity curve: V=300k, A=10k \n");
 	tmc5272_setVelocityCurve(0, 0, 300000, 10000);
 
+	// WAIT
+	printf("PB to continue \n\n");
+	while(!PB_IsPressedAny()) {}
+
 	// A fixed ustep rotation first
 	printf("Full 2 rotations... \n");
-	tmc5272_rotateByMicrosteps(0, 0, 102400); // Full rotation
+	tmc5272_rotateByMicrosteps(0, 0, 204800); // Full rotation
 	while(!tmc5272_isAtTargetPosition(0, 0)) {
 		printf("(X,V): %d, %d \n", tmc5272_getPosition(0, 0), tmc5272_getVelocity(0, 0));
 	}
 
+	// WAIT
+	printf("PB to continue \n\n");
+	while(!PB_IsPressedAny()) {}
+
 	printf("Restore to home position... \n");
+	tmc5272_setVelocityCurve(0, 0, 300000, 1000);
 	tmc5272_rotateToPosition(0, 0, 0);
 	while(!tmc5272_isAtTargetPosition(0, 0)) {
 		printf("(X,V): %d, %d \n", tmc5272_getPosition(0, 0), tmc5272_getVelocity(0, 0));
