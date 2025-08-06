@@ -1,24 +1,21 @@
-#include <stdio.h>
-#include <string.h>
-#include "uart_regs.h"
-#include "mxc_sys.h"
-#include "mxc_device.h"
-#include "mxc_delay.h"
-#include "uart.h"
+#include "Include/nextion.h"
 
-#define BAUD_RATE 9600
-
-int nextion_init(mxc_uart_regs_t *uart) {
-    if(!uart) {
-        return E_BAD_PARAM;
-    }
-    MXC_UART_Init(uart, BAUD_RATE);
-    MXC_UART_ClearRXFIFO(uart);
-    MXC_UART_ClearTXFIFO(uart);
-
-}
 
 int main(void) {
-    mxc_uart_regs_t *uart;
-    MXC_UART_Shutdown(uart);
+    nextion_init();
+
+    while(1){
+        printf("Sending data...\n");
+        // send_read_test();
+        send_test();
+        // int res = send_req();
+        // if(res != E_NO_ERROR) {
+        //     printf("Error sending data\n");
+        //     return res;
+        // }
+        // printf("Success");
+    }
+    MXC_UART_Shutdown(NEXTION_UART_REG);
+    return 0;
+    
 }
