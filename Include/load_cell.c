@@ -55,19 +55,19 @@ double code_to_grams(uint32_t base, uint32_t code, double conversion_factor){
 }
 
 void get_load_cell_data(uint8_t channel_idx, uint32_t base) {
-    // channel configuration
+    // enable channel
     configure_adc_channel(channel_idx, 0x80);
     // delay 250 ms then read data
     MXC_Delay(MXC_DELAY_MSEC(250));
     uint32_t code = get_adc_data();
     // check the status
     // read_status();
-    double conversion_factors[] = {0.766561084, 0.7532382584, 1.886107331};
+    double conversion_factors[] = {0.766561084, 0.7532382584, 0.7432382584};
     double weight = code_to_grams(base, code, conversion_factors[channel_idx]);
-    // disable channel
     printf("***********\n");
     printf("Load cell %d weight in grams: %.2fg\n", channel_idx, weight);
     printf("***********\n");
+    // disable channel
     configure_adc_channel(channel_idx, 0x00);
     printf("\n");
 }

@@ -16,7 +16,7 @@
 int main(void)
 {
     spi_main_init();
-    // write_mem_map();
+    write_mem_map();
     read_adc_id();
 
     uint32_t base0 = calibrate(0);
@@ -39,11 +39,11 @@ int main(void)
             case 1:
                 get_load_cell_data(cell_idx, base1);
                 break;
-            case 2:
+            default:
                 get_load_cell_data(cell_idx, base2);
                 break;
         }
-
+        // get_load_cell_data(2, base2);
         MXC_Delay(MXC_DELAY_MSEC(500));
     }
     MXC_SPI_Shutdown(SPI_MAIN);
