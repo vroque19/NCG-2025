@@ -34,6 +34,10 @@ void nextion_init(void) {
 
 void nextion_send_command(const char *command) {
     // Send the command string byte by byte.
+    char prefix[] = "t0.txt=";
+    for (int i = 0; i < strlen(prefix); ++i) {
+        MXC_UART_WriteCharacter(NEXTION_UART_REG, prefix[i]);
+    }
     for (int i = 0; i < strlen(command); ++i) {
         MXC_UART_WriteCharacter(NEXTION_UART_REG, command[i]);
     }
