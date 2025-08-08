@@ -1,6 +1,8 @@
-/.settings
-/.vscode
 /build
 /ex
-project.mk
-flash.log
+*.log
+*.mk
+*.launch
+/.vscode
+/.settings
+cproject

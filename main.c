@@ -1,24 +1,51 @@
-#include "Include/nextion.h"
+#include <stdio.h>
+#include <stdint.h>
+#include <string.h>
+#include <stddef.h>
+#include <math.h>
+#include "mxc_device.h"
+#include "mxc_delay.h"
+#include "mxc_pins.h"
+#include "uart.h"
+#include "led.h"
+#include "spi.h"
+#include "include/4131.h"
+#include "include/load_cell.h"
 
 
-int main(void) {
-    nextion_init();
-    float data = 4343.69f;
-    char output_string[32];
-    sprintf(output_string, "\"%.2f\"", data);
-    while(1){
-        printf("Sending data...\n");
-        nextion_send_command(output_string);
-        // send_read_test();
-        // send_test();
-        // int res = send_req();
-        // if(res != E_NO_ERROR) {
-        //     printf("Error sending data\n");
-        //     return res;
-        // }
-        // printf("Success");
-    }
-    MXC_UART_Shutdown(NEXTION_UART_REG);
-    return 0;
+int main(void)
+{
+    spi_main_init();
+    write_mem_map();
+    read_adc_id();
+
+    uint32_t base0 = calibrate(0);
+    MXC_Delay(MXC_DELAY_MSEC(1500));
     
+    uint32_t base1 = calibrate(1);
+    MXC_Delay(MXC_DELAY_MSEC(1500));
+    
+    uint32_t base2 = calibrate(2);
+    while(1) {
+        printf("Select a load cell 0-2:\n ");
+        uint8_t cell_idx;
+        scanf("%d", &cell_idx);
+        printf("%d\n", cell_idx);
+        
+        switch(cell_idx) {
+            case 0:
+                get_load_cell_data(cell_idx, base0);
+                break;
+            case 1:
+                get_load_cell_data(cell_idx, base1);
+                break;
+            default:
+                get_load_cell_data(cell_idx, base2);
+                break;
+        }
+        // get_load_cell_data(2, base2);
+        MXC_Delay(MXC_DELAY_MSEC(500));
+    }
+    MXC_SPI_Shutdown(SPI_MAIN);
+    return E_NO_ERROR;
 }
