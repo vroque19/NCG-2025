@@ -54,7 +54,7 @@ double code_to_grams(uint32_t base, uint32_t code, double conversion_factor){
     return 0;
 }
 
-void get_load_cell_data(uint8_t channel_idx, uint32_t base) {
+double get_load_cell_data(uint8_t channel_idx, uint32_t base) {
     // enable channel
     configure_adc_channel(channel_idx, 0x80);
     // delay 250 ms then read data
@@ -70,4 +70,26 @@ void get_load_cell_data(uint8_t channel_idx, uint32_t base) {
     // disable channel
     configure_adc_channel(channel_idx, 0x00);
     printf("\n");
+    return weight;
+}
+
+void test_switch(uint32_t base0, uint32_t base1, uint32_t base2) {
+    // switch statement load cell test
+    printf("Select a load cell 0-2:\n ");
+        uint8_t cell_idx;
+        scanf("%d", &cell_idx);
+        printf("%d\n", cell_idx);
+        
+        switch(cell_idx) {
+            case 0:
+                get_load_cell_data(cell_idx, base0);
+                break;
+            case 1:
+                get_load_cell_data(cell_idx, base1);
+                break;
+            default:
+                get_load_cell_data(cell_idx, base2);
+                break;
+        }
+        MXC_Delay(MXC_DELAY_MSEC(500));
 }
