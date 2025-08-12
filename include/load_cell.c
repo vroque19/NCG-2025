@@ -62,7 +62,7 @@ double get_load_cell_data(uint8_t channel_idx, uint32_t base) {
     uint32_t code = get_adc_data();
     // check the status
     // read_status();
-    double conversion_factors[] = {0.766561084, 0.7532382584, 0.7432382584};
+    double conversion_factors[] = {0.766561084, 0.75, 0.7692307692};
     double weight = code_to_grams(base, code, conversion_factors[channel_idx]);
     printf("***********\n");
     printf("Load cell %d weight in grams: %.2fg\n", channel_idx, weight);

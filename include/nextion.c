@@ -1,4 +1,5 @@
 #include "nextion.h"
+#include "load_cell.h"
 
 
 void nextion_init(void) {
@@ -39,8 +40,8 @@ void terminate_command(void) {
     for (int i = 0; i < 3; ++i) {
         MXC_UART_WriteCharacter(NEXTION_UART_REG, 0xFF);
     }
-    MXC_Delay(MXC_DELAY_MSEC(50));
-    printf("Sent\n");
+    // MXC_Delay(MXC_DELAY_MSEC(50));
+    // printf("Sent\n");
 }
 
 // update the weight output text on the display
@@ -49,6 +50,18 @@ void update_weight(float weight, char *objname) {
     char dest_buff[50]; // final command
     char suffix[] = "\"";
     snprintf(dest_buff, sizeof(dest_buff), "%s%s%.2f%s", objname, prefix, weight, suffix); // combine obj, pref, weight, suff into one commands
-    printf("Combined command: %s\n", dest_buff); // debugging what is being sent
+    // printf("Combined command: %s\n", dest_buff); // debugging what is being sent
     nextion_send_command(dest_buff);
+}
+
+void poll_weights(uint32_t base0, uint32_t base1, uint32_t base2) {
+    double weight0 = get_load_cell_data(LOAD_CELL_0, base0);
+    double weight1 = get_load_cell_data(LOAD_CELL_1, base1);
+    double weight2 = get_load_cell_data(LOAD_CELL_2, base2);
+    // MXC_Delay(MXC_DELAY_MSEC(900));
+    update_weight(weight2, TXT_WEIGHT_2);
+    // // MXC_Delay(MXC_DELAY_MSEC(2000));
+    update_weight(weight1, TXT_WEIGHT_1);
+    // MXC_Delay(MXC_DELAY_MSEC(2000));
+    update_weight(weight0, TXT_WEIGHT_0);
 }
