@@ -1,6 +1,6 @@
-#include "Include/4131.h"
-#include "Include/load_cell.h"
+#include "4131.h"
 #include "led.h"
+#include "load_cell.h"
 #include "mxc_delay.h"
 #include "mxc_device.h"
 #include "mxc_pins.h"

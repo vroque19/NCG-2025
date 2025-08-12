@@ -1,5 +1,6 @@
 #ifndef _load_cell_h_
 #define _load_cell_h_
+#include <stdint.h>
 
 uint32_t calibrate(uint8_t idx);
 uint32_t get_calibration_data(void);
