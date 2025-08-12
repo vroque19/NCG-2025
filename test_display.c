@@ -1,5 +1,4 @@
-#include "Include/nextion.h"
-
+#include "nextion.h"
 
 // int main(void) {
 //     nextion_init();
@@ -13,5 +12,5 @@
 //     }
 //     MXC_UART_Shutdown(NEXTION_UART_REG);
 //     return 0;
-    
+
 // }
