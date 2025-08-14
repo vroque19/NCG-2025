@@ -1,7 +1,7 @@
 #include "nextion.h"
-#include "load_cell.h"
 
 
+volatile uint32_t *uart_int_en, *uart_int_flags; 
 void nextion_init(void) {
     // INIT UART
     if(MXC_UART_Init(NEXTION_UART_REG, BAUD_RATE) != E_NO_ERROR) {
@@ -27,6 +27,36 @@ void nextion_init(void) {
     printf("\nSuccesfull Initialized UART\n\n");
 }
 
+void UART1_ISR(void) {
+    printf("~~~~~~ In ISR. Flag = %d ~~~~~~\n\n", UART_ISR_FLAG);
+    printf("Flags: %d \n", MXC_UART_GetFlags(NEXTION_UART_REG));
+    UART_ISR_FLAG = 1;
+    MXC_UART_AsyncHandler(NEXTION_UART_REG);
+
+
+    MXC_UART_ClearFlags(NEXTION_UART_REG, 1U<<4);
+    NEXTION_UART_REG->int_en = 0x10; 
+    MXC_UART_ClearRXFIFO(NEXTION_UART_REG);
+    
+}
+
+void readCallback(mxc_uart_req_t *req, int error) {
+  printf(">>>> Callback function <<<< \n\n");
+  UART_ISR_FLAG = error;
+}
+
+void nextion_int_init(void) {
+    uart_int_en = (MXC_BASE_UART1 + MXC_R_UART_INT_EN);
+    uart_int_flags = (MXC_BASE_UART1 + MXC_R_UART_INT_FL);
+        // enable interrupts
+    NVIC_ClearPendingIRQ(UART1_IRQn);
+    NVIC_DisableIRQ(UART1_IRQn);
+    MXC_NVIC_SetVector(UART1_IRQn, UART1_ISR);
+    NVIC_EnableIRQ(UART1_IRQn);
+    MXC_UART_SetRXThreshold(NEXTION_UART_REG, BYTES);
+    MXC_UART_EnableInt(NEXTION_UART_REG, RX_LVL);
+    
+}
 void nextion_send_command(const char *command) {
     // Send the command string byte by byte.
     for (int i = 0; i < strlen(command); ++i) {
@@ -45,7 +75,7 @@ void terminate_command(void) {
 }
 
 // update the weight output text on the display
-void update_weight(float weight, char *objname) {
+void update_weight(double weight, char *objname) {
     char prefix[] = ".txt=\"";
     char dest_buff[50]; // final command
     char suffix[] = "\"";

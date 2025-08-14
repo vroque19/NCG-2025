@@ -1,5 +1,14 @@
 #ifndef _load_cell_h_
 #define _load_cell_h_
+#include <stdio.h>
+#include <stdint.h>
+#include <stddef.h>
+#include <stdlib.h>
+#include <stdbool.h>
+#include <math.h>
+#include "mxc_delay.h"
+#include <string.h>
+#include "4131.h"
 
 #define LOAD_CELL_0 0
 #define LOAD_CELL_1 1
