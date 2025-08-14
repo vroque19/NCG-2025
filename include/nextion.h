@@ -21,6 +21,7 @@
 #define TXT_WEIGHT_0 "t0"
 #define TXT_WEIGHT_1 "t1"
 #define TXT_WEIGHT_2 "t2"
+#define TOUCH_EVENT 0x65
 
 /* INTERRUPT globals */
 extern volatile int UART_ISR_FLAG; // 1 when interrupt occurs
@@ -30,6 +31,7 @@ extern volatile int UART_ISR_FLAG; // 1 when interrupt occurs
 extern volatile uint32_t *uart_int_en, *uart_int_flags; // debugging
 
 
+void update_reading(int idx, uint32_t base, char *objname);  
 
 void nextion_init(void);
 void nextion_int_init(void);
@@ -39,6 +41,11 @@ void nextion_send_command(const char *command);
 void terminate_command(void);
 void update_weight(double weight, char *objname);
 void poll_weights(uint32_t base0, uint32_t base1, uint32_t base2);
+uint8_t get_event(uint8_t *buff);
+uint8_t get_page(uint8_t *buff);
+uint8_t get_component(uint8_t *buff);
+
+
 
 
 #endif

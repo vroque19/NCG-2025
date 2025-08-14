@@ -84,6 +84,7 @@ void update_weight(double weight, char *objname) {
     nextion_send_command(dest_buff);
 }
 
+// testing 3 load cells
 void poll_weights(uint32_t base0, uint32_t base1, uint32_t base2) {
     double weight0 = get_load_cell_data(LOAD_CELL_0, base0);
     double weight1 = get_load_cell_data(LOAD_CELL_1, base1);
@@ -94,4 +95,21 @@ void poll_weights(uint32_t base0, uint32_t base1, uint32_t base2) {
     update_weight(weight1, TXT_WEIGHT_1);
     // MXC_Delay(MXC_DELAY_MSEC(2000));
     update_weight(weight0, TXT_WEIGHT_0);
+}
+
+void update_reading(int idx, uint32_t base, char *objname) {
+    double weight = get_load_cell_data(idx, base);
+    update_weight(weight, objname);
+}
+
+uint8_t get_event(uint8_t *buff) {
+    return buff[0];
+}
+
+uint8_t get_page(uint8_t *buff) {
+    return buff[1];
+}
+
+uint8_t get_component(uint8_t *buff) {
+    return buff[2];
 }
