@@ -46,6 +46,12 @@ void tmc5272_rotateToPosition(uint16_t icID, uint8_t motor, uint32_t position);
 void tmc5272_rotateByMicrosteps(uint16_t icID, uint8_t motor, int32_t usteps);
 
 
+/* Tricoder */
+void tmc5272_initTricoder(uint16_t icID, uint8_t motor);
+
+
+
+
 // TMC-API Boilerplate: Field + Field Functions
 typedef struct
 {
