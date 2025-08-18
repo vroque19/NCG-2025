@@ -2,8 +2,9 @@
 
 
 volatile uint32_t *uart_int_en, *uart_int_flags; 
+
+/* Initialize UART for the Nextion display */
 void nextion_init(void) {
-    // INIT UART
     if(MXC_UART_Init(NEXTION_UART_REG, BAUD_RATE) != E_NO_ERROR) {
         printf("\n UART INIT ERROR.\n");
         while(1){}
@@ -27,17 +28,15 @@ void nextion_init(void) {
     printf("\nSuccesfull Initialized UART\n\n");
 }
 
+/* ISR for the UART interrupts to set flags*/
 void UART1_ISR(void) {
     printf("~~~~~~ In ISR. Flag = %d ~~~~~~\n\n", UART_ISR_FLAG);
     printf("Flags: %d \n", MXC_UART_GetFlags(NEXTION_UART_REG));
     UART_ISR_FLAG = 1;
     MXC_UART_AsyncHandler(NEXTION_UART_REG);
-
-
     MXC_UART_ClearFlags(NEXTION_UART_REG, 1U<<4);
-    NEXTION_UART_REG->int_en = 0x10; 
+    MXC_UART_EnableInt(NEXTION_UART_REG, RX_LVL);
     MXC_UART_ClearRXFIFO(NEXTION_UART_REG);
-    
 }
 
 void readCallback(mxc_uart_req_t *req, int error) {
@@ -57,21 +56,20 @@ void nextion_int_init(void) {
     MXC_UART_EnableInt(NEXTION_UART_REG, RX_LVL);
     
 }
+
+// Send the command string byte by byte.
 void nextion_send_command(const char *command) {
-    // Send the command string byte by byte.
     for (int i = 0; i < strlen(command); ++i) {
         MXC_UART_WriteCharacter(NEXTION_UART_REG, command[i]);
     }
     terminate_command(); // commands must be terminated with three 0xFF bytes.
 }
 
+// ends command with stop bits
 void terminate_command(void) {
-    // 3 0xFF bytes
     for (int i = 0; i < 3; ++i) {
         MXC_UART_WriteCharacter(NEXTION_UART_REG, 0xFF);
     }
-    // MXC_Delay(MXC_DELAY_MSEC(50));
-    // printf("Sent\n");
 }
 
 // update the weight output text on the display
