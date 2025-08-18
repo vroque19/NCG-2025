@@ -32,16 +32,64 @@ void nextion_init(void) {
 void UART1_ISR(void) {
     printf("~~~~~~ In ISR. Flag = %d ~~~~~~\n\n", UART_ISR_FLAG);
     printf("Flags: %d \n", MXC_UART_GetFlags(NEXTION_UART_REG));
-    UART_ISR_FLAG = 1;
-    MXC_UART_AsyncHandler(NEXTION_UART_REG);
-    MXC_UART_ClearFlags(NEXTION_UART_REG, 1U<<4);
+    // Only process if we're not already processing
+    if (( MXC_UART_GetFlags(NEXTION_UART_REG) & (1 << 4)) && (UART_ISR_FLAG == 0)) {
+        printf("Processing RX threshold interrupt\n");
+        UART_ISR_FLAG = 1;
+        MXC_UART_AsyncHandler(NEXTION_UART_REG);
+        
+        // Clear only the RX threshold flag (bit 4)
+        MXC_UART_ClearFlags(NEXTION_UART_REG, (1 << 5));
+    }
+    else {
+        printf("------Ignoring interrupt - flags=0x%X, ISR_FLAG=%d\n-----",  MXC_UART_GetFlags(NEXTION_UART_REG), UART_ISR_FLAG);
+        // Clear other flags to prevent repeated interrupts
+        MXC_UART_ClearFlags(NEXTION_UART_REG,  MXC_UART_GetFlags(NEXTION_UART_REG) & ~(1 << 4));
+    }
+
+    // MXC_UART_AsyncHandler(NEXTION_UART_REG);
+    // MXC_UART_ClearFlags(NEXTION_UART_REG, 1U<<4);
     MXC_UART_EnableInt(NEXTION_UART_REG, RX_LVL);
     MXC_UART_ClearRXFIFO(NEXTION_UART_REG);
 }
 
 void readCallback(mxc_uart_req_t *req, int error) {
-  printf(">>>> Callback function <<<< \n\n");
-  UART_ISR_FLAG = error;
+    printf(">>>> Callback function <<<< \n\n");
+    if (error == E_NO_ERROR) {
+        // Transaction completed successfully
+        printf("UART transaction completed successfully\n");
+        printf("Received %d bytes\n", req->rxCnt);
+        
+        // Signal that data is ready to be processed
+        UART_ISR_FLAG = 1;  // Set flag to indicate data ready
+        
+        // Optional: Print received data for debugging
+        printf("Raw data: ");
+        for(int i = 0; i < req->rxCnt; i++) {
+            printf("0x%02X ", req->rxData[i]);
+        }
+        printf("\n");
+        
+    } else {
+        // Handle errors
+        printf("UART transaction error: %d\n", error);
+        
+        switch(error) {
+            case E_BUSY:
+                printf("UART busy\n");
+                break;
+            case E_BAD_PARAM:
+                printf("Bad parameter\n");
+                break;
+            case E_SHUTDOWN:
+                printf("UART shutdown\n");
+                break;
+            default:
+                printf("Unknown error\n");
+                break;
+        }
+    }
+        
 }
 
 void nextion_int_init(void) {
@@ -59,10 +107,15 @@ void nextion_int_init(void) {
 
 // Send the command string byte by byte.
 void nextion_send_command(const char *command) {
+    printf("About to send: %s\n", command);
+    printf("UART FLAGS, STATUS before TX: 0x%X, %X\n", MXC_UART_GetFlags(NEXTION_UART_REG), MXC_UART_GetStatus(NEXTION_UART_REG));
     for (int i = 0; i < strlen(command); ++i) {
         MXC_UART_WriteCharacter(NEXTION_UART_REG, command[i]);
     }
     terminate_command(); // commands must be terminated with three 0xFF bytes.
+    printf("UART FLAGS, STATUS after TX: 0x%X, %X\n", MXC_UART_GetFlags(NEXTION_UART_REG), MXC_UART_GetStatus(NEXTION_UART_REG));
+    MXC_Delay(5000); // 5ms delay
+    MXC_UART_ClearRXFIFO(NEXTION_UART_REG); // Clear Receive for errors
 }
 
 // ends command with stop bits

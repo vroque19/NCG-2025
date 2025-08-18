@@ -14,13 +14,15 @@ typedef struct {
     void (*handler_function)(void);
 } screen_component;
 
+void update_txt_box(char *val);
+
 // Page 1 button functions
 void handle_tower_0_btn(void);
 void handle_tower_1_btn(void);
 void handle_tower_2_btn(void);
 void handle_toggle_1to2_btn(void);
 void handle_touch_event(uint8_t page_id, uint8_t comp_id);
-
+void clear_boxes(void);
 // Page 2 button functions
 
 int mode_touchscreen_run(void);
