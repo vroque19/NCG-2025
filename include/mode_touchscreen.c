@@ -59,18 +59,39 @@ void handle_touch_event(uint8_t page_id, uint8_t comp_id) {
 }
 
 void handle_tower_0_btn(void) {
+	if(touch_count == 0) {
+		printf("1st tower: ");
+		touch_count++;
+	} else {
+		printf("2nd tower: ");
+		touch_count = 0;
+	}
 	printf("tower 0\n");
 	
 	return;
 }
 
 void handle_tower_1_btn(void) {
+	if(touch_count == 0) {
+		printf("1st tower: ");
+		touch_count++;
+	} else {
+		printf("2nd tower: ");
+		touch_count = 0;
+	}
 	printf("tower 1\n");
 	
 	// printf("Touch count : %d\n\n", touch_count);
 	return;
 }
 void handle_tower_2_btn(void) {
+	if(touch_count == 0) {
+		printf("1st tower: ");
+		touch_count++;
+	} else {
+		printf("2nd tower: ");
+		touch_count = 0;
+	}
 	printf("tower 2\n");
 	
 	// printf("Touch count : %d\n\n", touch_count);
