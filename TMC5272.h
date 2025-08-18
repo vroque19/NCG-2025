@@ -28,6 +28,7 @@ void tmc5272_writeRegister(uint16_t icID, uint8_t address, int32_t value, uint8_
 
 // Part Initialization
 void tmc5272_init(uint16_t icID);
+void tmc5272_configEmergencyStop(uint16_t icID, uint8_t motor, uint8_t isEnabled);
 
 // Movement Commands
 uint32_t tmc5272_getPosition(uint16_t icID, uint8_t motor);
@@ -47,7 +48,23 @@ void tmc5272_rotateByMicrosteps(uint16_t icID, uint8_t motor, int32_t usteps);
 
 
 /* Tricoder */
-void tmc5272_initTricoder(uint16_t icID, uint8_t motor);
+typedef enum {
+    BEMF_HYST_25mV,	
+	BEMF_HYST_10mV,	
+	BEMF_HYST_50mV,	
+	BEMF_HYST_75mV,	
+	BEMF_HYST_100mV,
+	BEMF_HYST_150mV,
+	BEMF_HYST_200mV,
+	BEMF_HYST_250mV
+
+} tmc5272_tricoder_bemf_hysteresis_t;
+
+void tmc5272_tricoder_init(uint16_t icID, uint8_t motor, int32_t encoder_value);
+void tmc5272_tricoder_setBEMFHysteresis(uint16_t icID, uint8_t motor, tmc5272_tricoder_bemf_hysteresis_t bemf_hysteresis);
+void tmc5272_tricoder_setEncoderValue(uint16_t icID, uint8_t motor, int32_t encoder_value);
+int32_t tmc5272_tricoder_getPosition(uint16_t icID, uint8_t motor);
+
 
 
 

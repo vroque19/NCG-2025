@@ -45,42 +45,40 @@ int main(void)
 {
 	// Initialize TMC Motor
 	tmc5272_init(0);
-
-	MXC_Delay(MXC_DELAY_MSEC(1500));
-
+	tmc5272_configEmergencyStop(0, 0, 1);
+	tmc5272_configEmergencyStop(0, 1, 1);
+	tmc5272_setVelocityCurve(0, 0, 50000, 10000);
 
 	// Startup Status Readout
 	printf("Tricoder Demo \n");
 	printf("In this mode, Motor 0 rotates to match Motor 1. \n");
 
-	tmc5272_initTricoder(0, 1);
-	tmc5272_setVelocityCurve(0, 0, 50000, 10000);
+	// Tricoder Initialization
+	tmc5272_tricoder_init(0, 1, tmc5272_getPosition(0, 0));
+	tmc5272_tricoder_setBEMFHysteresis(0, 1, BEMF_HYST_10mV );
 
 	// Main Loop
-	
-	// Initialize Tricoder value to 0
-	tmc5272_fieldWrite(0, TMC5272_X_ENC_FIELD(1), 0x00);
-	uint32_t m0_start_position = tmc5272_getPosition(0, 0);
     while (1) {
 	
 		// Read the Tricoder position
-		int32_t tricoder_position = tmc5272_fieldRead(0, TMC5272_X_ENC_FIELD(1));
+		int32_t tricoder_position = tmc5272_tricoder_getPosition(0, 1);
 
 		// Rotate motor 0 to TC position
-		tmc5272_rotateToPosition(0, 0, m0_start_position + tricoder_position);
+		tmc5272_rotateToPosition(0, 0, tricoder_position);
 		
-		// Failsafe brakes and exit
+		// Readout for register comparison
 		if(PB_IsPressedAny())
 		{
-			tmc5272_rotateAtVelocity(0, 0, 0, 10000);
-			MXC_Delay(MXC_DELAY_MSEC(5000));
+			for(uint8_t reg = 0x00; reg < 0x94; reg++)
+			{
+				uint32_t reg_val = tmc5272_readRegister(0, reg, NULL);
+				printf("0x%X : 0x%X \n", reg, reg_val);
+			}
 		}
+		// Readout
+		// printf("Current position: %d \n \
+		// 	ENC Position: %d \n", 
+		// 	tmc5272_getPosition(0,0), tricoder_position);
 
-		printf("Current position: %d \n \
-			ENC Position: %d \n", 
-			tmc5272_getPosition(0,0), tricoder_position);
-
-
-		
     }
 }
