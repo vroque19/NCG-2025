@@ -6,8 +6,6 @@
 #include <stddef.h>
 
 
-// volatile int8_t rx_data[BYTES];
-
 typedef enum {
     MANUAL_MODE,
     TOUCHSCREEN_MODE,

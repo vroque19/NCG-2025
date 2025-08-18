@@ -26,10 +26,9 @@ int mode_touchscreen_run(void) {
 	base1 = calibrate(LOAD_CELL_1);
 	base2 = calibrate(LOAD_CELL_2);
 	while(1) {
-		MXC_UART_TransactionAsync(&read_req);
 		while (!UART_ISR_FLAG) {
 			// poll_weights(base0, base1, base2);
-		  	MXC_UART_TransactionAsync(&read_req); // rearm uart interruptS
+		  	MXC_UART_TransactionAsync(&read_req); // rearm uart interrupt
 		}
 		UART_ISR_FLAG = 0;
 		print_buff(rx_data, BYTES);
@@ -38,11 +37,10 @@ int mode_touchscreen_run(void) {
 		component = get_component(rx_data);
 		printf("Page: %X | Component: %X\n", page, component);
 		handle_touch_event(page, component);
-		printf("Button handled... Waiting...\n\n");
-		// poll_weights(base0, base1, base2);
 	}
 
 }
+
 /* finds the correct function for each touch event */
 void handle_touch_event(uint8_t page_id, uint8_t comp_id) {
 	const screen_component comp_table[] = {
@@ -61,66 +59,20 @@ void handle_touch_event(uint8_t page_id, uint8_t comp_id) {
 }
 
 void handle_tower_0_btn(void) {
-	if(touch_count > 0) {
-		printf("\n\n***** Sending to Tower 1 *****\n\n");
-		// MXC_Delay(MXC_DELAY_MSEC(5000));
-		// update_reading(LOAD_CELL_1, base0, TXT_WEIGHT_0);
-		touch_count = 0;
-	}
-	else {
-		printf("\nSend from tower 0\n");
-		printf("\n\n***** Lifting *****\n\n");
-		printf("motors are turning...\n");
-
-		// MXC_Delay(MXC_DELAY_MSEC(5000));
-		// update_reading(LOAD_CELL_0, base0, TXT_WEIGHT_0);
-		tower_prev = LOAD_CELL_0;
-		touch_count++;
-	}
-	// printf("Touch count : %d\n\n", touch_count);
+	printf("tower 0\n");
+	
 	return;
 }
 
 void handle_tower_1_btn(void) {
-	if(touch_count > 0) {
-		touch_count = 0;
-		printf("\n\n***** Sending to Tower 1 *****\n\n");
-		printf("motors are turning...\n");
-		// MXC_Delay(MXC_DELAY_MSEC(5000));
-		// update_reading(LOAD_CELL_1, base1, TXT_WEIGHT_1);
-	}
-	else {
-		printf("\nSend from tower 1\n");
-		// printf("\n\n***** Lifting *****\n\n");
-		printf("motors are turning...\n");
-
-		// MXC_Delay(MXC_DELAY_MSEC(5000));
-		// update_reading(LOAD_CELL_1, base1, TXT_WEIGHT_1);
-		tower_prev = LOAD_CELL_1;
-		touch_count++;
-	}
+	printf("tower 1\n");
+	
 	// printf("Touch count : %d\n\n", touch_count);
 	return;
 }
 void handle_tower_2_btn(void) {
-	if(touch_count > 0) {
-		printf("\n\n***** Sending to Tower 2 *****\n\n");
-		printf("motors are turning...\n");
-
-		// MXC_Delay(MXC_DELAY_MSEC(5000));
-		// update_reading(LOAD_CELL_2, base2, TXT_WEIGHT_2);
-		touch_count = 0;
-	}
-	else {
-		printf("\nSend from tower 2\n");
-		// printf("\n\n***** Lifting *****\n\n");
-		printf("motors are turning...\n");
-
-		// MXC_Delay(MXC_DELAY_MSEC(5000));
-		// update_reading(LOAD_CELL_2, base2, TXT_WEIGHT_2);
-		tower_prev = LOAD_CELL_2;
-		touch_count++;
-	}
+	printf("tower 2\n");
+	
 	// printf("Touch count : %d\n\n", touch_count);
 	return;
 }
