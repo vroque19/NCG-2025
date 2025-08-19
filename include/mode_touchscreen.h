@@ -15,7 +15,6 @@ typedef struct {
 } screen_component;
 
 void update_txt_box(char *val);
-
 // Page 1 button functions
 void handle_tower_0_btn(void);
 void handle_tower_1_btn(void);

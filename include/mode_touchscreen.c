@@ -5,9 +5,11 @@ volatile int UART_ISR_FLAG = 0;
 int touch_count = 0;
 int tower_prev = 0;
 uint32_t base0, base1, base2;
+
+
 int mode_touchscreen_run(void) {
 	
-// ASYNC UART
+	// ASYNC UART
 	uint8_t rx_data[BYTES];
 	uint8_t tx_data[BYTES];
 	clear_boxes();
@@ -22,6 +24,7 @@ int mode_touchscreen_run(void) {
 		.rxCnt = 0,
 		.callback = readCallback
 	}; 
+	
 	// uart interrupt init
 	nextion_int_init();
 	MXC_UART_TransactionAsync(&read_req); // rearm uart interrupt
@@ -29,11 +32,11 @@ int mode_touchscreen_run(void) {
 	base0 = calibrate(LOAD_CELL_0);
 	base1 = calibrate(LOAD_CELL_1);
 	base2 = calibrate(LOAD_CELL_2);
-	update_txt_box("test");
+	poll_weights(base0, base1, base2);
+	update_txt_box("begin");
 	while(1) {
 		while (!UART_ISR_FLAG) {
 			
-			poll_weights(base0, base1, base2);
 		}
 		// print_buff(rx_data, BYTES);
 		uint8_t page, component;
@@ -42,19 +45,22 @@ int mode_touchscreen_run(void) {
 		printf("Page: %X | Component: %X\n", page, component);
 		handle_touch_event(page, component);
 		UART_ISR_FLAG = 0;
-		MXC_UART_TransactionAsync(&read_req);
-	}
+		poll_weights(base0, base1, base2);
+		update_txt_box("Idle");
 
+		MXC_UART_TransactionAsync(&read_req); // rearms interrupt
+	}
+	
 }
 
 /* finds the correct function for each touch event */
 void handle_touch_event(uint8_t page_id, uint8_t comp_id) {
 	const screen_component comp_table[] = {
-    {PAGE1_ID, TOGGLE_1TO2_ID, handle_toggle_1to2_btn},
-    {PAGE1_ID, TOWER_0_ID, handle_tower_0_btn},
-    {PAGE1_ID, TOWER_1_ID, handle_tower_1_btn},
-    {PAGE1_ID, TOWER_2_ID, handle_tower_2_btn},
-};
+		{PAGE1_ID, TOGGLE_1TO2_ID, handle_toggle_1to2_btn},
+		{PAGE1_ID, TOWER_0_ID, handle_tower_0_btn},
+		{PAGE1_ID, TOWER_1_ID, handle_tower_1_btn},
+		{PAGE1_ID, TOWER_2_ID, handle_tower_2_btn},
+	};
 	for(int i = 0; i < sizeof(comp_table)/sizeof(screen_component); i++) {
 		// printf("%d\n", page_id==comp_table[i].page);
 		if(page_id==comp_table[i].page && comp_id==comp_table[i].component) {
@@ -94,7 +100,8 @@ void handle_tower_0_btn(void) {
 		touch_count++;
 	} else {
 		clear_boxes();
-		update_txt_box("move to tower 0");
+		update_txt_box("moving to tower 0...");
+		MXC_Delay(MXC_DELAY_MSEC(1000)); // wait for arm movement
 
 		printf("2nd tower: ");
 		touch_count = 0;
@@ -114,7 +121,9 @@ void handle_tower_1_btn(void) {
 	} else {
 		clear_boxes();
 
-		update_txt_box("move to tower 1");
+		update_txt_box("moving to tower 1...");
+		MXC_Delay(MXC_DELAY_MSEC(1000)); // wait for arm movement
+
 		printf("2nd tower: ");
 		touch_count = 0;
 	}
@@ -127,13 +136,15 @@ void handle_tower_1_btn(void) {
 
 void handle_tower_2_btn(void) {
 	if(touch_count == 0) {
-		char val[] = "mvoe from tower 2";
+		char val[] = "move from tower 2";
 		update_txt_box(val);
 		printf("1st tower: ");
 		touch_count++;
 	} else {
 		clear_boxes();
-		update_txt_box("move to tower 2");
+		update_txt_box("moving to tower 2...");
+		MXC_Delay(MXC_DELAY_MSEC(1000)); // wait for arm movement
+
 		printf("2nd tower: ");
 		touch_count = 0;
 	}

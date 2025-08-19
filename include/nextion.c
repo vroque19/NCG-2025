@@ -30,6 +30,7 @@ void nextion_init(void) {
 
 /* ISR for the UART interrupts to set flags*/
 void UART1_ISR(void) {
+    // MXC_UART_DisableInt(NEXTION_UART_REG, RX_LVL);
     printf("~~~~~~ In ISR. Flag = %d ~~~~~~\n\n", UART_ISR_FLAG);
     printf("Flags: %d \n", MXC_UART_GetFlags(NEXTION_UART_REG));
     // Only process if we're not already processing
@@ -63,11 +64,8 @@ void readCallback(mxc_uart_req_t *req, int error) {
         // Signal that data is ready to be processed
         UART_ISR_FLAG = 1;  // Set flag to indicate data ready
         
-        // Optional: Print received data for debugging
         printf("Raw data: ");
-        for(int i = 0; i < req->rxCnt; i++) {
-            printf("0x%02X ", req->rxData[i]);
-        }
+        print_buff(req->rxData, req->rxCnt);
         printf("\n");
         
     } else {
