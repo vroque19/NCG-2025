@@ -61,6 +61,8 @@ typedef enum {
 } tmc5272_tricoder_bemf_hysteresis_t;
 
 void tmc5272_tricoder_init(uint16_t icID, uint8_t motor, int32_t encoder_value);
+uint8_t tmc5272_tricoder_isCoilShortVS(uint16_t icID, uint8_t motor);
+void tmc5272_tricoder_resetFromCoilShort(uint16_t icID, uint8_t motor);
 void tmc5272_tricoder_setBEMFHysteresis(uint16_t icID, uint8_t motor, tmc5272_tricoder_bemf_hysteresis_t bemf_hysteresis);
 void tmc5272_tricoder_setEncoderValue(uint16_t icID, uint8_t motor, int32_t encoder_value);
 int32_t tmc5272_tricoder_getPosition(uint16_t icID, uint8_t motor);

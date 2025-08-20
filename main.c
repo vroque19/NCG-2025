@@ -47,7 +47,7 @@ int main(void)
 	tmc5272_init(0);
 	tmc5272_configEmergencyStop(0, 0, 1);
 	tmc5272_configEmergencyStop(0, 1, 1);
-	tmc5272_setVelocityCurve(0, 0, 50000, 10000);
+	tmc5272_setVelocityCurve(0, 0, 200000, 10000);
 
 	// Startup Status Readout
 	printf("Tricoder Demo \n");
@@ -55,7 +55,7 @@ int main(void)
 
 	// Tricoder Initialization
 	tmc5272_tricoder_init(0, 1, tmc5272_getPosition(0, 0));
-	tmc5272_tricoder_setBEMFHysteresis(0, 1, BEMF_HYST_10mV );
+	tmc5272_tricoder_setBEMFHysteresis(0, 1, BEMF_HYST_10mV);
 
 	// Main Loop
     while (1) {
@@ -65,20 +65,18 @@ int main(void)
 
 		// Rotate motor 0 to TC position
 		tmc5272_rotateToPosition(0, 0, tricoder_position);
-		
-		// Readout for register comparison
+
+		// Readout position & encoder
+		printf("Current position: %d \n \
+			ENC Position: %d \n", 
+			tmc5272_getPosition(0,0), tricoder_position);
+
+		// Failsafe brake
 		if(PB_IsPressedAny())
 		{
-			for(uint8_t reg = 0x00; reg < 0x94; reg++)
-			{
-				uint32_t reg_val = tmc5272_readRegister(0, reg, NULL);
-				printf("0x%X : 0x%X \n", reg, reg_val);
-			}
+			tmc5272_rotateAtVelocity(0, 0, 0, 50000);
+			tmc5272_rotateAtVelocity(0, 1, 0, 50000);
 		}
-		// Readout
-		// printf("Current position: %d \n \
-		// 	ENC Position: %d \n", 
-		// 	tmc5272_getPosition(0,0), tricoder_position);
 
     }
 }

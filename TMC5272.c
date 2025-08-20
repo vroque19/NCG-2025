@@ -247,6 +247,53 @@ void tmc5272_tricoder_init(uint16_t icID, uint8_t motor, int32_t encoder_value)
 
 	// Set Mx_X_ENC: Set to 0 or X_ACTUAL before encoder becomes activated.
 	tmc5272_fieldWrite(icID, TMC5272_X_ENC_FIELD(motor), encoder_value);
+
+	// Set FSR_Mx: 0x3: KIFS = 8.00, typ R_DS(ON),LS = 0.11Ohms.
+	// This is not in the TMC5272 datasheet Tricoder section.
+	// However, this sets the current sense to increase the overcurrent protection threshold.
+	// Leaving this at 0x0 causes a "short to supply" to be detected 
+	// when the tricoder is spun quickly.
+	// Therefore, increase it to prevent this error condition.
+	if(motor == 0)
+	{
+		tmc5272_fieldWrite(icID, TMC5272_DRV_CONF_FSR_M0_FIELD, 0x3);
+	}
+	if(motor == 1)
+	{
+		tmc5272_fieldWrite(icID, TMC5272_DRV_CONF_FSR_M1_FIELD, 0x3);
+	}
+}
+
+// Detect supply-side coil short. This occurs when the tricoder motor is spun too quickly.
+// 0 = No short.
+// 1 = Short motor phase A
+// 2 = Short motor phase B
+// 3 = Short both phases (binary 11)
+uint8_t tmc5272_tricoder_isCoilShortVS(uint16_t icID, uint8_t motor)
+{
+	// Read DRV_STATUS register
+	uint32_t drv_status = tmc5272_readRegister(icID, TMC5272_DRV_STATUS(motor), NULL);
+
+	// Coil short will be on phase A or B
+	uint8_t is_coil_short = (drv_status & (TMC5272_DRV_STATUS_S2VSB_MASK | TMC5272_DRV_STATUS_S2VSA_MASK)) >> TMC5272_DRV_STATUS_S2VSA_SHIFT;
+
+	return is_coil_short;
+}
+
+void tmc5272_tricoder_resetFromCoilShort(uint16_t icID, uint8_t motor)
+{
+	if(motor == 0)
+	{
+		// Toggle: Disable (1) and enable (0)
+		tmc5272_fieldWrite(icID, TMC5272_GCONF_M0_DRV_ENN_FIELD, 1);
+		tmc5272_fieldWrite(icID, TMC5272_GCONF_M0_DRV_ENN_FIELD, 0);
+	}
+	if(motor == 1)
+	{
+		// Toggle: Disable (1) and enable (0)
+		tmc5272_fieldWrite(icID, TMC5272_GCONF_M1_DRV_ENN_FIELD, 1);
+		tmc5272_fieldWrite(icID, TMC5272_GCONF_M1_DRV_ENN_FIELD, 0);
+	}
 }
 
 void tmc5272_tricoder_setBEMFHysteresis(uint16_t icID, uint8_t motor, tmc5272_tricoder_bemf_hysteresis_t hysteresis)
