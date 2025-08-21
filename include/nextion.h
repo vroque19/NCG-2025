@@ -14,7 +14,7 @@
 #include "uart.h"
 
 #define BAUD_RATE 9600
-#define NEXTION_UART_REG   MXC_UART1
+#define GLOBAL_UART_REG   MXC_UART1
 #define UART_PORT     MXC_GPIO_PORT_2
 #define TX_PIN         MXC_GPIO_PIN_16
 #define RX_PIN     MXC_GPIO_PIN_14
@@ -34,16 +34,14 @@ extern volatile uint32_t *uart_int_en, *uart_int_flags; // debugging
 void update_reading(int idx, uint32_t base, char *objname);  
 
 void nextion_init(void);
-void nextion_int_init(void);
-void UART1_ISR(void);
-void readCallback(mxc_uart_req_t *req, int error);
+// void nextion_int_init(void);
+// void UART1_ISR(void);
+// void readCallback(mxc_uart_req_t *req, int error);
 void nextion_send_command(const char *command); 
 void terminate_command(void);
 void update_weight(double weight, char *objname);
 void poll_weights(uint32_t base0, uint32_t base1, uint32_t base2);
-uint8_t get_event(uint8_t *buff);
-uint8_t get_page(uint8_t *buff);
-uint8_t get_component(uint8_t *buff);
+
 
 
 
