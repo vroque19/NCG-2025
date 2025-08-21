@@ -15,7 +15,7 @@ int mode_touchscreen_run(void) {
 	clear_boxes();
 	// setup async uart transaction request
 	mxc_uart_req_t read_req = {
-		.uart = NEXTION_UART_REG,
+		.uart = GLOBAL_UART_REG,
 		.txData = tx_data,
 		.rxData = rx_data,
 		.txLen = BYTES,
