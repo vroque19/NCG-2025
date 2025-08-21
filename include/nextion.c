@@ -5,7 +5,7 @@ volatile uint32_t *uart_int_en, *uart_int_flags;
 
 /* Initialize UART for the Nextion display */
 void nextion_init(void) {
-    if(MXC_UART_Init(NEXTION_UART_REG, BAUD_RATE) != E_NO_ERROR) {
+    if(MXC_UART_Init(GLOBAL_UART_REG, BAUD_RATE) != E_NO_ERROR) {
         printf("\n UART INIT ERROR.\n");
         while(1){}
     }
@@ -30,28 +30,28 @@ void nextion_init(void) {
 
 /* ISR for the UART interrupts to set flags*/
 void UART1_ISR(void) {
-    // MXC_UART_DisableInt(NEXTION_UART_REG, RX_LVL);
+    // MXC_UART_DisableInt(GLOBAL_UART_REG, RX_LVL);
     printf("~~~~~~ In ISR. Flag = %d ~~~~~~\n\n", UART_ISR_FLAG);
-    printf("Flags: %d \n", MXC_UART_GetFlags(NEXTION_UART_REG));
+    unsigned int flags = MXC_UART_GetFlags(GLOBAL_UART_REG);
+    printf("Flags: %d \n", flags);
     // Only process if we're not already processing
-    if (( MXC_UART_GetFlags(NEXTION_UART_REG) & (1 << 4)) && (UART_ISR_FLAG == 0)) {
+    if (( flags & RX_LVL) && (UART_ISR_FLAG == 0)) {
         printf("Processing RX threshold interrupt\n");
-        UART_ISR_FLAG = 1;
-        MXC_UART_AsyncHandler(NEXTION_UART_REG);
-        
+        // UART_ISR_FLAG = 1;
+        MXC_UART_AsyncHandler(GLOBAL_UART_REG);
         // Clear only the RX threshold flag (bit 4)
-        MXC_UART_ClearFlags(NEXTION_UART_REG, (1 << 5));
+        MXC_UART_ClearFlags(GLOBAL_UART_REG, RX_LVL);
     }
     else {
-        printf("------Ignoring interrupt - flags=0x%X, ISR_FLAG=%d\n-----",  MXC_UART_GetFlags(NEXTION_UART_REG), UART_ISR_FLAG);
+        printf("------Ignoring interrupt - flags=0x%X, ISR_FLAG=%d\n-----",  flags, UART_ISR_FLAG);
         // Clear other flags to prevent repeated interrupts
-        MXC_UART_ClearFlags(NEXTION_UART_REG,  MXC_UART_GetFlags(NEXTION_UART_REG) & ~(1 << 4));
+        MXC_UART_ClearFlags(GLOBAL_UART_REG,  flags & ~RX_LVL);
     }
-
-    // MXC_UART_AsyncHandler(NEXTION_UART_REG);
-    // MXC_UART_ClearFlags(NEXTION_UART_REG, 1U<<4);
-    MXC_UART_EnableInt(NEXTION_UART_REG, RX_LVL);
-    MXC_UART_ClearRXFIFO(NEXTION_UART_REG);
+    
+    // MXC_UART_AsyncHandler(GLOBAL_UART_REG);
+    // MXC_UART_ClearFlags(GLOBAL_UART_REG, 1U<<4);
+    MXC_UART_EnableInt(GLOBAL_UART_REG, RX_LVL);
+    MXC_UART_ClearRXFIFO(GLOBAL_UART_REG);
 }
 
 void readCallback(mxc_uart_req_t *req, int error) {
@@ -62,7 +62,7 @@ void readCallback(mxc_uart_req_t *req, int error) {
         printf("Received %d bytes\n", req->rxCnt);
         
         // Signal that data is ready to be processed
-        UART_ISR_FLAG = 1;  // Set flag to indicate data ready
+        UART_ISR_FLAG = 1;
         
         printf("Raw data: ");
         print_buff(req->rxData, req->rxCnt);
@@ -98,28 +98,26 @@ void nextion_int_init(void) {
     NVIC_DisableIRQ(UART1_IRQn);
     MXC_NVIC_SetVector(UART1_IRQn, UART1_ISR);
     NVIC_EnableIRQ(UART1_IRQn);
-    MXC_UART_SetRXThreshold(NEXTION_UART_REG, BYTES);
-    MXC_UART_EnableInt(NEXTION_UART_REG, RX_LVL);
+    MXC_UART_SetRXThreshold(GLOBAL_UART_REG, BYTES);
+    MXC_UART_EnableInt(GLOBAL_UART_REG, RX_LVL);
     
 }
 
 // Send the command string byte by byte.
 void nextion_send_command(const char *command) {
     printf("About to send: %s\n", command);
-    printf("UART FLAGS, STATUS before TX: 0x%X, %X\n", MXC_UART_GetFlags(NEXTION_UART_REG), MXC_UART_GetStatus(NEXTION_UART_REG));
     for (int i = 0; i < strlen(command); ++i) {
-        MXC_UART_WriteCharacter(NEXTION_UART_REG, command[i]);
+        MXC_UART_WriteCharacter(GLOBAL_UART_REG, command[i]);
     }
     terminate_command(); // commands must be terminated with three 0xFF bytes.
-    printf("UART FLAGS, STATUS after TX: 0x%X, %X\n", MXC_UART_GetFlags(NEXTION_UART_REG), MXC_UART_GetStatus(NEXTION_UART_REG));
     MXC_Delay(5000); // 5ms delay
-    MXC_UART_ClearRXFIFO(NEXTION_UART_REG); // Clear Receive for errors
+    MXC_UART_ClearRXFIFO(GLOBAL_UART_REG); // Clear Receive for errors
 }
 
 // ends command with stop bits
 void terminate_command(void) {
     for (int i = 0; i < 3; ++i) {
-        MXC_UART_WriteCharacter(NEXTION_UART_REG, 0xFF);
+        MXC_UART_WriteCharacter(GLOBAL_UART_REG, 0xFF);
     }
 }
 
