@@ -1,5 +1,6 @@
 // // global_uart_handler.c
 #include "global_uart_handler.h"
+#include "handlers.h"
 #include "nextion.h"
 
 // Global state variables
@@ -11,6 +12,17 @@ volatile page_t current_page = PAGE_MAIN_MENU;
 static uint8_t global_rx_buffer[BYTES];
 static uint8_t global_tx_buffer[BYTES];
 static mxc_uart_req_t global_uart_req;
+
+extern const screen_component comp_table[] = {
+        /* TODO: add all components */
+		{PAGE_TOUCHSCREEN, TOWER_0_ID, handle_tower_0_btn},
+		{PAGE_TOUCHSCREEN, TOWER_1_ID, handle_tower_1_btn},
+		{PAGE_TOUCHSCREEN, TOWER_2_ID, handle_tower_2_btn},
+		{PAGE_TOUCHSCREEN, EXIT_TOUCHSCREEN_ID, exit_to_main_menu},
+		{PAGE_MANUAL, SOLENOID_ID, solenoid_handler},
+        {PAGE_MANUAL, EXIT_MANUAL_ID, exit_to_main_menu}
+};
+
 
 void global_uart_interrupt_enable(void) {
     NVIC_ClearPendingIRQ(UART1_IRQn);
@@ -94,10 +106,8 @@ void global_uart_interrupt_disable(void) {
     MXC_UART_DisableInt(GLOBAL_UART_REG, RX_LVL);
 }
 
-
 // Process incoming UART data and route to appropriate handler
 void handle_touch_event(uint8_t *rx_data) {
-    printf("handling touch");
     if (!rx_data) return;
     page_t page = get_page(rx_data);
     uint8_t component = get_component(rx_data);
@@ -111,13 +121,7 @@ void handle_touch_event(uint8_t *rx_data) {
         printf("Page changed from %d to %d\n", current_page, page);
         current_page = page;
     }
-    const screen_component comp_table[] = {
-        /* TODO: add all components */
-		{PAGE1_ID, TOGGLE_1TO2_ID, handle_toggle_1to2_btn},
-		{PAGE1_ID, TOWER_0_ID, handle_tower_0_btn},
-		{PAGE1_ID, TOWER_1_ID, handle_tower_1_btn},
-		{PAGE1_ID, TOWER_2_ID, handle_tower_2_btn},
-	};
+    
     // Find the appropriate handler for this page
     for(int i = 0; i < sizeof(comp_table)/sizeof(screen_component); i++) {
 		// printf("%d\n", page_id==comp_table[i].page);
@@ -127,7 +131,7 @@ void handle_touch_event(uint8_t *rx_data) {
 		}
     }
 }
-    
+
 // Switch to a new operating mode
 void switch_mode(game_mode_t new_mode) {
     if (new_mode == current_mode) return;
@@ -140,18 +144,8 @@ void switch_mode(game_mode_t new_mode) {
 
 }
 
-uint8_t get_event(uint8_t *buff) {
-    return buff[0];
-}
-
-page_t get_page(uint8_t *buff) {
-    return buff[1];
-}
-
-uint8_t get_component(uint8_t *buff) {
-    return buff[2];
-}
 // Utility functions
+
 // const char* get_mode_name(game_mode_t mode) {
 //     switch (mode) {
 //         case MANUAL_MODE: return "Manual";
@@ -173,6 +167,7 @@ uint8_t get_component(uint8_t *buff) {
 
 void global_uart_main_loop(void) {
     printf("~~Main Loop~~\n\n");
+    clear_boxes();
     MXC_UART_TransactionAsync(&global_uart_req);
     while (1) {
         // Wait for UART interrupt
@@ -189,8 +184,18 @@ void global_uart_main_loop(void) {
         global_uart_req.txCnt = 0;
         global_uart_req.rxCnt = 0;
         MXC_UART_TransactionAsync(&global_uart_req);
-        
-        // Small delay to prevent rapid-fire processing
-        // MXC_Delay(MXC_DELAY_MSEC(50));
+
     }
+}
+
+uint8_t get_event(uint8_t *buff) {
+    return buff[0];
+}
+
+page_t get_page(uint8_t *buff) {
+    return buff[1];
+}
+
+uint8_t get_component(uint8_t *buff) {
+    return buff[2];
 }
