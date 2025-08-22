@@ -192,9 +192,12 @@ void tmc5272_rotateAtVelocity(uint16_t icID, uint8_t motor, int32_t velocity, ui
 /* Note: Call position rotation functions after setting velocity curve.*/
 void tmc5272_rotateToPosition(uint16_t icID, uint8_t motor, uint32_t target)
 {
-	// Switch to HOLD mode to avoid changing anything
-	tmc5272_fieldWrite(icID, TMC5272_RAMPMODE_FIELD(motor), TMC5272_MODE_HOLD);
-	
+	// If not in Position mode, switch to HOLD mode to avoid changing anything.
+	// (If we're already in position mode, just stay in position mode.)
+	if(tmc5272_fieldRead(icID, TMC5272_RAMPMODE_FIELD(motor)) != TMC5272_MODE_POSITION) 
+	{
+		tmc5272_fieldWrite(icID, TMC5272_RAMPMODE_FIELD(motor), TMC5272_MODE_HOLD);
+	}
 	// Write target position
 	tmc5272_fieldWrite(icID, TMC5272_XTARGET_FIELD(motor), target);
 
