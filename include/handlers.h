@@ -1,7 +1,9 @@
 #ifndef __HANDLERS_H_
 #define __HANDLERS_H_
-#include <stddef.h>
+// #include <stddef.h>
 #include <mode_touchscreen.h>
+// #include "stack.h"
+#include "game_logic.h"
 
 #define MOVE_COUNT_ID "n0"
 #define STATUS_TXT "t6"
@@ -46,18 +48,22 @@ typedef struct {
     void (*handler_function)(void);
 } screen_component;
 
-
+void update_towers(void);
 /* For functions used by multiple files */
 void exit_to_main_menu(void);
-void solenoid_handler(void);
-void update_count_txt(void);
+void increment_count(void);
+// touchscreen functions
 void handle_tower_0_btn(void);
 void handle_tower_1_btn(void);
 void handle_tower_2_btn(void);
 // void move_0_to_1_handler(void);
+// Main Menu to page functions
 void switch_page_touchscreen(void);
 void switch_page_manual(void);
 void switch_page_automated(void);
+
+// Auto page functions
 void start_automated(void);
 
+void solenoid_handler(void);
 #endif

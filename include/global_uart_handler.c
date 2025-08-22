@@ -2,6 +2,7 @@
 #include "global_uart_handler.h"
 #include "handlers.h"
 #include "nextion.h"
+#include "game_logic.h"
 
 // Global state variables
 volatile game_mode_t current_mode = TOUCHSCREEN_MODE;
@@ -35,12 +36,12 @@ void global_uart_interrupt_enable(void) {
 
 /* ISR for the UART interrupts to set flags*/
 void uart_isr(void) {
-    printf("~~~~~~ In ISR. Flag = %d ~~~~~~\n\n", GLOBAL_UART_ISR_FLAG);
+    printf("\n\n~~~~~~ In ISR. Flag = %d ~~~~~~\n", GLOBAL_UART_ISR_FLAG);
     unsigned int flags = MXC_UART_GetFlags(GLOBAL_UART_REG);
     printf("Flags: %d \n", flags);
     // Only process for RX Threshold interrupt
     if (( flags & RX_LVL) && (GLOBAL_UART_ISR_FLAG == 0)) {
-        printf("Processing RX threshold interrupt\n");
+        printf("Processing RX threshold interrupt :))\n");
         GLOBAL_UART_ISR_FLAG = 1;
         MXC_UART_AsyncHandler(GLOBAL_UART_REG);
     }
@@ -59,7 +60,6 @@ void global_uart_callback(mxc_uart_req_t *req, int error) {
     if (error == E_NO_ERROR) {
         printf("UART transaction completed successfully\n");
         printf("Received %d bytes\n", req->rxCnt);
-        // UART_ISR_FLAG = 1;
         GLOBAL_UART_ISR_FLAG = 1;
 
         printf("Raw data: ");
@@ -117,12 +117,13 @@ void handle_touch_event(uint8_t *rx_data) {
            event, page, component);
     
     // Update current page if it changed
-    if (page != current_page) {
-        printf("Page changed from %d to %d\n", current_page, page);
-        current_page = page;
-    }
+    // this is 1 behind
+    // if (page != current_page) {
+    //     printf("Page changed from %d to %d\n", current_page, page);
+    //     current_page = page;
+    // }
     
-    // Find the appropriate handler for this page
+    // Find the appropriate handler for this component
     for(int i = 0; i < sizeof(comp_table)/sizeof(screen_component); i++) {
 		// printf("%d\n", page_id==comp_table[i].page);
 		if(page==comp_table[i].page && component==comp_table[i].component) {
@@ -172,8 +173,6 @@ void global_uart_main_loop(void) {
     while (1) {
         // Wait for UART interrupt
         while (!GLOBAL_UART_ISR_FLAG) {
-            // Could add other background tasks here
-            // or put MCU in low power mode
         }
         printf("handling touch...");
         // Process the received data

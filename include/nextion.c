@@ -30,7 +30,7 @@ void nextion_init(void) {
 
 // Send the command string byte by byte.
 void nextion_send_command(const char *command) {
-    printf("About to send: %s\n", command);
+    // printf("About to send: %s\n", command);
     for (int i = 0; i < strlen(command); ++i) {
         MXC_UART_WriteCharacter(GLOBAL_UART_REG, command[i]);
     }
