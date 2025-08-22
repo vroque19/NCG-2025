@@ -47,7 +47,7 @@ int main(void)
 	tmc5272_init(0);
 	tmc5272_configEmergencyStop(0, 0, 1);
 	tmc5272_configEmergencyStop(0, 1, 1);
-	tmc5272_setVelocityCurve(0, 0, 200000, 10000);
+	tmc5272_setVelocityCurve(0, 0, 800000, 50000);
 
 	// Startup Status Readout
 	printf("Tricoder Demo \n");
@@ -64,19 +64,33 @@ int main(void)
 		int32_t tricoder_position = tmc5272_tricoder_getPosition(0, 1);
 
 		// Rotate motor 0 to TC position
-		tmc5272_rotateToPosition(0, 0, tricoder_position);
+		tmc5272_rotateToPosition(0, 0, 20*tricoder_position);
+		//while(!tmc5272_isAtTargetPosition(0, 0)) {
+			// Do nothing...
+		//}
 
 		// Readout position & encoder
-		printf("Current position: %d \n \
-			ENC Position: %d \n", 
-			tmc5272_getPosition(0,0), tricoder_position);
+		printf("Current position: %d  ENC Position: %d   XTARGET: %d    PosReached: %d \n", 
+			tmc5272_getPosition(0,0), 
+			tricoder_position, 
+			tmc5272_fieldRead(0, TMC5272_XTARGET_FIELD(0)),
+			tmc5272_fieldRead(0, TMC5272_RAMP_STAT_POSITION_REACHED_FIELD(0))
+			);
 
 		// Failsafe brake
 		if(PB_IsPressedAny())
 		{
 			tmc5272_rotateAtVelocity(0, 0, 0, 50000);
 			tmc5272_rotateAtVelocity(0, 1, 0, 50000);
+
+			for(uint8_t reg = 0; reg < 0x94; reg++)
+			{
+				printf("0x%X : 0x%X \n", reg, tmc5272_readRegister(0, reg, NULL));
+			}
+			while(1) {}
 		}
+
+		MXC_Delay(MXC_DELAY_MSEC(20));
 
     }
 }
