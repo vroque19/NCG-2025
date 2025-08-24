@@ -61,7 +61,8 @@ void handle_tower_2_btn(void);
 void switch_page_touchscreen(void);
 void switch_page_manual(void);
 void switch_page_automated(void);
-
+void switch_mode(game_mode_t new_mode);
+void switch_page(game_mode_t new_page);
 // Auto page functions
 void start_automated(void);
 

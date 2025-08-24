@@ -1,0 +1,4 @@
+CompileFlags:
+  Remove: 
+    - -fno-isolate-erroneous-paths-dereference
+    - -fisolate-erroneous-paths-dereference

@@ -29,11 +29,11 @@ page_t get_page(uint8_t *buff);
 uint8_t get_component(uint8_t *buff);
 void global_uart_interrupt_disable(void);
 void handle_touch_event(uint8_t *rx_data);
-void switch_mode(game_mode_t new_mode);
 const char* get_mode_name(game_mode_t mode) ;
 const char* get_page_name(page_t page);
 void global_uart_main_loop(void);
 
+// void switch_mode(game_mode_t new_mode);
 
 
 

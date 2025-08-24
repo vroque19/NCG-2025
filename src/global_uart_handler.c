@@ -21,7 +21,11 @@ extern const screen_component comp_table[] = {
 		{PAGE_TOUCHSCREEN, TOWER_2_ID, handle_tower_2_btn},
 		{PAGE_TOUCHSCREEN, EXIT_TOUCHSCREEN_ID, exit_to_main_menu},
 		{PAGE_MANUAL, SOLENOID_ID, solenoid_handler},
-        {PAGE_MANUAL, EXIT_MANUAL_ID, exit_to_main_menu}
+        {PAGE_MANUAL, EXIT_MANUAL_ID, exit_to_main_menu},
+        {PAGE_AUTOMATED, START_AUTOMATED_ID, start_automated},
+        {PAGE_MAIN_MENU, PAGE_TOUCHSCREEN_ID, switch_page_touchscreen},
+        {PAGE_MAIN_MENU, PAGE_MANUAL_ID, switch_page_manual},
+        {PAGE_MAIN_MENU, PAGE_AUTOMATED_ID, switch_page_automated}
 };
 
 
@@ -133,17 +137,6 @@ void handle_touch_event(uint8_t *rx_data) {
     }
 }
 
-// Switch to a new operating mode
-void switch_mode(game_mode_t new_mode) {
-    if (new_mode == current_mode) return;
-    
-    // printf("Switching from %s mode to %s mode\n", 
-    //        get_mode_name(current_mode), get_mode_name(new_mode));
-    
-    // Perform any cleanup for the old mode here
-    current_mode = new_mode;
-
-}
 
 // Utility functions
 
