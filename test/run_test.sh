@@ -1,1 +1,1 @@
-gcc -I /mnt/c/Users/vroque/NCG/include /mnt/c/Users/vroque/NCG/include/stack.c test_stack.c -o stack_tests
+gcc -I ../include ../src/stack.c test_stack.c -o stack_tests && ./stack_tests
