@@ -11,7 +11,7 @@ static const double ring_weights[] = {
     10.0,  // Size 1
     20.0,  // Size 2
     35.0,  // Size 3
-    50.0,  // Size 4
+    // 50.0,  // Size 4
 };
 static void hanoi_init_game_tower_0(void);
 void hanoi_init_game(uint8_t num_rings) {
@@ -113,6 +113,8 @@ bool hanoi_execute_move(uint8_t source_tower, uint8_t destination_tower) {
     push_history(&current_game.move_history, move);
 
     current_game.moves_made++;
+	hanoi_print_game_state("Initialized game", &current_game);
+
     
     // Check win condition
     if (hanoi_is_solved()) {
@@ -132,26 +134,20 @@ bool hanoi_is_solved() {
     return true;
 }
 
-// void hanoi_print_game_state(void) {
-//     printf("\n=== Towers of Hanoi Game State ===\n");
-//     printf("Moves: %d/%d (min), Game Complete: %s\n", 
-//            current_game.moves_made, current_game.min_moves, 
-//            current_game.game_complete ? "YES" : "NO");
+void hanoi_print_game_state(const char* name, game_state_t *game) {
+    printf("  %s: Rings=%d, Moves=%d/%d, Complete=%s, Selected=%d\n", 
+           name, game->num_rings, game->moves_made, game->min_moves,
+           game->game_complete ? "YES" : "NO", game->selected_tower);
     
-//     for (int t = 0; t < NUM_TOWERS; t++) {
-//         printf("Tower %d (%d rings, %.2fg): ", t, 
-//                current_game.towers[t].ring_count, 
-//                current_game.towers[t].total_weight);
-        
-//         if (current_game.towers[t].ring_count == 0) {
-//             printf("empty");
-//         } else {
-//             for (int d = 0; d < current_game.towers[t].ring_count; d++) {
-//                 printf("[%d]", current_game.towers[t].rings[d].size);
-//                 if (d < current_game.towers[t].ring_count - 1) printf("-");
-//             }
-//         }
-//         printf("\n");
-//     }
-//     printf("===================================\n\n");
-// }
+    for (int t = 0; t < NUM_TOWERS; t++) {
+        printf("    Tower %d (count=%d): ", t, game->towers[t].ring_count);
+        if (game->towers[t].ring_count == 0) {
+            printf("[Empty]");
+        } else {
+            for (int r = 0; r < game->towers[t].ring_count; r++) {
+                printf("%d ", game->towers[t].rings[r]);
+            }
+        }
+        printf("\n");
+    }
+}

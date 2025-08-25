@@ -4,16 +4,15 @@
 
 static void switch_page_helper(page_t page, game_mode_t mode);
 
-uint8_t move_count = 0;
+// uint8_t move_count = 0;
 uint8_t touch_count = 0;
 
 // Update Move Count
 void increment_count(void) {
-    move_count++;
 	char name[] = MOVE_COUNT_ID;
 	char prefix[] = ".val=";
 	char dest_buff[50]; // final command
-	snprintf(dest_buff, sizeof(dest_buff), "%s%s%d%s", name, prefix, move_count); // combine obj, pref, weight, suff into one commands
+	snprintf(dest_buff, sizeof(dest_buff), "%s%s%d%s", name, prefix, current_game.moves_made); // combine obj, pref, weight, suff into one commands
     // printf("Move count : %d\n\n", move_count);
 	for(int i = 0; i < 2; i++) {
 		nextion_send_command(dest_buff);
@@ -22,7 +21,6 @@ void increment_count(void) {
 
 // Update Debug Status Txt Box
 void udpate_status_txt(char *status) {
-    move_count++;
 	char name[] = STATUS_TXT;
 	char prefix[] = ".txt=\"";
 	char dest_buff[50]; // final command
@@ -34,8 +32,8 @@ void udpate_status_txt(char *status) {
 }
 
 void exit_to_main_menu(void) {
-    printf("exiting to main menu\n");
-    move_count = 0;
+	hanoi_reset_game();
+    printf("exiting to main menu. move count: %d\n", current_game.moves_made);
 }
 
 void solenoid_handler(void) {
@@ -56,9 +54,10 @@ static void handle_tower_helper(int tower_idx) {
 		sprintf(dest_buff, "move from tower %d", tower_idx);
 		update_txt_box(dest_buff);
 		touch_count++;
-        // current_game.selected_tower = 0;
+        current_game.selected_tower = tower_idx;
         return;
 	}
+	hanoi_execute_move(current_game.selected_tower, tower_idx);
 	sprintf(dest_buff, "moving to tower  %d", tower_idx);
 	update_txt_box(dest_buff);
 	clear_boxes();
@@ -82,6 +81,8 @@ void handle_tower_2_btn(void) {
 
 
 static void switch_page_helper(page_t page, game_mode_t mode) {
+	hanoi_init_game(MAX_RINGS);
+	hanoi_print_game_state("Initialized game", &current_game);
 	switch_mode(mode);
 }
 

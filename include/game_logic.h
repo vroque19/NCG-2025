@@ -32,7 +32,7 @@ void hanoi_init_game(uint8_t num_rings);
 move_result_t hanoi_validate_move(uint8_t source_tower, uint8_t destination_tower);
 bool hanoi_execute_move(uint8_t source_tower, uint8_t destination_tower);
 bool hanoi_is_solved(void);
-void hanoi_print_game_state(void);
+void hanoi_print_game_state(const char* name, game_state_t *game);
 void hanoi_reset_game(void);
 
 extern game_state_t current_game;

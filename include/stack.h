@@ -3,7 +3,7 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <stdbool.h>
-#define MAX_RINGS 4
+#define MAX_RINGS 3
 
 typedef struct{
     int top_idx;
