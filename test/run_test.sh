@@ -1,1 +1,9 @@
+echo "=== Running All Tests ==="
+echo "\n1. Running Tower Stack Tests..."
 gcc -I ../include ../src/stack.c test_api.c test_stack.c -o stack_tests.out && ./stack_tests.out
+echo "\n2. Running History Stack Tests..."
+gcc -I ../include ../src/history.c test_api.c test_history.c -o history_tests.out && ./history_tests.out
+echo "\n=== All Tests Complete ==="
+
+# Clean up executables
+rm -f *.out
