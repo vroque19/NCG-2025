@@ -4,11 +4,11 @@
 #include <stdint.h>
 #include <string.h>
 #include <stddef.h>
-#include "mxc_device.h"
+// #include "mxc_device.h"
 #include "mxc_delay.h"
-#include "mxc_pins.h"
-#include "uart.h"
-#include "led.h"
+// #include "mxc_pins.h"
+// #include "uart.h"
+// #include "led.h"
 #include "spi.h"
 // move to header file
 #define ADC_STATUS 0x00 //
