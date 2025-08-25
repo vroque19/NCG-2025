@@ -8,7 +8,7 @@
 
 // Structure to represent a single move
 typedef struct {
-    int start;         // The starting position of the move
+    int source;         // The starting position of the move
     int destination;   // The destination position of the move
 } move_tuple;
 

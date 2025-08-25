@@ -7,35 +7,38 @@
 game_state_t current_game = {0};
 
 // TODO: Add weight thresholds 
-// static const double ring_weights[] = {
-//     0.0,   // No ring
-//     10.0,  // Size 1 (smallest)
-//     20.0,  // Size 2
-//     35.0,  // Size 3
-//     50.0,  // Size 4
-// };
-
+static const double ring_weights[] = {
+    10.0,  // Size 1
+    20.0,  // Size 2
+    35.0,  // Size 3
+    50.0,  // Size 4
+};
+static void hanoi_init_game_tower_0(void);
 void hanoi_init_game(uint8_t num_rings) {
     if (num_rings > MAX_RINGS) num_rings = MAX_RINGS;
     
     memset(&current_game, 0, sizeof(game_state_t));
     current_game.num_rings = num_rings;
     current_game.min_moves = (1 << num_rings) - 1; // 2^n - 1
-    current_game.selected_tower = 255; // No tower selected
+    current_game.selected_tower = 255; // No tower selected initially (if we want to have solve from any position)
     
     // Initialize towers
     for (int i = 0; i < NUM_TOWERS; i++) {
         current_game.towers[i].tower_id = i;
-        if(i == 0) {
-            init_stack(&current_game.towers[i]);
-        } else {
-            current_game.towers[i].top_idx = 0;
-        }
+        init_stack(&current_game.towers[i]);
     }
+    hanoi_init_game_tower_0();
         // Initialize the move history stack
-    // init_history(&current_game.move_history);
+    init_history(&current_game.move_history);
     printf("Initialized Hanoi game with %d rings (min moves: %d)\n", 
            num_rings, current_game.min_moves);
+}
+
+static void hanoi_init_game_tower_0(void) {
+    // tower_stack *tower0 = &current_game.towers[0];
+    for(int i = 0; i < current_game.num_rings; i++) {
+        push_tower(&current_game.towers[0], ring_weights[MAX_RINGS - 1 - i]);
+    }
 }
 
 void hanoi_reset_game(void) {
@@ -53,6 +56,9 @@ void hanoi_reset_game(void) {
 // }
 
 move_result_t hanoi_validate_move(uint8_t source_tower, uint8_t destination_tower) {
+    move_tuple move;
+    move.source = source_tower;
+    move.destination = destination_tower;
     if (source_tower >= NUM_TOWERS || destination_tower >= NUM_TOWERS) {
         return MOVE_INVALID_PHYSICAL_MISMATCH;
     }
@@ -78,11 +84,13 @@ move_result_t hanoi_validate_move(uint8_t source_tower, uint8_t destination_towe
     if (top_source > top_dest) {
         return MOVE_INVALID_LARGER_ON_SMALLER;
     }
-    
     return MOVE_VALID;
 }
 
 bool hanoi_execute_move(uint8_t source_tower, uint8_t destination_tower) {
+    move_tuple move;
+    move.destination = destination_tower;
+    move.source = source_tower;
     move_result_t result = hanoi_validate_move(source_tower, destination_tower);
     
     if (result != MOVE_VALID) {
@@ -101,10 +109,9 @@ bool hanoi_execute_move(uint8_t source_tower, uint8_t destination_tower) {
      * place ring()
      */
     uint8_t moving_ring = pop_tower(source);
-    // double moving_ring_weight = ring_weights[moving_ring]; // create list of ring weights
-    push_tower(&dest, moving_ring);
-    
-    
+    push_tower(dest, moving_ring);
+    push_history(&current_game.move_history, move);
+
     current_game.moves_made++;
     
     // Check win condition

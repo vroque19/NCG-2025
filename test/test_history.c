@@ -9,7 +9,7 @@ void print_history_state(const char* name, history_stack *history) {
         printf("[Empty]\n");
     } else {
         for (int i = 0; i <= history->top_idx; i++) {
-            printf("(%d->%d) ", history->moves[i].start, history->moves[i].destination);
+            printf("(%d->%d) ", history->moves[i].source, history->moves[i].destination);
         }
         printf("\n");
     }
@@ -34,14 +34,14 @@ void test_history_push(history_stack *history) {
     bool result1 = push_history(history, move1);
     assert_true(result1, "TC2.1: First push returns true");
     assert_equal_int(history->top_idx, 0, "TC2.2: Top index is 0 after first push");
-    assert_equal_int(history->moves[0].start, 0, "TC2.3: First move start is correct");
+    assert_equal_int(history->moves[0].source, 0, "TC2.3: First move source is correct");
     assert_equal_int(history->moves[0].destination, 1, "TC2.4: First move destination is correct");
     
     move_tuple move2 = {1, 2};  // Move from tower 1 to tower 2
     bool result2 = push_history(history, move2);
     assert_true(result2, "TC2.5: Second push returns true");
     assert_equal_int(history->top_idx, 1, "TC2.6: Top index is 1 after second push");
-    assert_equal_int(history->moves[1].start, 1, "TC2.7: Second move start is correct");
+    assert_equal_int(history->moves[1].source, 1, "TC2.7: Second move source is correct");
     assert_equal_int(history->moves[1].destination, 2, "TC2.8: Second move destination is correct");
     
     move_tuple move3 = {2, 0};  // Move from tower 2 to tower 0
@@ -81,7 +81,7 @@ void test_history_pop(history_stack *history) {
     // Pop first move (should be the last one pushed - LIFO)
     bool result1 = pop_history(history, &popped_move);
     assert_true(result1, "TC3.1: First pop returns true");
-    assert_equal_int(popped_move.start, 2, "TC3.2: Popped move $start is 2 (LIFO)");
+    assert_equal_int(popped_move.source, 2, "TC3.2: Popped move $source is 2 (LIFO)");
     assert_equal_int(popped_move.destination, 0, "TC3.3: Popped move $destination is 0 (LIFO)");
     assert_equal_int(history->top_idx, 1, "TC3.4: Top index is 1 after first pop");
     print_history_state("test history", history);
@@ -89,7 +89,7 @@ void test_history_pop(history_stack *history) {
     // Pop second move
     bool result2 = pop_history(history, &popped_move);
     assert_true(result2, "TC3.5: Second pop returns true");
-    assert_equal_int(popped_move.start, 1, "TC3.6: Popped move $start is 1");
+    assert_equal_int(popped_move.source, 1, "TC3.6: Popped move $source is 1");
     assert_equal_int(popped_move.destination, 2, "TC3.7: Popped move $destination is 2");
     assert_equal_int(history->top_idx, 0, "TC3.8: Top index is 0 after second pop");
     print_history_state("test history", history);
@@ -97,7 +97,7 @@ void test_history_pop(history_stack *history) {
     // Pop third move
     bool result3 = pop_history(history, &popped_move);
     assert_true(result3, "TC3.9: Third pop returns true");
-    assert_equal_int(popped_move.start, 0, "TC3.10: Popped move $start is 0");
+    assert_equal_int(popped_move.source, 0, "TC3.10: Popped move $source is 0");
     assert_equal_int(popped_move.destination, 1, "TC3.11: Popped move $destination is 1");
     assert_true(is_history_empty(history), "TC3.12: History is empty after popping all moves");
     assert_equal_int(history->top_idx, -1, "TC3.13: Top index is -1 after popping all moves");
@@ -202,8 +202,8 @@ void test_history_move_integrity(history_stack *history) {
         move_tuple popped_move;
         bool result = pop_history(history, &popped_move);
         assert_true(result, "Move pop should succeed");
-        assert_equal_int(popped_move.start, moves[i].start, 
-                        "TC9.1: Popped move start matches expected (LIFO order)");
+        assert_equal_int(popped_move.source, moves[i].source, 
+                        "TC9.1: Popped move source matches expected (LIFO order)");
         assert_equal_int(popped_move.destination, moves[i].destination, 
                         "TC9.2: Popped move destination matches expected (LIFO order)");
     }
