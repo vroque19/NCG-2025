@@ -19,5 +19,8 @@ uint8_t peek_tower(tower_stack *tower);
 int push_tower(tower_stack *tower, uint8_t ring_val);
 bool is_empty_tower(tower_stack *tower);
 bool is_full_tower(tower_stack *tower);
+int get_top_idx_from_tower(tower_stack *tower);
+uint8_t *get_rings_from_tower(tower_stack *tower);
+
 
 #endif
