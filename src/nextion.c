@@ -48,15 +48,16 @@ void terminate_command(void) {
 
 void write_to_txt_component(char* objname, char* txt) {
     char dest_buff[64];
-    printf("dest buff: %s\n", dest_buff);
     snprintf(dest_buff, sizeof(dest_buff), "%s.txt=\"%s\"", objname, txt);
-    nextion_send_command(dest_buff);
+    for(int i = 0; i < 2; i++) {
+        nextion_send_command(dest_buff);
+    }
 }
 
 // update the weight output text on the display
 void update_weight(double weight, char *objname) {
     char weight_str[32]; // final command
-    snprintf(weight_str, sizeof(weight_str), "%.2f", weight); // combine obj, pref, weight, suff into one commands
+    snprintf(weight_str, sizeof(weight_str), "%.2fg", weight); // combine obj, pref, weight, suff into one commands
     printf("weight str: %s\n", weight_str);
     write_to_txt_component(objname, weight_str);
 }

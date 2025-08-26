@@ -8,12 +8,9 @@
 #define TOWER_2_ID 0x09
 #define TOGGLE_1TO2_ID 0x0A
 #define PAGE1_ID 0x01
+#define MAIN_TXT_BOX "t8"
 
 void update_txt_box(char *val);
-// Page 1 button functions
-void handle_tower_0_btn(void);
-void handle_tower_1_btn(void);
-void handle_tower_2_btn(void);
 void clear_boxes(void);
 // Page 2 button functions
 

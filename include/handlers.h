@@ -63,6 +63,8 @@ void switch_page_manual(void);
 void switch_page_automated(void);
 void switch_mode(game_mode_t new_mode);
 void switch_page(game_mode_t new_page);
+void nextion_write_game_state(game_state_t *game);
+char *get_string_from_rings(int top_idx, uint8_t *tower_rings, char *tower_str, uint8_t str_size);
 // Auto page functions
 void start_automated(void);
 
