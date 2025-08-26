@@ -4,20 +4,16 @@
 #include <stdint.h>
 #include <string.h>
 #include <stddef.h>
-// #include "mxc_device.h"
 #include "mxc_delay.h"
-// #include "mxc_pins.h"
-// #include "uart.h"
-// #include "led.h"
 #include "spi.h"
-// move to header file
+
 #define ADC_STATUS 0x00 //
 #define ADC_CONTROL  0x01 //
 #define ADC_DATA         0x02 // 
 #define ADC_IO_CONTROL   0x03
 #define ADC_VBIAS_CONTROL       0x04
-#define ADC_ID           0x05
 // 16-Bit WLCSP Model ID. These bits are set by default for each model and are read only.
+#define ADC_ID           0x05
 #define ADC_ERROR        0x06
 #define ADC_ERROR_EN     0x07
 #define ADC_MCLK_COUNT   0x08
@@ -32,7 +28,7 @@
 #define ADC_GAIN_X(x) (0x31+(x))
 #define ADC_MISC 0x39
 
-#define WORD_SIZE 8 // Must be less than 16
+#define WORD_SIZE 8
 #define SPI_MAIN MXC_SPI1
 #define SPI_MASTER_SSIDX 0
 #define VALUE 0xFF

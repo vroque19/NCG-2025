@@ -1,5 +1,6 @@
 #include "load_cell.h"
 
+ int global_base_array[3] = {33063, 32787, 31948};
 
 uint32_t get_average(uint32_t *list, uint8_t n) {
     uint32_t sum = 0;

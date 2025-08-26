@@ -46,21 +46,26 @@ void terminate_command(void) {
     }
 }
 
-// update the weight output text on the display
-void update_weight(double weight, char *objname) {
-    char prefix[] = ".txt=\"";
-    char dest_buff[50]; // final command
-    char suffix[] = "\"";
-    snprintf(dest_buff, sizeof(dest_buff), "%s%s%.2f%s", objname, prefix, weight, suffix); // combine obj, pref, weight, suff into one commands
-
+void write_to_txt_component(char* objname, char* txt) {
+    char dest_buff[64];
+    printf("dest buff: %s\n", dest_buff);
+    snprintf(dest_buff, sizeof(dest_buff), "%s.txt=\"%s\"", objname, txt);
     nextion_send_command(dest_buff);
 }
 
+// update the weight output text on the display
+void update_weight(double weight, char *objname) {
+    char weight_str[32]; // final command
+    snprintf(weight_str, sizeof(weight_str), "%.2f", weight); // combine obj, pref, weight, suff into one commands
+    printf("weight str: %s\n", weight_str);
+    write_to_txt_component(objname, weight_str);
+}
+
 // testing 3 load cells
-void poll_weights(uint32_t base0, uint32_t base1, uint32_t base2) {
-    double weight0 = get_load_cell_data(LOAD_CELL_0, base0);
-    double weight1 = get_load_cell_data(LOAD_CELL_1, base1);
-    double weight2 = get_load_cell_data(LOAD_CELL_2, base2);
+void poll_weights(void) {
+    double weight0 = get_load_cell_data(LOAD_CELL_0, global_base_array[LOAD_CELL_0]);
+    double weight1 = get_load_cell_data(LOAD_CELL_1, global_base_array[LOAD_CELL_1]);
+    double weight2 = get_load_cell_data(LOAD_CELL_2, global_base_array[LOAD_CELL_2]);
     update_weight(weight2, TXT_WEIGHT_2);
     update_weight(weight1, TXT_WEIGHT_1);
     update_weight(weight0, TXT_WEIGHT_0);

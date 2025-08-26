@@ -61,6 +61,7 @@ static void handle_tower_helper(int tower_idx) {
 	sprintf(dest_buff, "moving to tower  %d", tower_idx);
 	update_txt_box(dest_buff);
 	clear_boxes();
+	poll_weights();
 	MXC_Delay(MXC_DELAY_MSEC(50)); // wait for arm movement
 	increment_count();
 	touch_count = 0;

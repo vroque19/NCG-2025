@@ -3,8 +3,8 @@
 #include "4131.h"
 #include <stdio.h>
 #include <string.h>
-#include "uart_regs.h"
-#include "mxc_sys.h"
+// #include "uart_regs.h"
+// #include "mxc_sys.h"
 #include "nvic_table.h"
 #include "load_cell.h"
 #include "mxc_delay.h"
@@ -34,14 +34,11 @@ extern volatile uint32_t *uart_int_en, *uart_int_flags; // debugging
 void update_reading(int idx, uint32_t base, char *objname);  
 
 void nextion_init(void);
-// void nextion_int_init(void);
-// void UART1_ISR(void);
-// void readCallback(mxc_uart_req_t *req, int error);
 void nextion_send_command(const char *command); 
 void terminate_command(void);
 void update_weight(double weight, char *objname);
-void poll_weights(uint32_t base0, uint32_t base1, uint32_t base2);
-
+void poll_weights(void);
+void write_to_txt_component(char* objname, char* txt);
 
 
 
