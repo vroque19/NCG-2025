@@ -22,14 +22,6 @@ void increment_count(void) {
 // Update Debug Status Txt Box
 void udpate_status_txt(char *status) {
 	write_to_txt_component(STATUS_TXT, status);
-	// char name[] = STATUS_TXT;
-	// char prefix[] = ".txt=\"";
-	// char dest_buff[50]; // final command
-	// char suffix[] = "\"";
-	// snprintf(dest_buff, sizeof(dest_buff), "%s%s%s%s", name, prefix, status, suffix); // combine obj, pref, weight, suff into one commands
-	// for(int i = 0; i < 2; i++) {
-	// 	nextion_send_command(dest_buff);
-	// }
 }
 
 void exit_to_main_menu(void) {
@@ -62,10 +54,10 @@ static void handle_tower_helper(int tower_idx) {
 	sprintf(dest_buff, "moving to tower  %d", tower_idx);
 	update_txt_box(dest_buff);
 	clear_boxes();
-	// nextion_write_game_state(&current_game);
 	poll_weights();
 	MXC_Delay(MXC_DELAY_MSEC(50)); // wait for arm movement
 	increment_count();
+	nextion_write_game_state(&current_game);
 	touch_count = 0;
 	// update_txt_box("idle");
 	
@@ -76,7 +68,7 @@ char *get_string_from_rings(int top_idx, uint8_t *tower_rings, char *tower_str, 
 	// 1. write the opening bracket of the stack
 	offset = snprintf(tower_str, str_size, "[");
 	// 2. append each ring up to the top idx
-	for(int i = 0; i < top_idx; i++) {
+	for(int i = 0; i <= top_idx; i++) {
 			// Use snprintf to append the current number and a comma.
             // Pass the remaining buffer size and the current offset.
 		offset += snprintf(tower_str + offset, str_size - offset, "%d  ", tower_rings[i]);
@@ -88,17 +80,24 @@ char *get_string_from_rings(int top_idx, uint8_t *tower_rings, char *tower_str, 
 }
 
 void nextion_write_game_state(game_state_t *game) {
+	char *txt_boxes_arr[3] = {"t9", "t11", "t10"};
 	// for i in range 3
 	// 		get_rings_from_tower
 	// 		get_string_from_rings
 	// 		write game state
 	// test with tower 0 first
 	// int top_idx = &game->towers[tower_idx].top_idx;
-	uint8_t *tower_rings = get_rings_from_tower(&game->towers[0]);
-	int top_idx = get_top_idx_from_tower(&tower_rings);
-	char *rings_str[50];
-	get_string_from_rings(top_idx, &tower_rings, &rings_str, sizeof(rings_str));
-	printf("Rings buffer for tower 0: %s\n", rings_str);
+	for(int i = 0; i < 3; i++) {
+		uint8_t *tower_rings = get_rings_from_tower(&game->towers[i]);
+		int top_idx = get_top_idx_from_tower(&game->towers[i]);
+		char rings_str[50];
+		get_string_from_rings(top_idx, tower_rings, rings_str, sizeof(rings_str));
+		write_to_txt_component(txt_boxes_arr[i], rings_str);
+		// write to txt_comp
+
+	}
+	// printf("Rings buffer for tower 0: %s %d\n", rings_str, top_idx);
+	
 }
 
 void handle_tower_0_btn(void) {
@@ -118,6 +117,9 @@ static void switch_page_helper(page_t page, game_mode_t mode) {
 	hanoi_init_game(MAX_RINGS);
 	hanoi_print_game_state("Initialized game", &current_game);
 	switch_mode(mode);
+	MXC_Delay(1000);
+	nextion_write_game_state(&current_game);
+
 }
 
 void switch_page_touchscreen(void) {

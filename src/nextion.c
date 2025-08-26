@@ -58,7 +58,7 @@ void write_to_txt_component(char* objname, char* txt) {
 void update_weight(double weight, char *objname) {
     char weight_str[32]; // final command
     snprintf(weight_str, sizeof(weight_str), "%.2fg", weight); // combine obj, pref, weight, suff into one commands
-    printf("weight str: %s\n", weight_str);
+    // printf("weight str: %s\n", weight_str);
     write_to_txt_component(objname, weight_str);
 }
 

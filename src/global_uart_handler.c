@@ -40,9 +40,9 @@ void global_uart_interrupt_enable(void) {
 
 /* ISR for the UART interrupts to set flags*/
 void uart_isr(void) {
-    printf("\n\n~~~~~~ In ISR. Flag = %d ~~~~~~\n", GLOBAL_UART_ISR_FLAG);
+    // printf("\n\n~~~~~~ In ISR. Flag = %d ~~~~~~\n", GLOBAL_UART_ISR_FLAG);
     unsigned int flags = MXC_UART_GetFlags(GLOBAL_UART_REG);
-    printf("Flags: %d \n", flags);
+    // printf("Flags: %d \n", flags);
     // Only process for RX Threshold interrupt
     if (( flags & RX_LVL) && (GLOBAL_UART_ISR_FLAG == 0)) {
         printf("Processing RX threshold interrupt :))\n");
@@ -50,7 +50,7 @@ void uart_isr(void) {
         MXC_UART_AsyncHandler(GLOBAL_UART_REG);
     }
     else {
-        printf("------Ignoring interrupt - flags=0x%X, ISR_FLAG=%d\n-----",  flags, GLOBAL_UART_ISR_FLAG);
+        // printf("------Ignoring interrupt - flags=0x%X, ISR_FLAG=%d\n-----",  flags, GLOBAL_UART_ISR_FLAG);
     }
     MXC_UART_ClearFlags(GLOBAL_UART_REG,  flags & ~RX_LVL);
     MXC_UART_EnableInt(GLOBAL_UART_REG, RX_LVL);

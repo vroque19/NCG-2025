@@ -16,7 +16,7 @@
 #define TOWER_0_ID 0x07
 #define TOWER_1_ID 0x08
 #define TOWER_2_ID 0x09
-#define EXIT_TOUCHSCREEN_ID 0x0E
+#define EXIT_TOUCHSCREEN_ID 0x0D
 
 // MANUAL IDs
 #define SOLENOID_ID 0x07
