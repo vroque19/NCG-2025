@@ -32,3 +32,11 @@ bool is_full_tower(tower_stack *tower) {
 uint8_t peek_tower(tower_stack *tower) {
     return tower->rings[tower->top_idx];
 }
+
+uint8_t *get_rings_from_tower(tower_stack *tower) {
+    return tower->rings;
+}
+
+int get_top_idx_from_tower(tower_stack *tower) {
+    return tower->top_idx;
+}
