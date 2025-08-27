@@ -42,6 +42,8 @@ void global_uart_interrupt_enable(void) {
 void uart_isr(void) {
     // printf("\n\n~~~~~~ In ISR. Flag = %d ~~~~~~\n", GLOBAL_UART_ISR_FLAG);
     unsigned int flags = MXC_UART_GetFlags(GLOBAL_UART_REG);
+    printf("Flags: %d \n", flags);
+    // __disable_irq();
     // printf("Flags: %d \n", flags);
     // Only process for RX Threshold interrupt
     if (( flags & RX_LVL) && (GLOBAL_UART_ISR_FLAG == 0)) {
@@ -50,11 +52,12 @@ void uart_isr(void) {
         MXC_UART_AsyncHandler(GLOBAL_UART_REG);
     }
     else {
-        // printf("------Ignoring interrupt - flags=0x%X, ISR_FLAG=%d\n-----",  flags, GLOBAL_UART_ISR_FLAG);
+        printf("------Ignoring interrupt - flags=0x%X, ISR_FLAG=%d\n-----",  flags, GLOBAL_UART_ISR_FLAG);
     }
     MXC_UART_ClearFlags(GLOBAL_UART_REG,  flags & ~RX_LVL);
     MXC_UART_EnableInt(GLOBAL_UART_REG, RX_LVL);
     MXC_UART_ClearRXFIFO(GLOBAL_UART_REG);
+    // __enable_irq();
 }
 
 void global_uart_callback(mxc_uart_req_t *req, int error) {
@@ -62,10 +65,10 @@ void global_uart_callback(mxc_uart_req_t *req, int error) {
     /* Possible reason for display error */
     printf(">>>> Callback function <<<< \n\n");
     if (error == E_NO_ERROR) {
+        GLOBAL_UART_ISR_FLAG = 1;
+        
         printf("UART transaction completed successfully\n");
         printf("Received %d bytes\n", req->rxCnt);
-        GLOBAL_UART_ISR_FLAG = 1;
-
         printf("Raw data: ");
         print_buff(global_rx_buffer, req->rxCnt);
         printf("\n");
@@ -112,52 +115,25 @@ void global_uart_interrupt_disable(void) {
 
 // Process incoming UART data and route to appropriate handler
 void handle_touch_event(uint8_t *rx_data) {
+    unsigned int flags = MXC_UART_GetFlags(GLOBAL_UART_REG);
     if (!rx_data) return;
     page_t page = get_page(rx_data);
     uint8_t component = get_component(rx_data);
     uint8_t event = get_event(rx_data);
-    
+    // __disable_irq();
     printf("Processing: Event=0x%02X, Page=0x%02X, Component=0x%02X\n", 
-           event, page, component);
-    
-    // Update current page if it changed
-    // this is 1 behind
-    // if (page != current_page) {
-    //     printf("Page changed from %d to %d\n", current_page, page);
-    //     current_page = page;
-    // }
+        event, page, component);
     
     // Find the appropriate handler for this component
     for(int i = 0; i < sizeof(comp_table)/sizeof(screen_component); i++) {
 		// printf("%d\n", page_id==comp_table[i].page);
 		if(page==comp_table[i].page && component==comp_table[i].component) {
 			comp_table[i].handler_function();
+            // __enable_irq();
 			return;
 		}
     }
 }
-
-
-// Utility functions
-
-// const char* get_mode_name(game_mode_t mode) {
-//     switch (mode) {
-//         case MANUAL_MODE: return "Manual";
-//         case TOUCHSCREEN_MODE: return "Touchscreen";
-//         case AUTOMATED_MODE: return "Automated";
-//         default: return "Unknown";
-//     }
-// }
-
-// const char* get_page_name(page_t page) {
-//     switch (page) {
-//         case PAGE_MAIN_MENU: return "Main";
-//         case PAGE_TOUCHSCREEN: return "Touchscreen";
-//         case PAGE_MANUAL: return "Game1";
-//         case PAGE_AUTOMATED: return "Game2";
-//         default: return "Unknown";
-//     }
-// }
 
 void global_uart_main_loop(void) {
     printf("~~Main Loop~~\n\n");
@@ -167,15 +143,14 @@ void global_uart_main_loop(void) {
         while (!GLOBAL_UART_ISR_FLAG) {
         }
         printf("handling touch...");
-        // Process the received data
-        // clear_boxes();
+        __disable_irq(); // debounce
         handle_touch_event(global_rx_buffer);
-        
         // Reset flag and re-arm interrupt
         GLOBAL_UART_ISR_FLAG = 0;
         global_uart_req.txCnt = 0;
         global_uart_req.rxCnt = 0;
         MXC_UART_TransactionAsync(&global_uart_req);
+        __enable_irq(); // must reenable interrupt
 
     }
 }

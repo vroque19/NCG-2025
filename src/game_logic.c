@@ -21,14 +21,12 @@ void hanoi_init_game(uint8_t num_rings) {
     current_game.num_rings = num_rings;
     current_game.min_moves = (1 << num_rings) - 1; // 2^n - 1
     current_game.selected_tower = 255; // No tower selected initially (if we want to have solve from any position)
-    
     // Initialize towers
     for (int i = 0; i < NUM_TOWERS; i++) {
         current_game.towers[i].tower_id = i;
         init_stack(&current_game.towers[i]);
     }
     hanoi_init_game_tower_0();
-        // Initialize the move history stack
     init_history(&current_game.move_history);
     printf("Initialized Hanoi game with %d rings (min moves: %d)\n", 
            num_rings, current_game.min_moves);
