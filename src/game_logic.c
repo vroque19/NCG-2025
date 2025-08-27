@@ -8,9 +8,9 @@ game_state_t current_game = {0};
 
 // TODO: Add weight thresholds 
 static const double ring_weights[] = {
-    10.0,  // Size 1
-    20.0,  // Size 2
-    35.0,  // Size 3
+    1,  // Size 1
+    2,  // Size 2
+    3,  // Size 3
     // 50.0,  // Size 4
 };
 static void hanoi_init_game_tower_0(void);

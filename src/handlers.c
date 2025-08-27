@@ -40,7 +40,6 @@ void start_automated(void) {
 	// TODO: add auto solving algorithm
 }
 
-// keep function local to this file
 static void handle_tower_helper(int tower_idx) {
 	char dest_buff[50];
 	if(touch_count == 0) {
@@ -59,8 +58,6 @@ static void handle_tower_helper(int tower_idx) {
 	increment_count();
 	nextion_write_game_state(&current_game);
 	touch_count = 0;
-	// update_txt_box("idle");
-	
 }
  // TODO: print tower states to the display
 char *get_string_from_rings(int top_idx, uint8_t *tower_rings, char *tower_str, uint8_t str_size) {
@@ -69,8 +66,6 @@ char *get_string_from_rings(int top_idx, uint8_t *tower_rings, char *tower_str, 
 	offset = snprintf(tower_str, str_size, "[");
 	// 2. append each ring up to the top idx
 	for(int i = 0; i <= top_idx; i++) {
-			// Use snprintf to append the current number and a comma.
-            // Pass the remaining buffer size and the current offset.
 		offset += snprintf(tower_str + offset, str_size - offset, "%d  ", tower_rings[i]);
 	}
 	// 3. append the closing bracket
@@ -81,23 +76,14 @@ char *get_string_from_rings(int top_idx, uint8_t *tower_rings, char *tower_str, 
 
 void nextion_write_game_state(game_state_t *game) {
 	char *txt_boxes_arr[3] = {"t9", "t11", "t10"};
-	// for i in range 3
-	// 		get_rings_from_tower
-	// 		get_string_from_rings
-	// 		write game state
-	// test with tower 0 first
-	// int top_idx = &game->towers[tower_idx].top_idx;
 	for(int i = 0; i < 3; i++) {
 		uint8_t *tower_rings = get_rings_from_tower(&game->towers[i]);
 		int top_idx = get_top_idx_from_tower(&game->towers[i]);
 		char rings_str[50];
 		get_string_from_rings(top_idx, tower_rings, rings_str, sizeof(rings_str));
 		write_to_txt_component(txt_boxes_arr[i], rings_str);
-		// write to txt_comp
-
 	}
 	// printf("Rings buffer for tower 0: %s %d\n", rings_str, top_idx);
-	
 }
 
 void handle_tower_0_btn(void) {
@@ -112,7 +98,6 @@ void handle_tower_2_btn(void) {
 	handle_tower_helper(2);
 }
 
-
 static void switch_page_helper(page_t page, game_mode_t mode) {
 	hanoi_init_game(MAX_RINGS);
 	hanoi_print_game_state("Initialized game", &current_game);
@@ -123,38 +108,24 @@ static void switch_page_helper(page_t page, game_mode_t mode) {
 }
 
 void switch_page_touchscreen(void) {
-	// page_t page = PAGE_TOUCHSCREEN;
 	printf("switching to touchscreen \n\n");
-
-	// game_mode_t mode = TOUCHSCREEN_MODE;
-	// switch_page_helper(page, mode);
 	switch_page_helper(PAGE_TOUCHSCREEN, TOUCHSCREEN_MODE);
 }
 void switch_page_manual(void) {
-	// page_t page = PAGE_TOUCHSCREEN;
 	printf("switching to manual \n\n");
-
-	// game_mode_t mode = TOUCHSCREEN_MODE;
-	// switch_page_helper(page, mode);
 	switch_page_helper(PAGE_MANUAL, MANUAL_MODE);
 }
 void switch_page_automated(void) {
 	printf("switching to automated \n\n");
-	// page_t page = PAGE_TOUCHSCREEN;
-	// game_mode_t mode = TOUCHSCREEN_MODE;
-	// switch_page_helper(page, mode);
 	switch_page_helper(PAGE_AUTOMATED, AUTOMATED_MODE);
 }
-
 
 // Switch to a new operating mode
 void switch_mode(game_mode_t new_mode) {
     if (new_mode == current_mode) return;
-    
     // printf("Switching from %s mode to %s mode\n", 
     //        get_mode_name(current_mode), get_mode_name(new_mode));
     
-    // Perform any cleanup for the old mode here
     current_mode = new_mode;
 
 }

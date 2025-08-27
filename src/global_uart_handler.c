@@ -161,7 +161,6 @@ void handle_touch_event(uint8_t *rx_data) {
 
 void global_uart_main_loop(void) {
     printf("~~Main Loop~~\n\n");
-    clear_boxes();
     MXC_UART_TransactionAsync(&global_uart_req);
     while (1) {
         // Wait for UART interrupt
@@ -169,7 +168,8 @@ void global_uart_main_loop(void) {
         }
         printf("handling touch...");
         // Process the received data
-       handle_touch_event(global_rx_buffer);
+        // clear_boxes();
+        handle_touch_event(global_rx_buffer);
         
         // Reset flag and re-arm interrupt
         GLOBAL_UART_ISR_FLAG = 0;
