@@ -42,7 +42,7 @@ void global_uart_interrupt_enable(void) {
 void uart_isr(void) {
     // printf("\n\n~~~~~~ In ISR. Flag = %d ~~~~~~\n", GLOBAL_UART_ISR_FLAG);
     unsigned int flags = MXC_UART_GetFlags(GLOBAL_UART_REG);
-    printf("Flags: %d \n", flags);
+    // printf("Flags: %d \n", flags);
     // __disable_irq();
     // printf("Flags: %d \n", flags);
     // Only process for RX Threshold interrupt
@@ -52,7 +52,7 @@ void uart_isr(void) {
         MXC_UART_AsyncHandler(GLOBAL_UART_REG);
     }
     else {
-        printf("------Ignoring interrupt - flags=0x%X, ISR_FLAG=%d\n-----",  flags, GLOBAL_UART_ISR_FLAG);
+        // printf("------Ignoring interrupt - flags=0x%X, ISR_FLAG=%d\n-----",  flags, GLOBAL_UART_ISR_FLAG);
     }
     MXC_UART_ClearFlags(GLOBAL_UART_REG,  flags & ~RX_LVL);
     MXC_UART_EnableInt(GLOBAL_UART_REG, RX_LVL);
@@ -115,7 +115,6 @@ void global_uart_interrupt_disable(void) {
 
 // Process incoming UART data and route to appropriate handler
 void handle_touch_event(uint8_t *rx_data) {
-    unsigned int flags = MXC_UART_GetFlags(GLOBAL_UART_REG);
     if (!rx_data) return;
     page_t page = get_page(rx_data);
     uint8_t component = get_component(rx_data);
@@ -130,6 +129,7 @@ void handle_touch_event(uint8_t *rx_data) {
 		if(page==comp_table[i].page && component==comp_table[i].component) {
 			comp_table[i].handler_function();
             // __enable_irq();
+            current_game.is_busy = false;
 			return;
 		}
     }

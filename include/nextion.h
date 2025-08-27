@@ -22,6 +22,38 @@
 #define TXT_WEIGHT_1 "t1"
 #define TXT_WEIGHT_2 "t2"
 #define TOUCH_EVENT 0x65
+// #define TOWER_0_ID 0x07
+// #define TOWER_1_ID 0x08
+// #define TOWER_2_ID 0x09
+#define TOWER_0_BTN_ID "b0"
+#define TOWER_1_BTN_ID "b2"
+#define TOWER_2_BTN_ID "b3"
+#define TOWER_0_ID 0x0E
+#define TOWER_1_ID 0x0F
+#define TOWER_2_ID 0x10
+#define BUTTON_OFF "61309"
+#define BUTTON_ON "57335"
+// #define BUTTON_ON2 "562"
+#define TOGGLE_1TO2_ID 0x0A
+#define PAGE1_ID 0x01
+#define MAIN_TXT_BOX "t8"
+#define MOVE_COUNT_ID "n0"
+#define STATUS_TXT "t6"
+// MAIN MENU IDs
+#define PAGE_TOUCHSCREEN_ID 0x04
+#define PAGE_MANUAL_ID 0x03
+#define PAGE_AUTOMATED_ID 0x06
+
+#define EXIT_TOUCHSCREEN_ID 0x0A
+
+// MANUAL IDs
+#define SOLENOID_ID 0x07
+#define EXIT_MANUAL_ID 0x09
+
+// AUTOMATED IDs
+#define START_AUTOMATED_ID 0x08
+#define EXIT_AUTOMATED_ID 0x07
+
 
 /* INTERRUPT globals */
 extern volatile int UART_ISR_FLAG; // 1 when interrupt occurs
@@ -39,6 +71,7 @@ void terminate_command(void);
 void update_weight(double weight, char *objname);
 void poll_weights(void);
 void write_to_txt_component(char* objname, char* txt);
+void write_to_btn_component(char *objname, char *txt);
 
 
 

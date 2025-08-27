@@ -5,26 +5,6 @@
 // #include "stack.h"
 #include "game_logic.h"
 
-#define MOVE_COUNT_ID "n0"
-#define STATUS_TXT "t6"
-// MAIN MENU IDs
-#define PAGE_TOUCHSCREEN_ID 0x04
-#define PAGE_MANUAL_ID 0x03
-#define PAGE_AUTOMATED_ID 0x06
-
-// TOUCHSCREEN IDs
-#define TOWER_0_ID 0x07
-#define TOWER_1_ID 0x08
-#define TOWER_2_ID 0x09
-#define EXIT_TOUCHSCREEN_ID 0x0D
-
-// MANUAL IDs
-#define SOLENOID_ID 0x07
-#define EXIT_MANUAL_ID 0x09
-
-// AUTOMATED IDs
-#define START_AUTOMATED_ID 0x08
-#define EXIT_AUTOMATED_ID 0x07
 
 
 // types

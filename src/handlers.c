@@ -42,6 +42,14 @@ void start_automated(void) {
 
 static void handle_tower_helper(int tower_idx) {
 	char dest_buff[50];
+	if(current_game.is_busy) {
+		printf("Busyyyyyyy");
+		return;
+	}
+	printf("/nCurrent game is busy: %d", current_game.is_busy);
+
+	printf("Game not busy ... ");
+	select_box(tower_idx);
 	if(touch_count == 0) {
 		sprintf(dest_buff, "move from tower %d", tower_idx);
 		update_txt_box(dest_buff);
@@ -49,7 +57,12 @@ static void handle_tower_helper(int tower_idx) {
         current_game.selected_tower = tower_idx;
         return;
 	}
+	current_game.is_busy = true;
+	printf("/nCurrent game is busy: %d", current_game.is_busy);
 	hanoi_execute_move(current_game.selected_tower, tower_idx);
+	move_tuple move;
+	move.destination = tower_idx;
+	move.source = current_game.selected_tower;
 	sprintf(dest_buff, "moving to tower  %d", tower_idx);
 	update_txt_box(dest_buff);
 	clear_boxes();
@@ -58,8 +71,9 @@ static void handle_tower_helper(int tower_idx) {
 	increment_count();
 	nextion_write_game_state(&current_game);
 	touch_count = 0;
+	// current_game.is_busy = false;
 }
- // TODO: print tower states to the display
+
 char *get_string_from_rings(int top_idx, uint8_t *tower_rings, char *tower_str, uint8_t str_size) {
 	int offset = 0;
 	// 1. write the opening bracket of the stack

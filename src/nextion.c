@@ -46,9 +46,17 @@ void terminate_command(void) {
     }
 }
 
-void write_to_txt_component(char* objname, char* txt) {
+void write_to_txt_component(char *objname, char *txt) {
     char dest_buff[64];
     snprintf(dest_buff, sizeof(dest_buff), "%s.txt=\"%s\"", objname, txt);
+    for(int i = 0; i < 2; i++) {
+        nextion_send_command(dest_buff);
+    }
+}
+
+void write_to_btn_component(char *objname, char *txt) {
+    char dest_buff[64];
+    snprintf(dest_buff, sizeof(dest_buff), "%s.bco=%s", objname, txt);
     for(int i = 0; i < 2; i++) {
         nextion_send_command(dest_buff);
     }
