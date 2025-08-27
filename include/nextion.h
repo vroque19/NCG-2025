@@ -32,8 +32,8 @@
 #define TOWER_1_ID 0x0F
 #define TOWER_2_ID 0x10
 #define BUTTON_OFF "61309"
-#define BUTTON_ON "57335"
-// #define BUTTON_ON2 "562"
+// #define BUTTON_ON "57335"
+#define BUTTON_ON "562" // dark blue
 #define TOGGLE_1TO2_ID 0x0A
 #define PAGE1_ID 0x01
 #define MAIN_TXT_BOX "t8"

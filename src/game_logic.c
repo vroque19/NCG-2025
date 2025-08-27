@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <math.h>
 #include <string.h>
+#include "nextion.h"
 
 // Global game state
 game_state_t current_game = {0};
@@ -58,21 +59,25 @@ move_result_t hanoi_validate_move(uint8_t source_tower, uint8_t destination_towe
     move.source = source_tower;
     move.destination = destination_tower;
     if (source_tower >= NUM_TOWERS || destination_tower >= NUM_TOWERS) {
+        write_to_txt_component(MAIN_TXT_BOX, "Not valid tower");
         return MOVE_INVALID_PHYSICAL_MISMATCH;
     }
     if (source_tower == destination_tower) {
+        write_to_txt_component(MAIN_TXT_BOX, "Deselected tower");
         return MOVE_INVALID_SAME_TOWER;
     }
     tower_stack *source = &current_game.towers[source_tower];
     tower_stack *dest = &current_game.towers[destination_tower];
     // Check if source tower has rings
     if (source->ring_count == 0) {
+        write_to_txt_component(MAIN_TXT_BOX, "No ring on start\r tower");
         return MOVE_INVALID_EMPTY_SOURCE;
     }
     // Get top ring from source
     uint8_t top_source = peek_tower(source);
     // If destination is empty, move is valid
     if (dest->ring_count == 0) {
+        write_to_txt_component(MAIN_TXT_BOX, "Move made :)");
         return MOVE_VALID;
     }
     // Get top ring from destination
@@ -80,8 +85,11 @@ move_result_t hanoi_validate_move(uint8_t source_tower, uint8_t destination_towe
     
     // Check if trying to place larger ring on smaller
     if (top_source > top_dest) {
+        write_to_txt_component(MAIN_TXT_BOX, "Cannot move larger\r\n ring on smaller ring");
         return MOVE_INVALID_LARGER_ON_SMALLER;
     }
+    write_to_txt_component(MAIN_TXT_BOX, "Move made :)");
+
     return MOVE_VALID;
 }
 
@@ -117,6 +125,7 @@ bool hanoi_execute_move(uint8_t source_tower, uint8_t destination_tower) {
     // Check win condition
     if (hanoi_is_solved()) {
         current_game.game_complete = true;
+        write_to_txt_component(MAIN_TXT_BOX, "GAME SOLVED <3");
         printf("🎉 Congratulations! Game complete in %d moves (min: %d)❤️❤️\n", 
                current_game.moves_made, current_game.min_moves);
     }

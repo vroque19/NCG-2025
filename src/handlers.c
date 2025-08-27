@@ -59,15 +59,15 @@ static void handle_tower_helper(int tower_idx) {
 	}
 	current_game.is_busy = true;
 	printf("/nCurrent game is busy: %d", current_game.is_busy);
+	sprintf(dest_buff, "moving to tower  %d", tower_idx);
+	update_txt_box(dest_buff);
 	hanoi_execute_move(current_game.selected_tower, tower_idx);
 	move_tuple move;
 	move.destination = tower_idx;
 	move.source = current_game.selected_tower;
-	sprintf(dest_buff, "moving to tower  %d", tower_idx);
-	update_txt_box(dest_buff);
 	clear_boxes();
 	poll_weights();
-	MXC_Delay(MXC_DELAY_MSEC(50)); // wait for arm movement
+	// MXC_Delay(MXC_DELAY_MSEC(5)); // wait for arm movement
 	increment_count();
 	nextion_write_game_state(&current_game);
 	touch_count = 0;
@@ -122,6 +122,7 @@ static void switch_page_helper(page_t page, game_mode_t mode) {
 }
 
 void switch_page_touchscreen(void) {
+	write_to_txt_component(MAIN_TXT_BOX, "Begin Solving \r\nTowers of Hanoi:)");
 	printf("switching to touchscreen \n\n");
 	switch_page_helper(PAGE_TOUCHSCREEN, TOUCHSCREEN_MODE);
 }
