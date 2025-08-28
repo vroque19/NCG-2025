@@ -19,9 +19,6 @@
 /* Functions */
 
 // Low-Level Communications
-// TMC-API
-extern void tmc5272_readWriteSPI(uint16_t icID, uint8_t *tx_data, size_t dataLength, uint8_t* rx_data);
-extern uint8_t tmc5272_getNodeAddress(uint16_t icID);
 
 // TMC-API Wrappers
 int32_t tmc5272_readRegister(uint16_t icID, uint8_t address, uint8_t* spi_status);
