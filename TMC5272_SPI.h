@@ -16,7 +16,7 @@ This is the implementation of these functions.
 #define DATA_SIZE 8
 #define VALUE 0xFF
 #define SPI_SPEED 10000 // Bit Rate (Max.: 1,850,000)
-#define SPI_MASTER_SS_INDEX 0      // SS0 = P1_23
+#define SPI_MASTER_SS_INDEX 1      // SS0 = P1_23
 
 /* Function Prototypes */
 void tmc5272_readWriteSPI(uint16_t icID, uint8_t* tx_data, size_t dataLength, uint8_t* rx_data);
