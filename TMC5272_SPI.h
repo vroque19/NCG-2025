@@ -1,3 +1,6 @@
+#ifndef TMC5272_SPI_
+#define TMC5272_SPI_
+
 /* TMC5272 SPI Protocol
 
 The TMC5272 TMC-API defines the following extern functions for impementation on
@@ -21,3 +24,5 @@ This is the implementation of these functions.
 /* Function Prototypes */
 void tmc5272_readWriteSPI(uint16_t icID, uint8_t* tx_data, uint8_t dataLength, uint8_t* rx_data);
 uint8_t tmc5272_getNodeAddress(uint16_t icID);
+
+#endif
