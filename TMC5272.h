@@ -13,6 +13,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <stddef.h>
+#include "TMC5272_SPI.h"
 #include "TMC5272_HW_Abstraction.h"
 
 /* Functions */

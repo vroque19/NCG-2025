@@ -32,7 +32,7 @@
 #include "mxc_delay.h"
 
 // TMC5272
-#include "TMC5272_SPI.h"
+#include "TMC5272.h"
 
 /* **** Definitions **** */
 #define ACC 500
