@@ -43,54 +43,48 @@
 /* ************************************************************************** */
 int main(void)
 {
-	// Initialize TMC Motor
-	tmc5272_init(0);
-	tmc5272_configEmergencyStop(0, 0, 1);
-	tmc5272_configEmergencyStop(0, 1, 1);
-	tmc5272_setVelocityCurve(0, 0, 800000, 50000);
+	// Initialize Motors
+	tmc5272_dev_t motor_x = {
+		.spi_port = MXC_SPI1,
+		.gpio_cfg_spi_port = &gpio_cfg_spi1,
+		.gpio_cfg_spi_ss = &gpio_cfg_spi1_ss1,
+		.ss_pin_index = 1
+	};
+	tmc5272_init(&motor_x);
 
-	// Startup Status Readout
-	printf("Tricoder Demo \n");
-	printf("In this mode, Motor 0 rotates to match Motor 1. \n");
+	tmc5272_dev_t motor_y = {
+		.spi_port = MXC_SPI1,
+		.gpio_cfg_spi_port = &gpio_cfg_spi1,
+		.gpio_cfg_spi_ss = &gpio_cfg_spi1_ss2,
+		.ss_pin_index = 2
+	};
+	tmc5272_init(&motor_y);	
 
-	// Tricoder Initialization
-	tmc5272_tricoder_init(0, 1, tmc5272_getPosition(0, 0));
-	tmc5272_tricoder_setBEMFHysteresis(0, 1, BEMF_HYST_10mV);
+	//tmc5272_configEmergencyStop(0, MOTOR_0, 1);
+	//tmc5272_configEmergencyStop(0, MOTOR_1, 1);
+	tmc5272_setVelocityCurve(&motor_x, MOTOR_0, 100000, 1000);
+	tmc5272_setVelocityCurve(&motor_y, MOTOR_0, 100000, 1000);
+
+	
 
 	// Main Loop
     while (1) {
 	
-		// Read the Tricoder position
-		int32_t tricoder_position = tmc5272_tricoder_getPosition(0, 1);
-
-		// Rotate motor 0 to TC position
-		tmc5272_rotateToPosition(0, 0, 20*tricoder_position);
-		//while(!tmc5272_isAtTargetPosition(0, 0)) {
-			// Do nothing...
-		//}
-
-		// Readout position & encoder
-		printf("Current position: %d  ENC Position: %d   XTARGET: %d    PosReached: %d \n", 
-			tmc5272_getPosition(0,0), 
-			tricoder_position, 
-			tmc5272_fieldRead(0, TMC5272_XTARGET_FIELD(0)),
-			tmc5272_fieldRead(0, TMC5272_RAMP_STAT_POSITION_REACHED_FIELD(0))
-			);
+		tmc5272_rotateByMicrosteps(&motor_x, MOTOR_0, 300000);
+		MXC_Delay(MXC_DELAY_SEC(5));
+		tmc5272_rotateByMicrosteps(&motor_y, MOTOR_0, 200000);
 
 		// Failsafe brake
 		if(PB_IsPressedAny())
 		{
-			tmc5272_rotateAtVelocity(0, 0, 0, 50000);
-			tmc5272_rotateAtVelocity(0, 1, 0, 50000);
-
-			for(uint8_t reg = 0; reg < 0x94; reg++)
-			{
-				printf("0x%X : 0x%X \n", reg, tmc5272_readRegister(0, reg, NULL));
-			}
+			tmc5272_rotateAtVelocity(&motor_x, MOTOR_0, 0, 50000);
+			tmc5272_rotateAtVelocity(&motor_y, MOTOR_0, 0, 50000);
+			
 			while(1) {}
 		}
-
-		MXC_Delay(MXC_DELAY_MSEC(20));
+		
+		// Do nothing
+		while(1) {}
 
     }
 }

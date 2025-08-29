@@ -16,36 +16,16 @@
 #include "TMC5272_SPI.h"
 #include "TMC5272_HW_Abstraction.h"
 
-/* Functions */
-
-// Low-Level Communications
-
-// TMC-API Wrappers
-int32_t tmc5272_readRegister(uint16_t icID, uint8_t address, uint8_t* spi_status);
-void tmc5272_writeRegister(uint16_t icID, uint8_t address, int32_t value, uint8_t* spi_status);
-
-// Part Initialization
-void tmc5272_init(uint16_t icID);
-void tmc5272_configEmergencyStop(uint16_t icID, uint8_t motor, uint8_t isEnabled);
-
-// Movement Commands
-uint32_t tmc5272_getPosition(uint16_t icID, uint8_t motor);
-int32_t tmc5272_getVelocity(uint16_t icID, uint8_t motor);
-bool tmc5272_isAtTargetVelocity(uint16_t icID, uint8_t motor);
-bool tmc5272_isAtTargetPosition(uint16_t icID, uint8_t motor);
-
-void tmc5272_setHomePosition(uint16_t icID, uint8_t motor, uint32_t position);
-void tmc5272_setVelocityCurve(uint16_t icID, uint8_t motor, uint32_t vmax, uint32_t amax);
-
-// Velocity Mode
-void tmc5272_rotateAtVelocity(uint16_t icID, uint8_t motor, int32_t velocity, uint32_t acceleration);
-
-// Position Mode
-void tmc5272_rotateToPosition(uint16_t icID, uint8_t motor, uint32_t position);
-void tmc5272_rotateByMicrosteps(uint16_t icID, uint8_t motor, int32_t usteps);
+/* Defines */
 
 
-/* Tricoder */
+/* Enums & Typedefs */
+
+typedef enum {
+    MOTOR_0,
+    MOTOR_1
+} tmc5272_motor_num_t;
+
 typedef enum {
     BEMF_HYST_25mV,	
 	BEMF_HYST_10mV,	
@@ -58,12 +38,42 @@ typedef enum {
 
 } tmc5272_tricoder_bemf_hysteresis_t;
 
-void tmc5272_tricoder_init(uint16_t icID, uint8_t motor, int32_t encoder_value);
-uint8_t tmc5272_tricoder_isCoilShortVS(uint16_t icID, uint8_t motor);
-void tmc5272_tricoder_resetFromCoilShort(uint16_t icID, uint8_t motor);
-void tmc5272_tricoder_setBEMFHysteresis(uint16_t icID, uint8_t motor, tmc5272_tricoder_bemf_hysteresis_t bemf_hysteresis);
-void tmc5272_tricoder_setEncoderValue(uint16_t icID, uint8_t motor, int32_t encoder_value);
-int32_t tmc5272_tricoder_getPosition(uint16_t icID, uint8_t motor);
+/* Functions */
+
+// Low-Level Communications
+
+// TMC-API Wrappers
+int32_t tmc5272_readRegister(tmc5272_dev_t* tmc5272_dev, uint8_t address, uint8_t* spi_status);
+void tmc5272_writeRegister(tmc5272_dev_t* tmc5272_dev, uint8_t address, int32_t value, uint8_t* spi_status);
+
+// Part Initialization
+void tmc5272_init(tmc5272_dev_t* tmc5272_dev);
+void tmc5272_configEmergencyStop(tmc5272_dev_t* tmc5272_dev, uint8_t motor, uint8_t isEnabled);
+
+// Movement Commands
+uint32_t tmc5272_getPosition(tmc5272_dev_t* tmc5272_dev, uint8_t motor);
+int32_t tmc5272_getVelocity(tmc5272_dev_t* tmc5272_dev, uint8_t motor);
+bool tmc5272_isAtTargetVelocity(tmc5272_dev_t* tmc5272_dev, uint8_t motor);
+bool tmc5272_isAtTargetPosition(tmc5272_dev_t* tmc5272_dev, uint8_t motor);
+
+void tmc5272_setHomePosition(tmc5272_dev_t* tmc5272_dev, uint8_t motor, uint32_t position);
+void tmc5272_setVelocityCurve(tmc5272_dev_t* tmc5272_dev, uint8_t motor, uint32_t vmax, uint32_t amax);
+
+// Velocity Mode
+void tmc5272_rotateAtVelocity(tmc5272_dev_t* tmc5272_dev, uint8_t motor, int32_t velocity, uint32_t acceleration);
+
+// Position Mode
+void tmc5272_rotateToPosition(tmc5272_dev_t* tmc5272_dev, uint8_t motor, uint32_t position);
+void tmc5272_rotateByMicrosteps(tmc5272_dev_t* tmc5272_dev, uint8_t motor, int32_t usteps);
+
+
+/* Tricoder */
+void tmc5272_tricoder_init(tmc5272_dev_t* tmc5272_dev, uint8_t motor, int32_t encoder_value);
+uint8_t tmc5272_tricoder_isCoilShortVS(tmc5272_dev_t* tmc5272_dev, uint8_t motor);
+void tmc5272_tricoder_resetFromCoilShort(tmc5272_dev_t* tmc5272_dev, uint8_t motor);
+void tmc5272_tricoder_setBEMFHysteresis(tmc5272_dev_t* tmc5272_dev, uint8_t motor, tmc5272_tricoder_bemf_hysteresis_t bemf_hysteresis);
+void tmc5272_tricoder_setEncoderValue(tmc5272_dev_t* tmc5272_dev, uint8_t motor, int32_t encoder_value);
+int32_t tmc5272_tricoder_getPosition(tmc5272_dev_t* tmc5272_dev, uint8_t motor);
 
 
 
@@ -93,9 +103,9 @@ static inline uint32_t tmc5272_fieldExtract(uint32_t data, RegisterField field)
     return value;
 }
 
-static inline uint32_t tmc5272_fieldRead(uint16_t icID, RegisterField field)
+static inline uint32_t tmc5272_fieldRead(tmc5272_dev_t* tmc5272_dev, RegisterField field)
 {
-	uint32_t value = tmc5272_readRegister(icID, field.address, NULL);
+	uint32_t value = tmc5272_readRegister(tmc5272_dev, field.address, NULL);
 
     return tmc5272_fieldExtract(value, field);
 }
@@ -105,13 +115,13 @@ static inline uint32_t tmc5272_fieldUpdate(uint32_t data, RegisterField field, u
     return (data & (~field.mask)) | ((value << field.shift) & field.mask);
 }
 
-static inline void tmc5272_fieldWrite(uint16_t icID, RegisterField field, uint32_t value)
+static inline void tmc5272_fieldWrite(tmc5272_dev_t* tmc5272_dev, RegisterField field, uint32_t value)
 {
-	uint32_t regValue = tmc5272_readRegister(icID, field.address, NULL);
+	uint32_t regValue = tmc5272_readRegister(tmc5272_dev, field.address, NULL);
 
 	regValue = tmc5272_fieldUpdate(regValue, field, value);
 
-    tmc5272_writeRegister(icID, field.address, regValue, NULL);
+    tmc5272_writeRegister(tmc5272_dev, field.address, regValue, NULL);
 }
 
 #endif /* TMC_IC_TMC5272_H_ */

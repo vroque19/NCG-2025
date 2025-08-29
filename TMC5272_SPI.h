@@ -16,13 +16,24 @@ This is the implementation of these functions.
 #include "mxc_pins.h"
 
 /***** Definitions *****/
-#define DATA_SIZE 8
-#define VALUE 0xFF
-#define SPI_SPEED 10000 // Bit Rate (Max.: 1,850,000)
-#define SPI_MASTER_SS_INDEX 1      // SS0 = P1_23
+#define SPI_SPEED           10000   // Bit Rate (Max.: 1,850,000)
+#define TMC5272_SPI_SIZE    5       // Bytes per transaction
+
+/* Data Structures */
+typedef struct  {
+    // SPI Port
+    mxc_spi_regs_t* spi_port;
+
+    // GPIO Config for SPI port and SS
+    const mxc_gpio_cfg_t* gpio_cfg_spi_port;
+    const mxc_gpio_cfg_t* gpio_cfg_spi_ss;
+    
+    // SPI SS pin index
+    uint8_t ss_pin_index;
+} tmc5272_dev_t;
 
 /* Function Prototypes */
-void tmc5272_readWriteSPI(uint16_t icID, uint8_t* tx_data, uint8_t dataLength, uint8_t* rx_data);
-uint8_t tmc5272_getNodeAddress(uint16_t icID);
+void tmc5272_SPI_init(tmc5272_dev_t* tmc5272_dev);
+void tmc5272_readWriteSPI(tmc5272_dev_t* tmc5272_dev, uint8_t* tx_data, uint8_t dataLength, uint8_t* rx_data);
 
 #endif
