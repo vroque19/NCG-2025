@@ -11,6 +11,7 @@ This is the implementation of these functions.
 */
 
 #include <stddef.h>
+#include <stdio.h>
 #include "spi.h"
 #include "mxc_device.h"
 #include "mxc_pins.h"
@@ -21,19 +22,13 @@ This is the implementation of these functions.
 
 /* Data Structures */
 typedef struct  {
-    // SPI Port
-    mxc_spi_regs_t* spi_port;
-
-    // GPIO Config for SPI port and SS
-    const mxc_gpio_cfg_t* gpio_cfg_spi_port;
-    const mxc_gpio_cfg_t* gpio_cfg_spi_ss;
-    
-    // SPI SS pin index
-    uint8_t ss_pin_index;
+    mxc_spi_regs_t* spi_port;                   // SPI Port
+    mxc_gpio_cfg_t* gpio_cfg_spi;          // GPIO Config for SPI port (incl. all SS lines)
+    uint8_t ss_index;                           // SPI SS pin index
 } tmc5272_dev_t;
 
 /* Function Prototypes */
 void tmc5272_SPI_init(tmc5272_dev_t* tmc5272_dev);
-void tmc5272_readWriteSPI(tmc5272_dev_t* tmc5272_dev, uint8_t* tx_data, uint8_t dataLength, uint8_t* rx_data);
+void tmc5272_SPI_readWrite(tmc5272_dev_t* tmc5272_dev, uint8_t* tx_data, uint8_t dataLength, uint8_t* rx_data);
 
 #endif

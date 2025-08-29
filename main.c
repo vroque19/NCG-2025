@@ -35,7 +35,22 @@
 #include "TMC5272.h"
 
 /* **** Definitions **** */
-#define ACC 500
+// Map tricoder inputs for X and Y axes
+#define TC_X_In		MOTOR_0
+#define TC_Y_In		MOTOR_1
+
+// TMC5272 Comms
+#define TMC5272_SPI_PORT			MXC_SPI1
+#define TMC5272_SPI_PORT_CFG_MXC	gpio_cfg_spi1
+
+// SS Pin & Index
+#define TMC5272_SPI_SS_PIN_DEV_X	MXC_GPIO_PIN_25
+#define TMC5272_SPI_SS_IDX_DEV_X	1
+#define TMC5272_SPI_SS_PIN_DEV_Y	MXC_GPIO_PIN_24
+#define TMC5272_SPI_SS_IDX_DEV_Y	2
+#define TMC5272_SPI_SS_PIN_DEV_TC	MXC_GPIO_PIN_27
+#define TMC5272_SPI_SS_IDX_DEV_TC	3
+
 /* **** Globals **** */
 
 /* **** Functions **** */
@@ -43,47 +58,88 @@
 /* ************************************************************************** */
 int main(void)
 {
-	// Initialize Motors
-	tmc5272_dev_t motor_x = {
-		.spi_port = MXC_SPI1,
-		.gpio_cfg_spi_port = &gpio_cfg_spi1,
-		.gpio_cfg_spi_ss = &gpio_cfg_spi1_ss1,
-		.ss_pin_index = 1
-	};
-	tmc5272_init(&motor_x);
+	/**** Initialize TMC5272 Devices ******/
 
-	tmc5272_dev_t motor_y = {
+	// Create GPIO Port/Pins Config struct
+	// Copy base MXC cfg struct. (MSDK uses const.)
+    mxc_gpio_cfg_t spi_port_cfg = TMC5272_SPI_PORT_CFG_MXC;
+	// Modify VSSEL (VDDIOH = 3.3V)
+	spi_port_cfg.vssel = MXC_GPIO_VSSEL_VDDIOH;
+	// Add masks for X, Y, and TC axes.
+    spi_port_cfg.mask |= (TMC5272_SPI_SS_PIN_DEV_X | TMC5272_SPI_SS_PIN_DEV_Y | TMC5272_SPI_SS_PIN_DEV_TC);
+	
+	// Create device struct for each IC
+	tmc5272_dev_t* motor_x = &(tmc5272_dev_t){
 		.spi_port = MXC_SPI1,
-		.gpio_cfg_spi_port = &gpio_cfg_spi1,
-		.gpio_cfg_spi_ss = &gpio_cfg_spi1_ss2,
-		.ss_pin_index = 2
+		.gpio_cfg_spi = &spi_port_cfg,
+		.ss_index = 1
 	};
-	tmc5272_init(&motor_y);	
+	tmc5272_dev_t* motor_y = &(tmc5272_dev_t){
+		.spi_port = MXC_SPI1,
+		.gpio_cfg_spi = &spi_port_cfg,
+		.ss_index = 2
+	};
+	tmc5272_dev_t* motor_tc = &(tmc5272_dev_t){
+		.spi_port = MXC_SPI1,
+		.gpio_cfg_spi = &spi_port_cfg,
+		.ss_index = 3
+	};
 
-	//tmc5272_configEmergencyStop(0, MOTOR_0, 1);
-	//tmc5272_configEmergencyStop(0, MOTOR_1, 1);
-	tmc5272_setVelocityCurve(&motor_x, MOTOR_0, 100000, 1000);
-	tmc5272_setVelocityCurve(&motor_y, MOTOR_0, 100000, 1000);
+	// Initialize each moving motor
+	tmc5272_init(motor_x);
+	tmc5272_init(motor_y);
+
+	// Init tricoders
+	tmc5272_tricoder_init(motor_tc, TC_X_In);
+	tmc5272_tricoder_init(motor_tc, TC_Y_In);
 
 	
+	/**** Motor Setup ****/
+
+	// Velocity
+	tmc5272_setVelocityCurve(motor_x, MOTOR_0, 100000, 1000);
+	tmc5272_setVelocityCurve(motor_y, MOTOR_0, 100000, 1000);
+
+
+	/**** Main Program ****/
+
+	// Start by rotating each motor
+	tmc5272_rotateByMicrosteps(motor_x, MOTOR_0, 300000);
+	MXC_Delay(MXC_DELAY_SEC(1));
+	tmc5272_rotateByMicrosteps(motor_y, MOTOR_0, 200000);
+	tmc5272_rotateByMicrosteps(motor_y, MOTOR_1, 200000);
+
+	printf("Press PB to start Tricoder operation. \n");
+	while(!PB_IsPressedAny()) {}
+	MXC_Delay(MXC_DELAY_MSEC(500));
 
 	// Main Loop
     while (1) {
 	
-		tmc5272_rotateByMicrosteps(&motor_x, MOTOR_0, 300000);
-		MXC_Delay(MXC_DELAY_SEC(5));
-		tmc5272_rotateByMicrosteps(&motor_y, MOTOR_0, 200000);
+		// Read the Tricoder position
+		int32_t tc_x_pos = tmc5272_tricoder_getPosition(motor_tc, TC_X_In);
+		int32_t tc_y_pos = tmc5272_tricoder_getPosition(motor_tc, TC_Y_In);
+
+		// Rotate each axis to its encoder position
+		tmc5272_rotateToPosition(motor_x, MOTOR_0, tc_x_pos);
+		tmc5272_rotateToPosition(motor_y, MOTOR_0, 20*tc_y_pos);
+		tmc5272_rotateToPosition(motor_y, MOTOR_1, 20*tc_y_pos);
+
+		// Readout position & encoder
+		printf("Current position: %d  ENC Position: %d \n", tmc5272_getPosition(motor_x,MOTOR_0), tc_x_pos);
+		printf("Current position: %d  ENC Position: %d \n", tmc5272_getPosition(motor_y,MOTOR_0), tc_y_pos);
 
 		// Failsafe brake
 		if(PB_IsPressedAny())
 		{
-			tmc5272_rotateAtVelocity(&motor_x, MOTOR_0, 0, 50000);
-			tmc5272_rotateAtVelocity(&motor_y, MOTOR_0, 0, 50000);
+			tmc5272_rotateAtVelocity(motor_x, MOTOR_0, 0, 50000);
+			tmc5272_rotateAtVelocity(motor_x, MOTOR_1, 0, 50000);
+			tmc5272_rotateAtVelocity(motor_y, MOTOR_0, 0, 50000);
+			tmc5272_rotateAtVelocity(motor_y, MOTOR_1, 0, 50000);
 			
 			while(1) {}
 		}
 		
-		// Do nothing
 		while(1) {}
 
     }

@@ -68,7 +68,7 @@ void tmc5272_rotateByMicrosteps(tmc5272_dev_t* tmc5272_dev, uint8_t motor, int32
 
 
 /* Tricoder */
-void tmc5272_tricoder_init(tmc5272_dev_t* tmc5272_dev, uint8_t motor, int32_t encoder_value);
+void tmc5272_tricoder_init(tmc5272_dev_t* tmc5272_dev, uint8_t motor);
 uint8_t tmc5272_tricoder_isCoilShortVS(tmc5272_dev_t* tmc5272_dev, uint8_t motor);
 void tmc5272_tricoder_resetFromCoilShort(tmc5272_dev_t* tmc5272_dev, uint8_t motor);
 void tmc5272_tricoder_setBEMFHysteresis(tmc5272_dev_t* tmc5272_dev, uint8_t motor, tmc5272_tricoder_bemf_hysteresis_t bemf_hysteresis);

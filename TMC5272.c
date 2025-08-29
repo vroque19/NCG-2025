@@ -18,13 +18,13 @@ int32_t tmc5272_readRegister(tmc5272_dev_t* tmc5272_dev, uint8_t address, uint8_
 	tx_data[0] = address & TMC5272_ADDRESS_MASK;
 
 	// Send the read request
-	tmc5272_readWriteSPI(tmc5272_dev, &tx_data[0], sizeof(tx_data), rx_data);
+	tmc5272_SPI_readWrite(tmc5272_dev, &tx_data[0], sizeof(tx_data), rx_data);
 
 	// Rewrite address and clear write bit
 	tx_data[0] = address & TMC5272_ADDRESS_MASK;
 
 	// Send another request to receive the read reply
-	tmc5272_readWriteSPI(tmc5272_dev, &tx_data[0], sizeof(tx_data), rx_data);
+	tmc5272_SPI_readWrite(tmc5272_dev, &tx_data[0], sizeof(tx_data), rx_data);
 
 	// Return status and data
 	*spi_status = rx_data[0];
@@ -43,7 +43,7 @@ void tmc5272_writeRegister(tmc5272_dev_t* tmc5272_dev, uint8_t address, int32_t 
 	tx_data[4] = 0xFF & (value>>0);
 
 	// Send the write request
-	tmc5272_readWriteSPI(tmc5272_dev, &tx_data[0], sizeof(tx_data), rx_data);
+	tmc5272_SPI_readWrite(tmc5272_dev, &tx_data[0], sizeof(tx_data), rx_data);
 
 	// Store status received in rx
 	*spi_status = rx_data[0];
@@ -51,8 +51,11 @@ void tmc5272_writeRegister(tmc5272_dev_t* tmc5272_dev, uint8_t address, int32_t 
 
 void tmc5272_init(tmc5272_dev_t* tmc5272_dev)
 {
+	/**** Comms Initialization ****/
 	tmc5272_SPI_init(tmc5272_dev);
 
+	/**** Device Register Initialization ****/
+	// Recommendation: Get register settings from TMCL-IDE -> Export from Register Browser.
 	//====================================================================================================//
 	// ACTUAL SETTINGS FOR TMC5272 (created: 2025/07/31 16:55:09)                                        //
 	//vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv//
@@ -223,7 +226,8 @@ void tmc5272_rotateByMicrosteps(tmc5272_dev_t* tmc5272_dev, uint8_t motor, int32
 
 // The initialization of Tricoder does not halt the motor. This is left to the application.
 // Default BEMF hysteresis of 10mV.
-void tmc5272_tricoder_init(tmc5272_dev_t* tmc5272_dev, uint8_t motor, int32_t encoder_value)
+// Default encoder value set to 0.
+void tmc5272_tricoder_init(tmc5272_dev_t* tmc5272_dev, uint8_t motor)
 {
 	// From "Relevant Settings" in Tricoder section of datasheet
 
@@ -251,8 +255,8 @@ void tmc5272_tricoder_init(tmc5272_dev_t* tmc5272_dev, uint8_t motor, int32_t en
 	// Refer to Table 26 for encoder factor <--> encoder resolution conversion.
 	tmc5272_fieldWrite(tmc5272_dev, TMC5272_ENC_CONST_FIELD(motor), 256<<16);
 
-	// Set Mx_X_ENC: Set to 0 or X_ACTUAL before encoder becomes activated.
-	tmc5272_fieldWrite(tmc5272_dev, TMC5272_X_ENC_FIELD(motor), encoder_value);
+	// Set Mx_X_ENC: Set encoder position to 0.
+	tmc5272_fieldWrite(tmc5272_dev, TMC5272_X_ENC_FIELD(motor), 0);
 
 	// Set FSR_Mx: 0x3: KIFS = 8.00, typ R_DS(ON),LS = 0.11Ohms.
 	// This is not in the TMC5272 datasheet Tricoder section.
