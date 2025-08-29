@@ -6,7 +6,7 @@
 #include "4131.h"
 #include "mode_touchscreen.h"
 #include "handlers.h"
-#include <stdint.h>
+// #include <stdint.h>
 
 // Global variables
 extern volatile int GLOBAL_UART_ISR_FLAG;

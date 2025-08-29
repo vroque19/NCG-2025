@@ -4,6 +4,7 @@
 #include <mode_touchscreen.h>
 // #include "stack.h"
 #include "game_logic.h"
+#include "solenoid_driver.h"
 
 
 

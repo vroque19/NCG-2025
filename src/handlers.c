@@ -30,7 +30,20 @@ void exit_to_main_menu(void) {
 }
 
 void solenoid_handler(void) {
-	udpate_status_txt("solenoid actuate\n");
+	// if(current_game.is_busy) {
+	// 	solenoid_off();
+	// } else{
+	// 	solenoid_on();
+	// }
+	// if(touch_count == 0) {
+	// 	solenoid_on();
+	// 	touch_count++;
+	// } else {
+	// 	solenoid_off();
+	// 	touch_count = 0;
+	// }
+	solenoid_toggle();
+	// udpate_status_txt("solenoid actuate\n");
 	printf("solenoid function\n");
 	return;
 }
