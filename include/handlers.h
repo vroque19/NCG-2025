@@ -1,7 +1,7 @@
 #ifndef __HANDLERS_H_
 #define __HANDLERS_H_
 // #include <stddef.h>
-#include <mode_touchscreen.h>
+#include "mode_touchscreen.h"
 // #include "stack.h"
 #include "game_logic.h"
 #include "solenoid_driver.h"
@@ -45,7 +45,7 @@ void switch_page_automated(void);
 void switch_mode(game_mode_t new_mode);
 void switch_page(game_mode_t new_page);
 void nextion_write_game_state(game_state_t *game);
-char *get_string_from_rings(int top_idx, uint8_t *tower_rings, char *tower_str, uint8_t str_size);
+void get_string_from_rings(int top_idx, uint8_t *tower_rings, char *tower_str, uint8_t str_size);
 // Auto page functions
 void start_automated(void);
 

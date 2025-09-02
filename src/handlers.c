@@ -59,7 +59,6 @@ static void handle_tower_helper(int tower_idx) {
 		printf("Busyyyyyyy");
 		return;
 	}
-	printf("/nCurrent game is busy: %d", current_game.is_busy);
 
 	printf("Game not busy ... ");
 	select_box(tower_idx);
@@ -84,10 +83,9 @@ static void handle_tower_helper(int tower_idx) {
 	increment_count();
 	nextion_write_game_state(&current_game);
 	touch_count = 0;
-	// current_game.is_busy = false;
 }
 
-char *get_string_from_rings(int top_idx, uint8_t *tower_rings, char *tower_str, uint8_t str_size) {
+void get_string_from_rings(int top_idx, uint8_t *tower_rings, char *tower_str, uint8_t str_size) {
 	int offset = 0;
 	// 1. write the opening bracket of the stack
 	offset = snprintf(tower_str, str_size, "[");
@@ -142,6 +140,8 @@ void switch_page_touchscreen(void) {
 void switch_page_manual(void) {
 	printf("switching to manual \n\n");
 	switch_page_helper(PAGE_MANUAL, MANUAL_MODE);
+	poll_weights();
+	
 }
 void switch_page_automated(void) {
 	printf("switching to automated \n\n");
