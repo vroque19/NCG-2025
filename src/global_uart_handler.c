@@ -14,7 +14,7 @@ static uint8_t global_rx_buffer[BYTES];
 static uint8_t global_tx_buffer[BYTES];
 static mxc_uart_req_t global_uart_req;
 
-extern const screen_component comp_table[] = {
+const screen_component comp_table[] = {
         /* TODO: add all components */
 		{PAGE_TOUCHSCREEN, TOWER_0_ID, handle_tower_0_btn},
 		{PAGE_TOUCHSCREEN, TOWER_1_ID, handle_tower_1_btn},
@@ -125,11 +125,8 @@ void handle_touch_event(uint8_t *rx_data) {
     
     // Find the appropriate handler for this component
     for(int i = 0; i < sizeof(comp_table)/sizeof(screen_component); i++) {
-		// printf("%d\n", page_id==comp_table[i].page);
 		if(page==comp_table[i].page && component==comp_table[i].component) {
 			comp_table[i].handler_function();
-            // __enable_irq();
-            current_game.is_busy = false;
 			return;
 		}
     }
@@ -150,6 +147,7 @@ void global_uart_main_loop(void) {
         global_uart_req.txCnt = 0;
         global_uart_req.rxCnt = 0;
         MXC_UART_TransactionAsync(&global_uart_req);
+        current_game.is_busy = false;
         __enable_irq(); // must reenable interrupt
 
     }
