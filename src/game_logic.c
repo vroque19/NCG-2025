@@ -126,7 +126,7 @@ bool hanoi_execute_move(uint8_t source_tower, uint8_t destination_tower) {
     if (hanoi_is_solved()) {
         current_game.game_complete = true;
         write_to_txt_component(MAIN_TXT_BOX, "GAME SOLVED <3");
-        printf("🎉 Congratulations! Game complete in %d moves (min: %d)❤️❤️\n", 
+        printf("🎉 Congratulations! Game complete in %d moves (minimum possible moves: %d)❤️❤️\n", 
                current_game.moves_made, current_game.min_moves);
     }
     
