@@ -1,0 +1,4 @@
+*.log
+/ex
+/build
+/.vscode
