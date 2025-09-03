@@ -1,19 +1,14 @@
 #ifndef _load_cell_h_
 #define _load_cell_h_
-#include <stdio.h>
-#include <stdint.h>
-#include <stddef.h>
 #include <stdlib.h>
 #include <stdbool.h>
 #include <math.h>
-#include "mxc_delay.h"
-#include <string.h>
 #include "4131.h"
 
 #define LOAD_CELL_0 0
 #define LOAD_CELL_1 1
 #define LOAD_CELL_2 2
-
+extern int global_base_array[3];
 uint32_t calibrate(uint8_t idx);
 uint32_t get_calibration_data(void);
 uint32_t get_average(uint32_t *list, uint8_t n);

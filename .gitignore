@@ -6,3 +6,6 @@
 /.vscode
 /.settings
 cproject
+*.out
+.cache/
+compile_commands.json

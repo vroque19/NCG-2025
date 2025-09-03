@@ -163,6 +163,7 @@ VPATH := $(VPATH)
 # Where to find header files for this project
 IPATH += .
 IPATH += include
+IPATH += $(MAXIM_PATH)/Tools/GNUTools/10.3/arm-none-eabi/include
 IPATH := $(IPATH)
 
 AUTOSEARCH ?= 1
