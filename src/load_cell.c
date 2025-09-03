@@ -1,5 +1,6 @@
 #include "load_cell.h"
 
+ // conversion factors for 3 load cells
  int global_base_array[3] = {33063, 32787, 31948};
 
 uint32_t get_average(uint32_t *list, uint8_t n) {
@@ -34,6 +35,7 @@ uint32_t calibrate(uint8_t idx) {
     return base;
 }
 
+/* converts adc code to grams */
 double code_to_grams(uint32_t base, uint32_t code, double conversion_factor){
     // printf("Code - Reference : %d - %d\n", code, base);
     double delta = abs((int)code - (int)base);
@@ -48,7 +50,7 @@ double get_load_cell_data(uint8_t channel_idx, uint32_t base) {
     // enable channel
     configure_adc_channel(channel_idx, 0x80);
     // wait before data read
-    MXC_Delay(MXC_DELAY_MSEC(250));
+    MXC_Delay(MXC_DELAY_MSEC(200));
     uint32_t code = get_adc_data();
     // check the status
     // read_status();
@@ -63,6 +65,7 @@ double get_load_cell_data(uint8_t channel_idx, uint32_t base) {
     return weight;
 }
 
+/* for testing */
 void test_switch(uint32_t base0, uint32_t base1, uint32_t base2) {
     // switch statement load cell test
     printf("Select a load cell 0-2:\n ");

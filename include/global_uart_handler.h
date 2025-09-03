@@ -20,7 +20,10 @@ typedef struct {
     const char* mode_name;
 } page_mode_mapping_t;
 
-
+/**
+ * @brief Initializes UART interrupts to read data from the nextion display
+ * @return void
+ */
 void global_uart_init(void);
 void uart_isr(void);
 void global_uart_callback(mxc_uart_req_t *req, int error);

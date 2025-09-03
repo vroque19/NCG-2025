@@ -3,9 +3,9 @@
 mxc_gpio_cfg_t solenoid_gpio_out;
 void solenoid_gpio_init(void) {
     solenoid_gpio_out.port = SOLENOID_GPIO_PORT_OUT;
-    // if(MXC_GPIO_Init(2) != E_NO_ERROR) {
-    //     printf("GPIO error.\n"); while(1){}
-    // }
+    if(MXC_GPIO_Init(2) != E_NO_ERROR) {
+        printf("GPIO error.\n"); while(1){}
+    }
     solenoid_gpio_out.mask = SOLENOID_GPIO_PIN_OUT;
     solenoid_gpio_out.drvstr = MXC_GPIO_DRVSTR_0;
     solenoid_gpio_out.func = MXC_GPIO_FUNC_OUT;
@@ -26,8 +26,6 @@ void solenoid_on(void) {
 void solenoid_off(void) {
     MXC_GPIO_OutClr(solenoid_gpio_out.port, solenoid_gpio_out.mask);
     printf("Turning solenoid off. GPIO output state: %d\n\n", MXC_GPIO_OutGet(solenoid_gpio_out.port, SOLENOID_GPIO_PIN_OUT));
-
-    // MXC_GPIO_OutToggle(SOLENOID_GPIO_PORT_OUT, SOLENOID_GPIO_PIN_OUT);
 }
 
 void solenoid_toggle(void) {

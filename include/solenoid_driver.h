@@ -10,6 +10,10 @@
 #define SOLENOID_GPIO_PORT_OUT   MXC_GPIO2
 #define SOLENOID_GPIO_PIN_OUT    MXC_GPIO_PIN_13 // pin 15 does not work
 
+/**
+* @brief initializes gpio pin for the solenoid driver
+* @return void
+ */
 void solenoid_gpio_init(void);
 void solenoid_on(void);
 void solenoid_off(void);

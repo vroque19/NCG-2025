@@ -1,6 +1,7 @@
 #include "history.h"
 #include <stddef.h>
-#include <stdbool.h> // For bool type
+#include <stdbool.h>
+
 
 void init_history(history_stack *history) {
     if (history == NULL) {
@@ -18,7 +19,6 @@ bool is_history_empty(const history_stack *history) {
     }
     return history->top_idx == -1;
 }
-
 
 bool is_history_full(const history_stack *history) {
     if (history == NULL) {
@@ -43,13 +43,7 @@ bool push_history(history_stack *history, move_tuple move) {
     return true;
 }
 
-/**
- * @brief Pops the most recent move from the history stack.
- * Decrements top_idx and copies the move to popped_move.
- * @param history A pointer to the history_stack.
- * @param popped_move A pointer to a move_tuple to store the popped move.
- * @return True if a move was popped successfully, false if the stack was empty.
- */
+
 bool pop_history(history_stack *history, move_tuple *popped_move) {
     if (history == NULL || popped_move == NULL) {
         // Handle error: history or popped_move pointer is NULL

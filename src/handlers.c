@@ -83,6 +83,13 @@ static void handle_tower_helper(int tower_idx) {
 	increment_count();
 	nextion_write_game_state(&current_game);
 	touch_count = 0;
+	// Check win condition
+    // if (hanoi_is_solved()) {
+    //     current_game.game_complete = true;
+    //     write_to_txt_component(MAIN_TXT_BOX, "GAME SOLVED <3");
+    //     printf("🎉 Congratulations! Game complete in %d moves (minimum possible moves: %d)❤️❤️\n", 
+    //            current_game.moves_made, current_game.min_moves);
+    // }
 }
 
 void get_string_from_rings(int top_idx, uint8_t *tower_rings, char *tower_str, uint8_t str_size) {
@@ -127,9 +134,9 @@ static void switch_page_helper(page_t page, game_mode_t mode) {
 	hanoi_init_game(MAX_RINGS);
 	hanoi_print_game_state("Initialized game", &current_game);
 	switch_mode(mode);
-	MXC_Delay(1000);
 	nextion_write_game_state(&current_game);
-
+	MXC_Delay(1000);
+	poll_weights();
 }
 
 void switch_page_touchscreen(void) {
@@ -140,7 +147,7 @@ void switch_page_touchscreen(void) {
 void switch_page_manual(void) {
 	printf("switching to manual \n\n");
 	switch_page_helper(PAGE_MANUAL, MANUAL_MODE);
-	poll_weights();
+	// poll_weights();
 	
 }
 void switch_page_automated(void) {
@@ -151,9 +158,6 @@ void switch_page_automated(void) {
 // Switch to a new operating mode
 void switch_mode(game_mode_t new_mode) {
     if (new_mode == current_mode) return;
-    // printf("Switching from %s mode to %s mode\n", 
-    //        get_mode_name(current_mode), get_mode_name(new_mode));
-    
     current_mode = new_mode;
 
 }

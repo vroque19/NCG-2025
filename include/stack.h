@@ -13,10 +13,31 @@ typedef struct{
     double total_weight;
 } tower_stack;
 
+/**
+ * @brief Initializes the stack
+ Sets the top idx at -1. Sets ring count at 0.
+ * @param tower A pointer to the tower stack.
+ * @return void
+ */
 void init_stack(tower_stack *tower);
-uint8_t pop_tower(tower_stack *tower);
+/**
+ * @brief Pops the most recent move from the stack.
+ * Decrements top_idx and copies the move to popped_move.
+ * @param tower A pointer to the stack.
+ * @return True if a move was popped successfully, false if the stack was empty.
+ */
+ uint8_t pop_tower(tower_stack *tower);
+
+ /**
+ * @brief Pushed to the stack.
+ * Decrements top_idx and copies the move to popped_move.
+ * @param tower A pointer to the history_stack.
+ * @param ring_val A ring value to push to the stack.
+ * @return True if a move was popped successfully, false if the stack was empty.
+ */
+ int push_tower(tower_stack *tower, uint8_t ring_val);
 uint8_t peek_tower(tower_stack *tower);
-int push_tower(tower_stack *tower, uint8_t ring_val);
+
 bool is_empty_tower(tower_stack *tower);
 bool is_full_tower(tower_stack *tower);
 int get_top_idx_from_tower(tower_stack *tower);
