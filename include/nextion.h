@@ -10,7 +10,7 @@
 #include "mxc_delay.h"
 #include "mxc_device.h"
 #include "mxc_pins.h"
-#include "nextion.h"
+// #include "nextion.h"
 #include "uart.h"
 
 #define BAUD_RATE 9600

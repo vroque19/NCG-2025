@@ -1,6 +1,6 @@
 #include "game_logic.h"
 #include <stdio.h>
-#include <math.h>
+// #include <math.h>
 #include <string.h>
 #include "nextion.h"
 
