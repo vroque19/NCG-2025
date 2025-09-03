@@ -3,7 +3,7 @@
 void tmc5272_SPI_init(tmc5272_dev_t* tmc5272_dev)
 {
     /*** Try to initialize SPI comms ***/
-    if (MXC_SPI_Init(tmc5272_dev->spi_port, 1, 0, 1, (0 << tmc5272_dev->ss_index), SPI_SPEED) != E_NO_ERROR) 
+    if (MXC_SPI_Init(tmc5272_dev->spi_port, 1, 0, SPI_NUM_CLIENTS, (0 << tmc5272_dev->ss_index), SPI_SPEED) != E_NO_ERROR) 
     {
         printf("\nSPI MASTER INITIALIZATION ERROR: %d\n", tmc5272_dev->ss_index);
         while (1) {}

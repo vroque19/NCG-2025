@@ -122,16 +122,17 @@ int main(void)
 
 		// Rotate each axis to its encoder position
 		tmc5272_rotateToPosition(motor_x, MOTOR_0, tc_x_pos);
-		tmc5272_rotateToPosition(motor_y, MOTOR_0, 20*tc_y_pos);
-		tmc5272_rotateToPosition(motor_y, MOTOR_1, 20*tc_y_pos);
+		tmc5272_rotateToPosition(motor_y, MOTOR_0, 10*tc_y_pos);
+		tmc5272_rotateToPosition(motor_y, MOTOR_1, 10*tc_y_pos);
 
 		// Readout position & encoder
-		printf("Current position: %d  ENC Position: %d \n", tmc5272_getPosition(motor_x,MOTOR_0), tc_x_pos);
-		printf("Current position: %d  ENC Position: %d \n", tmc5272_getPosition(motor_y,MOTOR_0), tc_y_pos);
+		printf("Mx0: %d  ENC: %d", tmc5272_getPosition(motor_x,MOTOR_0), tc_x_pos);
+		printf("\tMy0: %d  ENC: %d \n", tmc5272_getPosition(motor_y,MOTOR_0), tc_y_pos);
 
 		// Failsafe brake
 		if(PB_IsPressedAny())
 		{
+			printf("Failsafe! \n");
 			tmc5272_rotateAtVelocity(motor_x, MOTOR_0, 0, 50000);
 			tmc5272_rotateAtVelocity(motor_x, MOTOR_1, 0, 50000);
 			tmc5272_rotateAtVelocity(motor_y, MOTOR_0, 0, 50000);
@@ -140,7 +141,6 @@ int main(void)
 			while(1) {}
 		}
 		
-		while(1) {}
 
     }
 }
