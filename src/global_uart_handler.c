@@ -45,7 +45,7 @@ void uart_isr(void) {
     // printf("Flags: %d \n", flags);
     // Only process for RX Threshold interrupt
     if (( flags & RX_LVL) && (GLOBAL_UART_ISR_FLAG == 0)) {
-        printf("Processing RX threshold interrupt :))\n");
+        // printf("Processing RX threshold interrupt :))\n");
         GLOBAL_UART_ISR_FLAG = 1;
         MXC_UART_AsyncHandler(GLOBAL_UART_REG);
     }
@@ -60,15 +60,15 @@ void uart_isr(void) {
 void global_uart_callback(mxc_uart_req_t *req, int error) {
     /* Called once per successful transaction */
     /* Possible reason for display error */
-    printf(">>>> Callback function <<<< \n\n");
+    // printf(">>>> Callback function <<<< \n\n");
     if (error == E_NO_ERROR) {
         GLOBAL_UART_ISR_FLAG = 1;
         
-        printf("UART transaction completed successfully\n");
-        printf("Received %d bytes\n", req->rxCnt);
-        printf("Raw data: ");
-        print_buff(global_rx_buffer, req->rxCnt);
-        printf("\n");
+        // printf("UART transaction completed successfully\n");
+        // printf("Received %d bytes\n", req->rxCnt);
+        // printf("Raw data: ");
+        // print_buff(global_rx_buffer, req->rxCnt);
+        // printf("\n");
         
     } else {
         // Handle errors
@@ -117,8 +117,8 @@ void handle_touch_event(uint8_t *rx_data) {
     uint8_t component = get_component(rx_data);
     uint8_t event = get_event(rx_data);
     // __disable_irq();
-    printf("Processing: Event=0x%02X, Page=0x%02X, Component=0x%02X\n", 
-        event, page, component);
+    // printf("Processing: Event=0x%02X, Page=0x%02X, Component=0x%02X\n", 
+        // event, page, component);
     
     // Find the appropriate handler for this component
     for(int i = 0; i < sizeof(comp_table)/sizeof(screen_component); i++) {
@@ -136,7 +136,7 @@ void global_uart_main_loop(void) {
         // Wait for UART interrupt
         while (!GLOBAL_UART_ISR_FLAG) {
         }
-        printf("handling touch...");
+        // printf("handling touch...");
         __disable_irq(); // debounce
         handle_touch_event(global_rx_buffer);
         // Reset flag and re-arm interrupt

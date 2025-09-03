@@ -37,11 +37,10 @@
 #define CS_PORT MXC_GPIO0
 #define TX_DATA_LEN 4
 
+void write_mem_map(void);
 void spi_main_init(void);
-void print_buff(const uint8_t *buff, size_t len);
-int spi_send_data(const uint8_t *tx_data, const uint8_t *rx_data, size_t len);
+void configure_adc_channel(uint8_t channel_idx, uint8_t enable_bit);
 void set_reg( uint8_t reg_addr, uint8_t *data, size_t bytes);
-
 void set_status(void);
 void set_ctrl(void);
 void set_config_n(void);
@@ -49,15 +48,16 @@ void set_filter_n(void);
 void set_offset_n(void);
 void set_gain_n(void);
 void set_misc(void);
-void write_mem_map(void);
 void spi_read_reg(uint8_t* rx_data, uint8_t reg_addr, size_t bytes);
+uint32_t bytes_to_dec(uint8_t *bytes);
+uint32_t hex_to_code(const uint8_t *buff, size_t len);
+uint32_t get_data_from_channel(uint8_t channel_idx);
 void read_adc_id(void);
 void read_adc_conversion(void);
 uint32_t get_adc_data(void);
 uint8_t read_status(void);
-uint32_t bytes_to_dec(uint8_t *bytes);
+
+int spi_send_data(const uint8_t *tx_data, const uint8_t *rx_data, size_t len);
 void test_spi_send(void);
-uint32_t hex_to_code(const uint8_t *buff, size_t len);
-uint32_t get_data_from_channel(uint8_t channel_idx);
-void configure_adc_channel(uint8_t channel_idx, uint8_t enable_bit);
+void print_buff(const uint8_t *buff, size_t len);
 #endif // 4131_H_

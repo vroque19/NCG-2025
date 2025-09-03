@@ -10,7 +10,7 @@ void clear_boxes(void) {
 }
 
 void select_box(int tower_idx) {
-	printf("Selecting box %d \n", tower_idx);
+	// printf("Selecting box %d \n", tower_idx);
 	char *tower_btns[3] = {TOWER_0_BTN_ID, TOWER_1_BTN_ID, TOWER_2_BTN_ID};
 	write_to_btn_component(tower_btns[tower_idx], BUTTON_ON);
 }
