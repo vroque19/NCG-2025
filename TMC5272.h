@@ -23,7 +23,8 @@
 
 typedef enum {
     MOTOR_0,
-    MOTOR_1
+    MOTOR_1,
+    // ALL_MOTORS  // Not yet implemented...  Warning: Only works in functions supporting ALL_MOTORS! (Check function commentary.)
 } tmc5272_motor_num_t;
 
 typedef enum {

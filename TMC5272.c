@@ -56,6 +56,15 @@ void tmc5272_init(tmc5272_dev_t* tmc5272_dev)
 
 	/**** Device Register Initialization ****/
 	// Recommendation: Get register settings from TMCL-IDE -> Export from Register Browser.
+
+	// Set HOLD mode FIRST!
+	tmc5272_writeRegister(tmc5272_dev, TMC5272_RAMPMODE, 0x0000000F, NULL);
+	
+	// IHOLD_IRUN
+	// IRUN = 32/32; IHOLD = 8
+	tmc5272_writeRegister(tmc5272_dev, TMC5272_IHOLD_IRUN(MOTOR_0), 0x04011F08, NULL); 
+	tmc5272_writeRegister(tmc5272_dev, TMC5272_IHOLD_IRUN(MOTOR_1), 0x04011F08, NULL); 
+
 	//====================================================================================================//
 // ACTUAL SETTINGS FOR TMC5272 (created: 2025/09/03 16:20:11)                                        //
 //vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv//
@@ -65,12 +74,10 @@ void tmc5272_init(tmc5272_dev_t* tmc5272_dev)
 	tmc5272_writeRegister(tmc5272_dev, 0x04, 	0x60223318, NULL); 		// writing value 0x60223318 = 1612854040 = 0.0 to address 2 = 0x04(IOIN)
 	tmc5272_writeRegister(tmc5272_dev, 0x05, 	0x000003CF, NULL); 		// writing value 0x000003CF = 975 = 0.0 to address 3 = 0x05(DRV_CONF)
 	tmc5272_writeRegister(tmc5272_dev, 0x06, 	0x00000000, NULL); 		// writing value 0x00000000 = 0 = 0.0 to address 4 = 0x06(GLOBAL_SCALER)
-	tmc5272_writeRegister(tmc5272_dev, 0x07, 	0x00000000, NULL); 		// writing value 0x00000000 = 0 = 0.0 to address 5 = 0x07(RAMPMODE)
 	tmc5272_writeRegister(tmc5272_dev, 0x08, 	0x00000019, NULL); 		// writing value 0x00000019 = 25 = 0.0 to address 6 = 0x08(MSLUT_ADDR)
 	tmc5272_writeRegister(tmc5272_dev, 0x09, 	0xFFFF8056, NULL); 		// writing value 0xFFFF8056 = 0 = 0.0 to address 7 = 0x09(MSLUT_DATA)
 	tmc5272_writeRegister(tmc5272_dev, 0x10, 	0xFFFFFFFF, NULL); 		// writing value 0xFFFFFFFF = 0 = 0.0 to address 8 = 0x10(M0_X_COMPARE)
 	tmc5272_writeRegister(tmc5272_dev, 0x11, 	0x00000000, NULL); 		// writing value 0x00000000 = 0 = 0.0 to address 9 = 0x11(M0_X_COMPARE_REPEAT)
-	tmc5272_writeRegister(tmc5272_dev, 0x12, 	0x04011F08, NULL); 		// writing value 0x04011F08 = 67182344 = 0.0 to address 10 = 0x12(M0_IHOLD_IRUN)
 	tmc5272_writeRegister(tmc5272_dev, 0x13, 	0x0000000A, NULL); 		// writing value 0x0000000A = 10 = 0.0 to address 11 = 0x13(M0_TPOWERDOWN)
 	tmc5272_writeRegister(tmc5272_dev, 0x15, 	0x00000000, NULL); 		// writing value 0x00000000 = 0 = 0.0 to address 12 = 0x15(M0_TPWMTHRS)
 	tmc5272_writeRegister(tmc5272_dev, 0x16, 	0x00000000, NULL); 		// writing value 0x00000000 = 0 = 0.0 to address 13 = 0x16(M0_TCOOLTHRS)
@@ -268,16 +275,22 @@ void tmc5272_tricoder_init(tmc5272_dev_t* tmc5272_dev, uint8_t motor)
 {
 	// From "Relevant Settings" in Tricoder section of datasheet
 
-	tmc5272_fieldWrite(tmc5272_dev, TMC5272_GCONF_M1_EN_PWM_MODE_FIELD, 1);
+	// 0x1: StealthChop2 enabled
+	if(motor == MOTOR_0) {
+		tmc5272_fieldWrite(tmc5272_dev, TMC5272_GCONF_M0_EN_PWM_MODE_FIELD, 1);
+	}
+	if(motor == MOTOR_1) {
+		tmc5272_fieldWrite(tmc5272_dev, TMC5272_GCONF_M1_EN_PWM_MODE_FIELD, 1);
+	}
+
+	// 0x0: Lowest standstill (hold) current at 1/32 full-scale. 
+	// Must set to 0 to choose freewheel / coil short circuit for standstill.
+	tmc5272_fieldWrite(tmc5272_dev, TMC5272_IHOLD_IRUN_IHOLD_FIELD(motor), 0);
 
 	// 0x0: Disable external encoder inputs. Motor must be at standstill.
 	tmc5272_fieldWrite(tmc5272_dev, TMC5272_ENCMODE_NBEMF_ABN_SEL_FIELD(motor), 0);
 	// 0x2: Passive braking
 	tmc5272_fieldWrite(tmc5272_dev, TMC5272_PWMCONF_FREEWHEEL_FIELD(motor), 2);
-
-	// 0x0: Lowest standstill (hold) current at 1/32 full-scale. 
-	// Must set to 0 to choose freewheel / coil short circuit for standstill.
-	tmc5272_fieldWrite(tmc5272_dev, TMC5272_IHOLD_IRUN_IHOLD_FIELD(motor), 0);
 
 	// 0x0: TOFF off time. NCLK = 24 + 32 * TOFF. 0 = Driver disable, all bridges off.
 	// tmc5272_fieldWrite(tmc5272_dev, TMC5272_CHOPCONF_TOFF_FIELD(motor), 0);
@@ -301,14 +314,17 @@ void tmc5272_tricoder_init(tmc5272_dev_t* tmc5272_dev, uint8_t motor)
 	// Leaving this at 0x0 causes a "short to supply" to be detected 
 	// when the tricoder is spun quickly.
 	// Therefore, increase it to prevent this error condition.
-	if(motor == 0)
+	if(motor == MOTOR_0)
 	{
 		tmc5272_fieldWrite(tmc5272_dev, TMC5272_DRV_CONF_FSR_M0_FIELD, 0x3);
 	}
-	if(motor == 1)
+	if(motor == MOTOR_1)
 	{
 		tmc5272_fieldWrite(tmc5272_dev, TMC5272_DRV_CONF_FSR_M1_FIELD, 0x3);
 	}
+
+	// Reset from possible coil short condition -- this just cycles driver disable / enable to reset.
+	tmc5272_tricoder_resetFromCoilShort(tmc5272_dev, motor);
 }
 
 // Detect supply-side coil short. This occurs when the tricoder motor is spun too quickly.

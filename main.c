@@ -69,74 +69,84 @@ int main(void)
     spi_port_cfg.mask |= (TMC5272_SPI_SS_PIN_DEV_X | TMC5272_SPI_SS_PIN_DEV_Y | TMC5272_SPI_SS_PIN_DEV_TC);
 	
 	// Create device struct for each IC
-	tmc5272_dev_t* motor_x = &(tmc5272_dev_t){
+	tmc5272_dev_t* tmc_x = &(tmc5272_dev_t){
 		.spi_port = MXC_SPI1,
 		.gpio_cfg_spi = &spi_port_cfg,
 		.ss_index = 1
 	};
-	tmc5272_dev_t* motor_y = &(tmc5272_dev_t){
+	tmc5272_dev_t* tmc_y = &(tmc5272_dev_t){
 		.spi_port = MXC_SPI1,
 		.gpio_cfg_spi = &spi_port_cfg,
 		.ss_index = 2
 	};
-	tmc5272_dev_t* motor_tc = &(tmc5272_dev_t){
+	tmc5272_dev_t* tmc_tc = &(tmc5272_dev_t){
 		.spi_port = MXC_SPI1,
 		.gpio_cfg_spi = &spi_port_cfg,
 		.ss_index = 3
 	};
 
 	// Initialize each moving motor
-	tmc5272_init(motor_x);
-	tmc5272_init(motor_y);
+	tmc5272_init(tmc_x);
+	tmc5272_init(tmc_y);
 
 	// Init tricoders
-	tmc5272_tricoder_init(motor_tc, TC_X_In);
-	tmc5272_tricoder_init(motor_tc, TC_Y_In);
+	tmc5272_tricoder_init(tmc_tc, TC_X_In);
+	tmc5272_tricoder_init(tmc_tc, TC_Y_In);
 
 	
 	/**** Motor Setup ****/
 
 	// Velocity
-	tmc5272_setVelocityCurve(motor_x, MOTOR_0, 100000, 1000);
-	tmc5272_setVelocityCurve(motor_y, MOTOR_0, 100000, 1000);
+	tmc5272_setVelocityCurve(tmc_x, MOTOR_0, 100000, 10000);
+	tmc5272_setVelocityCurve(tmc_y, MOTOR_0, 100000, 5000);
+	tmc5272_setVelocityCurve(tmc_y, MOTOR_1, 100000, 5000);
 
 
 	/**** Main Program ****/
 
 	// Start by rotating each motor
-	tmc5272_rotateByMicrosteps(motor_x, MOTOR_0, 300000);
+	tmc5272_rotateByMicrosteps(tmc_x, MOTOR_0, 51200);
 	MXC_Delay(MXC_DELAY_SEC(1));
-	tmc5272_rotateByMicrosteps(motor_y, MOTOR_0, 200000);
-	tmc5272_rotateByMicrosteps(motor_y, MOTOR_1, 200000);
+	tmc5272_rotateByMicrosteps(tmc_y, MOTOR_0, 51200);
+	tmc5272_rotateByMicrosteps(tmc_y, MOTOR_1, 51200);
 
+	while(!tmc5272_isAtTargetPosition(tmc_x, MOTOR_0)) 
+	{
+		uint32_t pos_x0 = tmc5272_getPosition(tmc_x, MOTOR_0);
+		uint32_t pos_y0 = tmc5272_getPosition(tmc_y, MOTOR_0);
+		uint32_t pos_y1 = tmc5272_getPosition(tmc_y, MOTOR_1);
+		printf("X, Y0, Y1: %d, %d, %d \n", pos_x0, pos_y0, pos_y1);
+	}
+
+	// Require user pushbutton for Tricoder start
 	printf("Press PB to start Tricoder operation. \n");
 	while(!PB_IsPressedAny()) {}
 	MXC_Delay(MXC_DELAY_MSEC(500));
 
 	// Main Loop
+
     while (1) {
-	
 		// Read the Tricoder position
-		int32_t tc_x_pos = tmc5272_tricoder_getPosition(motor_tc, TC_X_In);
-		int32_t tc_y_pos = tmc5272_tricoder_getPosition(motor_tc, TC_Y_In);
+		int32_t tc_x_pos = tmc5272_tricoder_getPosition(tmc_tc, TC_X_In);
+		int32_t tc_y_pos = tmc5272_tricoder_getPosition(tmc_tc, TC_Y_In);
 
 		// Rotate each axis to its encoder position
-		tmc5272_rotateToPosition(motor_x, MOTOR_0, tc_x_pos);
-		tmc5272_rotateToPosition(motor_y, MOTOR_0, 10*tc_y_pos);
-		tmc5272_rotateToPosition(motor_y, MOTOR_1, 10*tc_y_pos);
+		tmc5272_rotateToPosition(tmc_x, MOTOR_0, tc_x_pos);
+		tmc5272_rotateToPosition(tmc_y, MOTOR_0, 5*tc_y_pos);
+		tmc5272_rotateToPosition(tmc_y, MOTOR_1, 5*tc_y_pos);
 
 		// Readout position & encoder
-		printf("Mx0: %d  ENC: %d", tmc5272_getPosition(motor_x,MOTOR_0), tc_x_pos);
-		printf("\tMy0: %d  ENC: %d \n", tmc5272_getPosition(motor_y,MOTOR_0), tc_y_pos);
+		printf("Mx0: %d  ENC: %d", tmc5272_getPosition(tmc_x, MOTOR_0), tc_x_pos);
+		printf("\tMy0: %d  ENC: %d \n", tmc5272_getPosition(tmc_y, MOTOR_0), tc_y_pos);
 
 		// Failsafe brake
 		if(PB_IsPressedAny())
 		{
 			printf("Failsafe! \n");
-			tmc5272_rotateAtVelocity(motor_x, MOTOR_0, 0, 50000);
-			tmc5272_rotateAtVelocity(motor_x, MOTOR_1, 0, 50000);
-			tmc5272_rotateAtVelocity(motor_y, MOTOR_0, 0, 50000);
-			tmc5272_rotateAtVelocity(motor_y, MOTOR_1, 0, 50000);
+			tmc5272_rotateAtVelocity(tmc_x, MOTOR_0, 0, 50000);
+			tmc5272_rotateAtVelocity(tmc_x, MOTOR_1, 0, 50000);
+			tmc5272_rotateAtVelocity(tmc_y, MOTOR_0, 0, 50000);
+			tmc5272_rotateAtVelocity(tmc_y, MOTOR_1, 0, 50000);
 			
 			while(1) {}
 		}
