@@ -35,6 +35,11 @@ typedef enum {
 } tmc5272_motor_num_t;
 
 typedef enum {
+    MOTOR_DIR_NORMAL,
+    MOTOR_DIR_INVERT
+} tmc5272_motor_dir_t;
+
+typedef enum {
     BEMF_HYST_25mV,	
 	BEMF_HYST_10mV,	
 	BEMF_HYST_50mV,	
@@ -45,6 +50,7 @@ typedef enum {
 	BEMF_HYST_250mV
 
 } tmc5272_tricoder_bemf_hysteresis_t;
+
 
 /**** Functions *****/
 
@@ -59,6 +65,7 @@ void tmc5272_writeRegister(tmc5272_dev_t* tmc5272_dev, uint8_t address, int32_t 
 /* Part Initialization */
 
 void tmc5272_init(tmc5272_dev_t* tmc5272_dev);
+void tmc5272_setMotorDirection(tmc5272_dev_t* tmc5272_dev, tmc5272_motor_num_t motor, tmc5272_motor_dir_t dir);
 void tmc5272_configEmergencyStop(tmc5272_dev_t* tmc5272_dev, uint8_t motor, uint8_t isEnabled);
 
 

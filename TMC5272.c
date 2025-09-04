@@ -158,6 +158,25 @@ void tmc5272_init(tmc5272_dev_t* tmc5272_dev)
 
 }
 
+void tmc5272_setMotorDirection(tmc5272_dev_t* tmc5272_dev, tmc5272_motor_num_t motor, tmc5272_motor_dir_t dir)
+{
+	if(motor == ALL_MOTORS) {
+		FOR_EACH_MOTOR(m) {
+			tmc5272_setMotorDirection(tmc5272_dev, m, dir);
+		}
+		return;
+	}
+	
+	if(motor == MOTOR_0)
+	{
+		tmc5272_fieldWrite(tmc5272_dev, TMC5272_GCONF_M0_SHAFT_FIELD, dir);
+	}
+	if(motor == MOTOR_1)
+	{
+		tmc5272_fieldWrite(tmc5272_dev, TMC5272_GCONF_M1_SHAFT_FIELD, dir);
+	}
+}
+
 void tmc5272_configEmergencyStop(tmc5272_dev_t* tmc5272_dev, uint8_t motor, uint8_t isEnabled)
 {
 	if(motor == ALL_MOTORS) {
@@ -462,7 +481,7 @@ void tmc5272_tricoder_setEncoderValue(tmc5272_dev_t* tmc5272_dev, uint8_t motor,
 		}
 		return;
 	}
-	
+
 	tmc5272_fieldWrite(tmc5272_dev, TMC5272_X_ENC_FIELD(motor), encoder_value);
 }
 
