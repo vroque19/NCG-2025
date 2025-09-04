@@ -26,7 +26,8 @@ Trinamic base API is provided by the [TMC-API repo](https://github.com/analogdev
 
 - Connect the TMC5272 to the MAX32650 FTHR board via SPI1 on SS 1, 2, 3.
 - Wire stepper motors to the TMC5272 A/B & C/D outputs.
-    - Stepper wiring does not matter much -- the only requirement is for the wires of each phase to be on the same circuit.
+    - Ensure the A/b and C/D pairs are maintained
+    - Wire the tricoder motors to match the polarity as its corresponding directional motor because polarity affects the direction in which the motor turns.
 
 For the example project, use TMC5272 outputs SS1.AB, SS2.AB & SS2.CD, and SS3.AB & SS3.CD.
 
