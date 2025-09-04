@@ -19,7 +19,7 @@ This is the implementation of these functions.
 /***** Definitions *****/
 #define SPI_SPEED           10000   // Bit Rate (Max.: 1,850,000)
 #define TMC5272_SPI_SIZE    5       // Bytes per transaction
-#define SPI_NUM_CLIENTS     3       
+#define SPI_NUM_CLIENTS     3       // Max SS line being used 
 
 /* Data Structures */
 typedef struct  {
