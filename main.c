@@ -1,157 +1,181 @@
-/**
- * @file    main.c
- * @brief   Hello World!
- * @details This example uses the UART to print to a terminal and flashes an LED.
- */
+// #include "4131.h"
+// #include "load_cell.h"
+// #include "mxc_pins.h"
+// #include "nextion.h"
+// #include "mode_touchscreen.h"
+// #include <stddef.h>
+#include "global_uart_handler.h"
 
-/******************************************************************************
- *
- * Copyright (C) 2022-2023 Maxim Integrated Products, Inc. (now owned by 
- * Analog Devices, Inc.),
- * Copyright (C) 2023-2024 Analog Devices, Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- *
- ******************************************************************************/
 
-/* **** Includes **** */
-#include <stdio.h>
-#include <stdint.h>
-#include "led.h"
-#include "pb.h"
-#include "mxc_delay.h"
+int main(void) {
+  // init for comms
+  spi_main_init();
+  write_mem_map();
+  read_adc_id();
+  global_uart_init();
+  solenoid_gpio_init();
+  printf("Step 3: Setting up initial display...\n");
+  // Main application loop
+  global_uart_main_loop();
+  MXC_SPI_Shutdown(SPI_MAIN);
+  return E_NO_ERROR;
+}
 
-// TMC5272
-#include "TMC5272.h"
 
-/* **** Definitions **** */
+// /**
+//  * @file    main.c
+//  * @brief   Hello World!
+//  * @details This example uses the UART to print to a terminal and flashes an LED.
+//  */
 
-// Map tricoder inputs for X and Y axes
-#define TC_X		MOTOR_0
-#define TC_Y		MOTOR_1
+// /******************************************************************************
+//  *
+//  * Copyright (C) 2022-2023 Maxim Integrated Products, Inc. (now owned by 
+//  * Analog Devices, Inc.),
+//  * Copyright (C) 2023-2024 Analog Devices, Inc.
+//  *
+//  * Licensed under the Apache License, Version 2.0 (the "License");
+//  * you may not use this file except in compliance with the License.
+//  * You may obtain a copy of the License at
+//  *
+//  *     http://www.apache.org/licenses/LICENSE-2.0
+//  *
+//  * Unless required by applicable law or agreed to in writing, software
+//  * distributed under the License is distributed on an "AS IS" BASIS,
+//  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//  * See the License for the specific language governing permissions and
+//  * limitations under the License.
+//  *
+//  ******************************************************************************/
 
-// TMC5272 Comms
-#define TMC5272_SPI_PORT			MXC_SPI1
-#define TMC5272_SPI_PORT_CFG_MXC	gpio_cfg_spi1
+// /* **** Includes **** */
+// #include <stdio.h>
+// #include <stdint.h>
+// #include "led.h"
+// #include "pb.h"
+// #include "mxc_delay.h"
 
-// SS Pin & Index
-#define TMC5272_SPI_SS_PIN_DEV_X	MXC_GPIO_PIN_25
-#define TMC5272_SPI_SS_IDX_DEV_X	1
-#define TMC5272_SPI_SS_PIN_DEV_Y	MXC_GPIO_PIN_24
-#define TMC5272_SPI_SS_IDX_DEV_Y	2
-#define TMC5272_SPI_SS_PIN_DEV_TC	MXC_GPIO_PIN_27
-#define TMC5272_SPI_SS_IDX_DEV_TC	3
+// // TMC5272
+// #include "TMC5272.h"
 
-/* **** Globals **** */
+// /* **** Definitions **** */
 
-/* **** Functions **** */
+// // Map tricoder inputs for X and Y axes
+// #define TC_X		MOTOR_0
+// #define TC_Y		MOTOR_1
 
-/* ************************************************************************** */
-int main(void)
-{
-	/**** Initialize TMC5272 Devices ******/
+// // TMC5272 Comms
+// #define TMC5272_SPI_PORT			MXC_SPI1
+// #define TMC5272_SPI_PORT_CFG_MXC	gpio_cfg_spi1
 
-	// Create GPIO Port/Pins Config struct
-	// Copy base MXC cfg struct. (MSDK uses const.)
-    mxc_gpio_cfg_t spi_port_cfg = TMC5272_SPI_PORT_CFG_MXC;
-	// Modify VSSEL (VDDIOH = 3.3V)
-	spi_port_cfg.vssel = MXC_GPIO_VSSEL_VDDIOH;
-	// Add masks for X, Y, and TC axes.
-    spi_port_cfg.mask |= (TMC5272_SPI_SS_PIN_DEV_X | TMC5272_SPI_SS_PIN_DEV_Y | TMC5272_SPI_SS_PIN_DEV_TC);
+// // SS Pin & Index
+// #define TMC5272_SPI_SS_PIN_DEV_X	MXC_GPIO_PIN_25
+// #define TMC5272_SPI_SS_IDX_DEV_X	1
+// #define TMC5272_SPI_SS_PIN_DEV_Y	MXC_GPIO_PIN_24
+// #define TMC5272_SPI_SS_IDX_DEV_Y	2
+// #define TMC5272_SPI_SS_PIN_DEV_TC	MXC_GPIO_PIN_27
+// #define TMC5272_SPI_SS_IDX_DEV_TC	3
+
+// /* **** Globals **** */
+
+// /* **** Functions **** */
+
+// /* ************************************************************************** */
+// int main(void)
+// {
+// 	/**** Initialize TMC5272 Devices ******/
+
+// 	// Create GPIO Port/Pins Config struct
+// 	// Copy base MXC cfg struct. (MSDK uses const.)
+//     mxc_gpio_cfg_t spi_port_cfg = TMC5272_SPI_PORT_CFG_MXC;
+// 	// Modify VSSEL (VDDIOH = 3.3V)
+// 	spi_port_cfg.vssel = MXC_GPIO_VSSEL_VDDIOH;
+// 	// Add masks for X, Y, and TC axes.
+//     spi_port_cfg.mask |= (TMC5272_SPI_SS_PIN_DEV_X | TMC5272_SPI_SS_PIN_DEV_Y | TMC5272_SPI_SS_PIN_DEV_TC);
 	
-	// Create device struct for each IC
-	tmc5272_dev_t* tmc_x = &(tmc5272_dev_t){
-		.spi_port = MXC_SPI1,
-		.gpio_cfg_spi = &spi_port_cfg,
-		.ss_index = 1
-	};
-	tmc5272_dev_t* tmc_y = &(tmc5272_dev_t){
-		.spi_port = MXC_SPI1,
-		.gpio_cfg_spi = &spi_port_cfg,
-		.ss_index = 2
-	};
-	tmc5272_dev_t* tmc_tc = &(tmc5272_dev_t){
-		.spi_port = MXC_SPI1,
-		.gpio_cfg_spi = &spi_port_cfg,
-		.ss_index = 3
-	};
+// 	// Create device struct for each IC
+// 	tmc5272_dev_t* tmc_x = &(tmc5272_dev_t){
+// 		.spi_port = MXC_SPI1,
+// 		.gpio_cfg_spi = &spi_port_cfg,
+// 		.ss_index = 1
+// 	};
+// 	tmc5272_dev_t* tmc_y = &(tmc5272_dev_t){
+// 		.spi_port = MXC_SPI1,
+// 		.gpio_cfg_spi = &spi_port_cfg,
+// 		.ss_index = 2
+// 	};
+// 	tmc5272_dev_t* tmc_tc = &(tmc5272_dev_t){
+// 		.spi_port = MXC_SPI1,
+// 		.gpio_cfg_spi = &spi_port_cfg,
+// 		.ss_index = 3
+// 	};
 
-	// Initialize each moving motor
-	tmc5272_init(tmc_x);
-	tmc5272_init(tmc_y);
+// 	// Initialize each moving motor
+// 	tmc5272_init(tmc_x);
+// 	tmc5272_init(tmc_y);
 
-	// Init tricoders
-	tmc5272_tricoder_init(tmc_tc, TC_X);
-	tmc5272_tricoder_init(tmc_tc, TC_Y);
+// 	// Init tricoders
+// 	tmc5272_tricoder_init(tmc_tc, TC_X);
+// 	tmc5272_tricoder_init(tmc_tc, TC_Y);
 
 	
-	/**** Motor Setup ****/
+// 	/**** Motor Setup ****/
 
-	// Velocity
-	tmc5272_setVelocityCurve(tmc_x, MOTOR_0, 200000, 1000);
-	tmc5272_setVelocityCurve(tmc_y, ALL_MOTORS, 100000, 5000);
+// 	// Velocity
+// 	tmc5272_setVelocityCurve(tmc_x, MOTOR_0, 200000, 1000);
+// 	tmc5272_setVelocityCurve(tmc_y, ALL_MOTORS, 100000, 5000);
 	
-	// Invert direction of necessary motors
-	tmc5272_setMotorDirection(tmc_y, MOTOR_0, MOTOR_DIR_INVERT);
+// 	// Invert direction of necessary motors
+// 	tmc5272_setMotorDirection(tmc_y, MOTOR_0, MOTOR_DIR_INVERT);
 
 
-	/**** Main Program ****/
+// 	/**** Main Program ****/
 
-	// Start by rotating each motor
-	tmc5272_rotateByMicrosteps(tmc_x, MOTOR_0, 51200);
-	MXC_Delay(MXC_DELAY_SEC(1));
-	tmc5272_rotateByMicrosteps(tmc_y, ALL_MOTORS, 51200);
+// 	// Start by rotating each motor
+// 	tmc5272_rotateByMicrosteps(tmc_x, MOTOR_0, 51200);
+// 	MXC_Delay(MXC_DELAY_SEC(1));
+// 	tmc5272_rotateByMicrosteps(tmc_y, ALL_MOTORS, 51200);
 
-	while(!tmc5272_isAtTargetPosition(tmc_x, MOTOR_0)) 
-	{
-		uint32_t pos_x0 = tmc5272_getPosition(tmc_x, MOTOR_0);
-		uint32_t pos_y0 = tmc5272_getPosition(tmc_y, MOTOR_0);
-		uint32_t pos_y1 = tmc5272_getPosition(tmc_y, MOTOR_1);
-		printf("X, Y0, Y1: %d, %d, %d \n", pos_x0, pos_y0, pos_y1);
-	}
+// 	while(!tmc5272_isAtTargetPosition(tmc_x, MOTOR_0)) 
+// 	{
+// 		uint32_t pos_x0 = tmc5272_getPosition(tmc_x, MOTOR_0);
+// 		uint32_t pos_y0 = tmc5272_getPosition(tmc_y, MOTOR_0);
+// 		uint32_t pos_y1 = tmc5272_getPosition(tmc_y, MOTOR_1);
+// 		printf("X, Y0, Y1: %d, %d, %d \n", pos_x0, pos_y0, pos_y1);
+// 	}
 
-	// Require user pushbutton for Tricoder start
-	printf("Press PB to start Tricoder operation. \n");
-	while(!PB_IsPressedAny()) {}
-	MXC_Delay(MXC_DELAY_MSEC(500));
+// 	// Require user pushbutton for Tricoder start
+// 	printf("Press PB to start Tricoder operation. \n");
+// 	while(!PB_IsPressedAny()) {}
+// 	MXC_Delay(MXC_DELAY_MSEC(500));
 
-	// Main Loop
+// 	// Main Loop
 
-    while (1) {
-		// Read the Tricoder position
-		int32_t tc_x_pos = tmc5272_tricoder_getPosition(tmc_tc, TC_X);
-		int32_t tc_y_pos = tmc5272_tricoder_getPosition(tmc_tc, TC_Y);
+//     while (1) {
+// 		// Read the Tricoder position
+// 		int32_t tc_x_pos = tmc5272_tricoder_getPosition(tmc_tc, TC_X);
+// 		int32_t tc_y_pos = tmc5272_tricoder_getPosition(tmc_tc, TC_Y);
 
-		// Rotate each axis to its encoder position
-		tmc5272_rotateToPosition(tmc_x, MOTOR_0, tc_x_pos);
-		tmc5272_rotateToPosition(tmc_y, ALL_MOTORS, tc_y_pos);
+// 		// Rotate each axis to its encoder position
+// 		tmc5272_rotateToPosition(tmc_x, MOTOR_0, tc_x_pos);
+// 		tmc5272_rotateToPosition(tmc_y, ALL_MOTORS, tc_y_pos);
 
-		// Readout position & encoder
-		printf("Mx0: %d  ENC: %d", tmc5272_getPosition(tmc_x, MOTOR_0), tc_x_pos);
-		printf("\tMy0: %d  ENC: %d \n", tmc5272_getPosition(tmc_y, MOTOR_0), tc_y_pos);
+// 		// Readout position & encoder
+// 		printf("Mx0: %d  ENC: %d", tmc5272_getPosition(tmc_x, MOTOR_0), tc_x_pos);
+// 		printf("\tMy0: %d  ENC: %d \n", tmc5272_getPosition(tmc_y, MOTOR_0), tc_y_pos);
 
-		// Failsafe brake
-		if(PB_IsPressedAny())
-		{
-			printf("Failsafe! \n");
-			tmc5272_rotateAtVelocity(tmc_x, MOTOR_0, 0, 50000);
-			tmc5272_rotateAtVelocity(tmc_x, MOTOR_1, 0, 50000);
-			tmc5272_rotateAtVelocity(tmc_y, MOTOR_0, 0, 50000);
-			tmc5272_rotateAtVelocity(tmc_y, MOTOR_1, 0, 50000);
+// 		// Failsafe brake
+// 		if(PB_IsPressedAny())
+// 		{
+// 			printf("Failsafe! \n");
+// 			tmc5272_rotateAtVelocity(tmc_x, MOTOR_0, 0, 50000);
+// 			tmc5272_rotateAtVelocity(tmc_x, MOTOR_1, 0, 50000);
+// 			tmc5272_rotateAtVelocity(tmc_y, MOTOR_0, 0, 50000);
+// 			tmc5272_rotateAtVelocity(tmc_y, MOTOR_1, 0, 50000);
 			
-			while(1) {}
-		}
+// 			while(1) {}
+// 		}
 		
 
-    }
-}
+//     }
+// }
