@@ -37,8 +37,8 @@
 /* **** Definitions **** */
 
 // Map tricoder inputs for X and Y axes
-#define TC_X_In		MOTOR_0
-#define TC_Y_In		MOTOR_1
+#define TC_X		MOTOR_0
+#define TC_Y		MOTOR_1
 
 // TMC5272 Comms
 #define TMC5272_SPI_PORT			MXC_SPI1
@@ -91,8 +91,8 @@ int main(void)
 	tmc5272_init(tmc_y);
 
 	// Init tricoders
-	tmc5272_tricoder_init(tmc_tc, TC_X_In);
-	tmc5272_tricoder_init(tmc_tc, TC_Y_In);
+	tmc5272_tricoder_init(tmc_tc, TC_X);
+	tmc5272_tricoder_init(tmc_tc, TC_Y);
 
 	
 	/**** Motor Setup ****/
@@ -100,6 +100,9 @@ int main(void)
 	// Velocity
 	tmc5272_setVelocityCurve(tmc_x, MOTOR_0, 200000, 1000);
 	tmc5272_setVelocityCurve(tmc_y, ALL_MOTORS, 100000, 5000);
+	
+	// Invert direction of necessary motors
+	tmc5272_setMotorDirection(tmc_y, MOTOR_0, MOTOR_DIR_INVERT);
 
 
 	/**** Main Program ****/
@@ -126,8 +129,8 @@ int main(void)
 
     while (1) {
 		// Read the Tricoder position
-		int32_t tc_x_pos = tmc5272_tricoder_getPosition(tmc_tc, TC_X_In);
-		int32_t tc_y_pos = tmc5272_tricoder_getPosition(tmc_tc, TC_Y_In);
+		int32_t tc_x_pos = tmc5272_tricoder_getPosition(tmc_tc, TC_X);
+		int32_t tc_y_pos = tmc5272_tricoder_getPosition(tmc_tc, TC_Y);
 
 		// Rotate each axis to its encoder position
 		tmc5272_rotateToPosition(tmc_x, MOTOR_0, tc_x_pos);
