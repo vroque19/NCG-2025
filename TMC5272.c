@@ -160,11 +160,18 @@ void tmc5272_init(tmc5272_dev_t* tmc5272_dev)
 
 void tmc5272_configEmergencyStop(tmc5272_dev_t* tmc5272_dev, uint8_t motor, uint8_t isEnabled)
 {
+	if(motor == ALL_MOTORS) {
+		FOR_EACH_MOTOR(m) {
+			tmc5272_configEmergencyStop(tmc5272_dev, m, isEnabled);
+		}
+		return;
+	}
+	
 	if(motor == MOTOR_0)
 	{
 		tmc5272_fieldWrite(tmc5272_dev, TMC5272_GCONF_M0_STOP_ENABLE_FIELD, isEnabled);
 	}
-	else
+	if(motor == MOTOR_1)
 	{
 		tmc5272_fieldWrite(tmc5272_dev, TMC5272_GCONF_M1_STOP_ENABLE_FIELD, isEnabled);
 	}
@@ -183,26 +190,61 @@ int32_t tmc5272_getVelocity(tmc5272_dev_t* tmc5272_dev, uint8_t motor)
 
 bool tmc5272_isAtTargetVelocity(tmc5272_dev_t* tmc5272_dev, uint8_t motor)
 {
+	if(motor == ALL_MOTORS) 
+	{
+		uint8_t m1_reached_target = tmc5272_fieldRead(tmc5272_dev, TMC5272_RAMP_STAT_VELOCITY_REACHED_FIELD(MOTOR_0));
+		uint8_t m2_reached_target = tmc5272_fieldRead(tmc5272_dev, TMC5272_RAMP_STAT_VELOCITY_REACHED_FIELD(MOTOR_1));
+		return m1_reached_target && m2_reached_target;
+	}
+
 	return tmc5272_fieldRead(tmc5272_dev, TMC5272_RAMP_STAT_VELOCITY_REACHED_FIELD(motor));
 }
 
 bool tmc5272_isAtTargetPosition(tmc5272_dev_t* tmc5272_dev, uint8_t motor)
 {
-	return (tmc5272_getPosition(tmc5272_dev, motor) == tmc5272_fieldRead(tmc5272_dev, TMC5272_XTARGET_FIELD(motor)));
+	if(motor == ALL_MOTORS)
+	{
+		uint8_t m0_reached_flag = tmc5272_fieldRead(tmc5272_dev, TMC5272_RAMP_STAT_POSITION_REACHED_FIELD(MOTOR_0));
+		uint8_t m1_reached_flag = tmc5272_fieldRead(tmc5272_dev, TMC5272_RAMP_STAT_POSITION_REACHED_FIELD(MOTOR_1));
+		return m0_reached_flag && m1_reached_flag;
+	}
+
+	return tmc5272_fieldRead(tmc5272_dev, TMC5272_RAMP_STAT_POSITION_REACHED_FIELD(motor));
 }
 
 void tmc5272_setPositionToValue(tmc5272_dev_t* tmc5272_dev, uint8_t motor, uint32_t value)
 {
+	if(motor == ALL_MOTORS) {
+		FOR_EACH_MOTOR(m) {
+			tmc5272_fieldWrite(tmc5272_dev, TMC5272_XACTUAL_FIELD(m), value);
+		}
+		return;
+	}
+	
 	tmc5272_fieldWrite(tmc5272_dev, TMC5272_XACTUAL_FIELD(motor), value);
 }
 
 void tmc5272_setHomePosition(tmc5272_dev_t* tmc5272_dev, uint8_t motor)
 {
+	if(motor == ALL_MOTORS) {
+		FOR_EACH_MOTOR(m) {
+			tmc5272_setPositionToValue(tmc5272_dev, m, 0);
+		}
+		return;
+	}
+	
 	tmc5272_setPositionToValue(tmc5272_dev, motor, 0);
 }
 
 void tmc5272_setVelocityCurve(tmc5272_dev_t* tmc5272_dev, uint8_t motor, uint32_t vmax, uint32_t amax) 
 {
+	if(motor == ALL_MOTORS) {
+		FOR_EACH_MOTOR(m) {
+			tmc5272_setVelocityCurve(tmc5272_dev, m, vmax, amax);
+		}
+		return;
+	}
+
 	// Set RAMPMODE = Hold to retain whatever (lack of) motion is occurring.
 	tmc5272_fieldWrite(tmc5272_dev, TMC5272_RAMPMODE_FIELD(motor), TMC5272_MODE_HOLD);
 
@@ -221,8 +263,12 @@ void tmc5272_setVelocityCurve(tmc5272_dev_t* tmc5272_dev, uint8_t motor, uint32_
 
 void tmc5272_rotateAtVelocity(tmc5272_dev_t* tmc5272_dev, uint8_t motor, int32_t velocity, uint32_t acceleration)
 {
-    if(motor >= TMC5272_MOTORS)
+    if(motor == ALL_MOTORS) {
+		FOR_EACH_MOTOR(m) {
+			tmc5272_rotateAtVelocity(tmc5272_dev, m, velocity, acceleration);
+		}
 		return;
+	}
 
 	// Convert signed velocity to unsigned with direction
 	uint8_t rampMode = TMC5272_MODE_VELPOS;
@@ -244,6 +290,13 @@ void tmc5272_rotateAtVelocity(tmc5272_dev_t* tmc5272_dev, uint8_t motor, int32_t
 /* Note: Call position rotation functions after setting velocity curve.*/
 void tmc5272_rotateToPosition(tmc5272_dev_t* tmc5272_dev, uint8_t motor, uint32_t target)
 {
+	if(motor == ALL_MOTORS) {
+		FOR_EACH_MOTOR(m) {
+			tmc5272_rotateToPosition(tmc5272_dev, m, target);
+		}
+		return;
+	}
+
 	// If not in Position mode, switch to HOLD mode to avoid changing anything.
 	// (If we're already in position mode, just stay in position mode.)
 	if(tmc5272_fieldRead(tmc5272_dev, TMC5272_RAMPMODE_FIELD(motor)) != TMC5272_MODE_POSITION) 
@@ -260,6 +313,13 @@ void tmc5272_rotateToPosition(tmc5272_dev_t* tmc5272_dev, uint8_t motor, uint32_
 /* Note: Call position rotation functions after setting velocity curve.*/
 void tmc5272_rotateByMicrosteps(tmc5272_dev_t* tmc5272_dev, uint8_t motor, int32_t usteps)
 {
+	if(motor == ALL_MOTORS) {
+		FOR_EACH_MOTOR(m) {
+			tmc5272_rotateByMicrosteps(tmc5272_dev, m, usteps);
+		}
+		return;
+	}
+	
 	// Get new target position
 	uint32_t target_position = tmc5272_getPosition(tmc5272_dev, motor) + usteps;
 	
@@ -275,6 +335,13 @@ void tmc5272_rotateByMicrosteps(tmc5272_dev_t* tmc5272_dev, uint8_t motor, int32
 // Default encoder value set to 0.
 void tmc5272_tricoder_init(tmc5272_dev_t* tmc5272_dev, uint8_t motor)
 {
+	if(motor == ALL_MOTORS) {
+		FOR_EACH_MOTOR(m) {
+			tmc5272_tricoder_init(tmc5272_dev, m);
+		}
+		return;
+	}
+
 	// From "Relevant Settings" in Tricoder section of datasheet
 
 	// 0x1: StealthChop2 enabled
@@ -336,6 +403,13 @@ void tmc5272_tricoder_init(tmc5272_dev_t* tmc5272_dev, uint8_t motor)
 // 3 = Short both phases (binary 11)
 uint8_t tmc5272_tricoder_isCoilShortVS(tmc5272_dev_t* tmc5272_dev, uint8_t motor)
 {
+	if(motor == ALL_MOTORS)
+	{
+		uint8_t is_short_0 = tmc5272_tricoder_isCoilShortVS(tmc5272_dev, MOTOR_0);
+		uint8_t is_short_1 = tmc5272_tricoder_isCoilShortVS(tmc5272_dev, MOTOR_1);
+		return (is_short_0 && is_short_1);
+	}
+
 	// Read DRV_STATUS register
 	uint32_t drv_status = tmc5272_readRegister(tmc5272_dev, TMC5272_DRV_STATUS(motor), NULL);
 
@@ -347,6 +421,13 @@ uint8_t tmc5272_tricoder_isCoilShortVS(tmc5272_dev_t* tmc5272_dev, uint8_t motor
 
 void tmc5272_tricoder_resetFromCoilShort(tmc5272_dev_t* tmc5272_dev, uint8_t motor)
 {
+	if(motor == ALL_MOTORS) {
+		FOR_EACH_MOTOR(m) {
+			tmc5272_tricoder_resetFromCoilShort(tmc5272_dev, m);
+		}
+		return;
+	}
+
 	if(motor == 0)
 	{
 		// Toggle: Disable (1) and enable (0)
@@ -363,11 +444,25 @@ void tmc5272_tricoder_resetFromCoilShort(tmc5272_dev_t* tmc5272_dev, uint8_t mot
 
 void tmc5272_tricoder_setBEMFHysteresis(tmc5272_dev_t* tmc5272_dev, uint8_t motor, tmc5272_tricoder_bemf_hysteresis_t hysteresis)
 {
+	if(motor == ALL_MOTORS) {
+		FOR_EACH_MOTOR(m) {
+			tmc5272_tricoder_setBEMFHysteresis(tmc5272_dev, m, hysteresis);
+		}
+		return;
+	}
+
 	tmc5272_fieldWrite(tmc5272_dev, TMC5272_ENCMODE_BEMF_HYST_FIELD(motor), hysteresis);
 }
 
 void tmc5272_tricoder_setEncoderValue(tmc5272_dev_t* tmc5272_dev, uint8_t motor, int32_t encoder_value)
 {
+	if(motor == ALL_MOTORS) {
+		FOR_EACH_MOTOR(m) {
+			tmc5272_tricoder_setEncoderValue(tmc5272_dev, m, encoder_value);
+		}
+		return;
+	}
+	
 	tmc5272_fieldWrite(tmc5272_dev, TMC5272_X_ENC_FIELD(motor), encoder_value);
 }
 

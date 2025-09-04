@@ -16,15 +16,22 @@
 #include "TMC5272_SPI.h"
 #include "TMC5272_HW_Abstraction.h"
 
-/* Defines */
+/**** Macros ****/
+
+// Establishes a loop to apply the same logic to every motor available on a device.
+// Usage:
+//     FOR_EACH_MOTOR(m) { motor_function(device, m) }  
+// where m goes in place of MOTOR_0, MOTOR_1, etc.
+#define FOR_EACH_MOTOR(motor_var) \
+    for (uint8_t motor_var = 0; motor_var < TMC5272_MOTORS; motor_var++)
 
 
-/* Enums & Typedefs */
+/**** Enums & Typedefs ****/
 
 typedef enum {
     MOTOR_0,
     MOTOR_1,
-    // ALL_MOTORS  // Not yet implemented...  Warning: Only works in functions supporting ALL_MOTORS! (Check function commentary.)
+    ALL_MOTORS  // Warning: Check function commentary -- not supported by certain functions.
 } tmc5272_motor_num_t;
 
 typedef enum {
@@ -39,48 +46,60 @@ typedef enum {
 
 } tmc5272_tricoder_bemf_hysteresis_t;
 
-/* Functions */
+/**** Functions *****/
 
-// Low-Level Communications
+/* Low-Level Communications */
 
-// TMC-API Wrappers
+/* TMC-API Wrappers */
+// ALL_MOTORS unsupported.
 int32_t tmc5272_readRegister(tmc5272_dev_t* tmc5272_dev, uint8_t address, uint8_t* spi_status);
+// ALL_MOTORS unsupported.
 void tmc5272_writeRegister(tmc5272_dev_t* tmc5272_dev, uint8_t address, int32_t value, uint8_t* spi_status);
 
-// Part Initialization
+/* Part Initialization */
+
 void tmc5272_init(tmc5272_dev_t* tmc5272_dev);
 void tmc5272_configEmergencyStop(tmc5272_dev_t* tmc5272_dev, uint8_t motor, uint8_t isEnabled);
 
-// Movement Commands
+
+/* Movement Commands */
+// ALL_MOTORS unsupported.
 uint32_t tmc5272_getPosition(tmc5272_dev_t* tmc5272_dev, uint8_t motor);
+// ALL_MOTORS unsupported.
 int32_t tmc5272_getVelocity(tmc5272_dev_t* tmc5272_dev, uint8_t motor);
+
 bool tmc5272_isAtTargetVelocity(tmc5272_dev_t* tmc5272_dev, uint8_t motor);
 bool tmc5272_isAtTargetPosition(tmc5272_dev_t* tmc5272_dev, uint8_t motor);
 void tmc5272_setPositionToValue(tmc5272_dev_t* tmc5272_dev, uint8_t motor, uint32_t value);
 void tmc5272_setHomePosition(tmc5272_dev_t* tmc5272_dev, uint8_t motor);
 void tmc5272_setVelocityCurve(tmc5272_dev_t* tmc5272_dev, uint8_t motor, uint32_t vmax, uint32_t amax);
 
-// Velocity Mode
+/* Velocity Mode */
+
 void tmc5272_rotateAtVelocity(tmc5272_dev_t* tmc5272_dev, uint8_t motor, int32_t velocity, uint32_t acceleration);
 
-// Position Mode
+/* Position Mode */
+
 void tmc5272_rotateToPosition(tmc5272_dev_t* tmc5272_dev, uint8_t motor, uint32_t position);
 void tmc5272_rotateByMicrosteps(tmc5272_dev_t* tmc5272_dev, uint8_t motor, int32_t usteps);
 
 
 /* Tricoder */
+
 void tmc5272_tricoder_init(tmc5272_dev_t* tmc5272_dev, uint8_t motor);
 uint8_t tmc5272_tricoder_isCoilShortVS(tmc5272_dev_t* tmc5272_dev, uint8_t motor);
 void tmc5272_tricoder_resetFromCoilShort(tmc5272_dev_t* tmc5272_dev, uint8_t motor);
 void tmc5272_tricoder_setBEMFHysteresis(tmc5272_dev_t* tmc5272_dev, uint8_t motor, tmc5272_tricoder_bemf_hysteresis_t bemf_hysteresis);
 void tmc5272_tricoder_setEncoderValue(tmc5272_dev_t* tmc5272_dev, uint8_t motor, int32_t encoder_value);
+
+// ALL_MOTORS unsupported.
 int32_t tmc5272_tricoder_getPosition(tmc5272_dev_t* tmc5272_dev, uint8_t motor);
 
 
 
 
 
-// TMC-API Boilerplate: Field + Field Functions
+/* TMC-API Boilerplate: Field + Field Functions */
 typedef struct
 {
     uint32_t mask;

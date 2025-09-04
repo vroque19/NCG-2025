@@ -35,6 +35,7 @@
 #include "TMC5272.h"
 
 /* **** Definitions **** */
+
 // Map tricoder inputs for X and Y axes
 #define TC_X_In		MOTOR_0
 #define TC_Y_In		MOTOR_1
@@ -97,9 +98,8 @@ int main(void)
 	/**** Motor Setup ****/
 
 	// Velocity
-	tmc5272_setVelocityCurve(tmc_x, MOTOR_0, 100000, 10000);
-	tmc5272_setVelocityCurve(tmc_y, MOTOR_0, 100000, 5000);
-	tmc5272_setVelocityCurve(tmc_y, MOTOR_1, 100000, 5000);
+	tmc5272_setVelocityCurve(tmc_x, MOTOR_0, 200000, 1000);
+	tmc5272_setVelocityCurve(tmc_y, ALL_MOTORS, 100000, 5000);
 
 
 	/**** Main Program ****/
@@ -107,8 +107,7 @@ int main(void)
 	// Start by rotating each motor
 	tmc5272_rotateByMicrosteps(tmc_x, MOTOR_0, 51200);
 	MXC_Delay(MXC_DELAY_SEC(1));
-	tmc5272_rotateByMicrosteps(tmc_y, MOTOR_0, 51200);
-	tmc5272_rotateByMicrosteps(tmc_y, MOTOR_1, 51200);
+	tmc5272_rotateByMicrosteps(tmc_y, ALL_MOTORS, 51200);
 
 	while(!tmc5272_isAtTargetPosition(tmc_x, MOTOR_0)) 
 	{
@@ -132,8 +131,7 @@ int main(void)
 
 		// Rotate each axis to its encoder position
 		tmc5272_rotateToPosition(tmc_x, MOTOR_0, tc_x_pos);
-		tmc5272_rotateToPosition(tmc_y, MOTOR_0, 5*tc_y_pos);
-		tmc5272_rotateToPosition(tmc_y, MOTOR_1, 5*tc_y_pos);
+		tmc5272_rotateToPosition(tmc_y, ALL_MOTORS, tc_y_pos);
 
 		// Readout position & encoder
 		printf("Mx0: %d  ENC: %d", tmc5272_getPosition(tmc_x, MOTOR_0), tc_x_pos);
