@@ -191,12 +191,14 @@ bool tmc5272_isAtTargetPosition(tmc5272_dev_t* tmc5272_dev, uint8_t motor)
 	return (tmc5272_getPosition(tmc5272_dev, motor) == tmc5272_fieldRead(tmc5272_dev, TMC5272_XTARGET_FIELD(motor)));
 }
 
-void tmc5272_setHomePosition(tmc5272_dev_t* tmc5272_dev, uint8_t motor, uint32_t target_position)
+void tmc5272_setPositionToValue(tmc5272_dev_t* tmc5272_dev, uint8_t motor, uint32_t value)
 {
-	uint32_t new_position = tmc5272_getPosition(tmc5272_dev, motor) - target_position;
-	tmc5272_fieldWrite(tmc5272_dev, TMC5272_XACTUAL_FIELD(motor), new_position);
+	tmc5272_fieldWrite(tmc5272_dev, TMC5272_XACTUAL_FIELD(motor), value);
+}
 
-	return;
+void tmc5272_setHomePosition(tmc5272_dev_t* tmc5272_dev, uint8_t motor)
+{
+	tmc5272_setPositionToValue(tmc5272_dev, motor, 0);
 }
 
 void tmc5272_setVelocityCurve(tmc5272_dev_t* tmc5272_dev, uint8_t motor, uint32_t vmax, uint32_t amax) 

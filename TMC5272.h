@@ -56,8 +56,8 @@ uint32_t tmc5272_getPosition(tmc5272_dev_t* tmc5272_dev, uint8_t motor);
 int32_t tmc5272_getVelocity(tmc5272_dev_t* tmc5272_dev, uint8_t motor);
 bool tmc5272_isAtTargetVelocity(tmc5272_dev_t* tmc5272_dev, uint8_t motor);
 bool tmc5272_isAtTargetPosition(tmc5272_dev_t* tmc5272_dev, uint8_t motor);
-
-void tmc5272_setHomePosition(tmc5272_dev_t* tmc5272_dev, uint8_t motor, uint32_t position);
+void tmc5272_setPositionToValue(tmc5272_dev_t* tmc5272_dev, uint8_t motor, uint32_t value);
+void tmc5272_setHomePosition(tmc5272_dev_t* tmc5272_dev, uint8_t motor);
 void tmc5272_setVelocityCurve(tmc5272_dev_t* tmc5272_dev, uint8_t motor, uint32_t vmax, uint32_t amax);
 
 // Velocity Mode
