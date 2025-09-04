@@ -66,41 +66,41 @@ void tmc5272_writeRegister(tmc5272_dev_t* tmc5272_dev, uint8_t address, int32_t 
 
 void tmc5272_init(tmc5272_dev_t* tmc5272_dev);
 void tmc5272_setMotorDirection(tmc5272_dev_t* tmc5272_dev, tmc5272_motor_num_t motor, tmc5272_motor_dir_t dir);
-void tmc5272_configEmergencyStop(tmc5272_dev_t* tmc5272_dev, uint8_t motor, uint8_t isEnabled);
+void tmc5272_configEmergencyStop(tmc5272_dev_t* tmc5272_dev, tmc5272_motor_num_t motor, uint8_t isEnabled);
 
 
 /* Movement Commands */
 // ALL_MOTORS unsupported.
-uint32_t tmc5272_getPosition(tmc5272_dev_t* tmc5272_dev, uint8_t motor);
+uint32_t tmc5272_getPosition(tmc5272_dev_t* tmc5272_dev, tmc5272_motor_num_t motor);
 // ALL_MOTORS unsupported.
-int32_t tmc5272_getVelocity(tmc5272_dev_t* tmc5272_dev, uint8_t motor);
+int32_t tmc5272_getVelocity(tmc5272_dev_t* tmc5272_dev, tmc5272_motor_num_t motor);
 
-bool tmc5272_isAtTargetVelocity(tmc5272_dev_t* tmc5272_dev, uint8_t motor);
-bool tmc5272_isAtTargetPosition(tmc5272_dev_t* tmc5272_dev, uint8_t motor);
-void tmc5272_setPositionToValue(tmc5272_dev_t* tmc5272_dev, uint8_t motor, uint32_t value);
-void tmc5272_setHomePosition(tmc5272_dev_t* tmc5272_dev, uint8_t motor);
-void tmc5272_setVelocityCurve(tmc5272_dev_t* tmc5272_dev, uint8_t motor, uint32_t vmax, uint32_t amax);
+bool tmc5272_isAtTargetVelocity(tmc5272_dev_t* tmc5272_dev, tmc5272_motor_num_t motor);
+bool tmc5272_isAtTargetPosition(tmc5272_dev_t* tmc5272_dev, tmc5272_motor_num_t motor);
+void tmc5272_setPositionToValue(tmc5272_dev_t* tmc5272_dev, tmc5272_motor_num_t motor, uint32_t value);
+void tmc5272_setHomePosition(tmc5272_dev_t* tmc5272_dev, tmc5272_motor_num_t motor);
+void tmc5272_setVelocityCurve(tmc5272_dev_t* tmc5272_dev, tmc5272_motor_num_t motor, uint32_t vmax, uint32_t amax);
 
 /* Velocity Mode */
 
-void tmc5272_rotateAtVelocity(tmc5272_dev_t* tmc5272_dev, uint8_t motor, int32_t velocity, uint32_t acceleration);
+void tmc5272_rotateAtVelocity(tmc5272_dev_t* tmc5272_dev, tmc5272_motor_num_t motor, int32_t velocity, uint32_t acceleration);
 
 /* Position Mode */
 
-void tmc5272_rotateToPosition(tmc5272_dev_t* tmc5272_dev, uint8_t motor, uint32_t position);
-void tmc5272_rotateByMicrosteps(tmc5272_dev_t* tmc5272_dev, uint8_t motor, int32_t usteps);
+void tmc5272_rotateToPosition(tmc5272_dev_t* tmc5272_dev, tmc5272_motor_num_t motor, uint32_t position);
+void tmc5272_rotateByMicrosteps(tmc5272_dev_t* tmc5272_dev, tmc5272_motor_num_t motor, int32_t usteps);
 
 
 /* Tricoder */
 
-void tmc5272_tricoder_init(tmc5272_dev_t* tmc5272_dev, uint8_t motor);
-uint8_t tmc5272_tricoder_isCoilShortVS(tmc5272_dev_t* tmc5272_dev, uint8_t motor);
-void tmc5272_tricoder_resetFromCoilShort(tmc5272_dev_t* tmc5272_dev, uint8_t motor);
-void tmc5272_tricoder_setBEMFHysteresis(tmc5272_dev_t* tmc5272_dev, uint8_t motor, tmc5272_tricoder_bemf_hysteresis_t bemf_hysteresis);
-void tmc5272_tricoder_setEncoderValue(tmc5272_dev_t* tmc5272_dev, uint8_t motor, int32_t encoder_value);
+void tmc5272_tricoder_init(tmc5272_dev_t* tmc5272_dev, tmc5272_motor_num_t motor);
+uint8_t tmc5272_tricoder_isCoilShortVS(tmc5272_dev_t* tmc5272_dev, tmc5272_motor_num_t motor);
+void tmc5272_tricoder_resetFromCoilShort(tmc5272_dev_t* tmc5272_dev, tmc5272_motor_num_t motor);
+void tmc5272_tricoder_setBEMFHysteresis(tmc5272_dev_t* tmc5272_dev, tmc5272_motor_num_t motor, tmc5272_tricoder_bemf_hysteresis_t bemf_hysteresis);
+void tmc5272_tricoder_setEncoderValue(tmc5272_dev_t* tmc5272_dev, tmc5272_motor_num_t motor, int32_t encoder_value);
 
 // ALL_MOTORS unsupported.
-int32_t tmc5272_tricoder_getPosition(tmc5272_dev_t* tmc5272_dev, uint8_t motor);
+int32_t tmc5272_tricoder_getPosition(tmc5272_dev_t* tmc5272_dev, tmc5272_motor_num_t motor);
 
 
 
