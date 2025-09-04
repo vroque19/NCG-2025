@@ -4,6 +4,7 @@
 #include "stack.h"
 #include "history.h"
 #include "game_logic.h"
+#include "motors.h"
 #include <stdint.h>
 
 /**

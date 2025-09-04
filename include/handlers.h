@@ -2,6 +2,7 @@
 #define __HANDLERS_H_
 // #include <stddef.h>
 #include "mode_touchscreen.h"
+#include "mode_manual.h"
 // #include "stack.h"
 #include "game_logic.h"
 #include "solenoid_driver.h"

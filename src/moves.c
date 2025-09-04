@@ -1,6 +1,6 @@
 
 #include "moves.h"
-
+#include "motors.h"
 char* txt_responses[5] = {
     "Move Made :)",
     "Cannot move larger\r\n ring on smaller ring",

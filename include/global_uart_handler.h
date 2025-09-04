@@ -12,6 +12,7 @@
 extern volatile int GLOBAL_UART_ISR_FLAG;
 extern volatile game_mode_t current_mode;
 extern volatile page_t current_page;
+
 // struct to map pages to modes and their handlers
 typedef struct {
     page_t page;

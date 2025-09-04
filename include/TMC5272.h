@@ -16,7 +16,6 @@
 #include "TMC5272_SPI.h"
 #include "TMC5272_HW_Abstraction.h"
 
-/**** Macros ****/
 
 // Establishes a loop to apply the same logic to every motor available on a device.
 // Usage:

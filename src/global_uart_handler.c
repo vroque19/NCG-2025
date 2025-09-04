@@ -1,6 +1,7 @@
 // // global_uart_handler.c
 #include "global_uart_handler.h"
 #include "handlers.h"
+#include "mxc_delay.h"
 #include "nextion.h"
 #include "game_logic.h"
 
@@ -132,6 +133,8 @@ void handle_touch_event(uint8_t *rx_data) {
 void global_uart_main_loop(void) {
     printf("~~Main Loop~~\n\n");
     MXC_UART_TransactionAsync(&global_uart_req);
+    MXC_Delay(MXC_DELAY_MSEC(1000));
+    switch_page_manual();
     while (1) {
         // Wait for UART interrupt
         while (!GLOBAL_UART_ISR_FLAG) {
