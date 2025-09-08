@@ -9,6 +9,17 @@ poles = [
 
 # Track moves made throughout the game
 move_history = [(0,0)]
+def pm(source, destination):
+    move_history.append((source, destination))
+    print(f"{source}->{destination}")
+def auto_solve_hanoi(n, source, destination):
+    if n == 1:
+        pm(source, destination)
+    else:
+        aux = 3 - (source + destination)
+        auto_solve_hanoi(n - 1, source, aux)
+        pm(source, destination)
+        auto_solve_hanoi(n-1, aux, destination)
 
 
 def print_poles():
@@ -108,13 +119,16 @@ def get_inverse_move(move:tuple) -> tuple:
 
 # Run Game
 print("Towers of Hanoi \n")
-print("Enter moves as source_pole,dest_pole ('q' to quit, 'u' to undo). \n")
+# print("Enter moves as source_pole,dest_pole ('q' to quit, 'u' to undo). \n")
 
-while True:
-    print_poles()
+# while True:
+#     print_poles()
     
-    src, dest = query_player()
-    move_disk(src, dest)
+#     src, dest = query_player()
+#     move_disk(src, dest)
     
-    check_legality()
+#     check_legality()
+print("Optimal Solve:")
+auto_solve_hanoi(3, 0, 2)
+print(move_history)
 
