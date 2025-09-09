@@ -98,27 +98,27 @@ int main(void)
 	/**** Motor Setup ****/
 
 	// Velocity
-	tmc5272_setVelocityCurve(tmc_x, MOTOR_0, 200000, 1000);
-	tmc5272_setVelocityCurve(tmc_y, ALL_MOTORS, 100000, 5000);
+	tmc5272_setVelocityCurve(tmc_x, MOTOR_0, 300000, 10000);
+	tmc5272_setVelocityCurve(tmc_y, ALL_MOTORS, 300000, 10000);
 	
 	// Invert direction of necessary motors
-	tmc5272_setMotorDirection(tmc_y, MOTOR_0, MOTOR_DIR_INVERT);
+	// tmc5272_setMotorDirection(tmc_y, MOTOR_0, MOTOR_DIR_INVERT);
 
 
 	/**** Main Program ****/
 
 	// Start by rotating each motor
-	tmc5272_rotateByMicrosteps(tmc_x, MOTOR_0, 51200);
-	MXC_Delay(MXC_DELAY_SEC(1));
-	tmc5272_rotateByMicrosteps(tmc_y, ALL_MOTORS, 51200);
+	// tmc5272_rotateByMicrosteps(tmc_x, MOTOR_0, 51200);
+	// MXC_Delay(MXC_DELAY_SEC(1));
+	// tmc5272_rotateByMicrosteps(tmc_y, ALL_MOTORS, 51200);
 
-	while(!tmc5272_isAtTargetPosition(tmc_x, MOTOR_0)) 
-	{
-		uint32_t pos_x0 = tmc5272_getPosition(tmc_x, MOTOR_0);
-		uint32_t pos_y0 = tmc5272_getPosition(tmc_y, MOTOR_0);
-		uint32_t pos_y1 = tmc5272_getPosition(tmc_y, MOTOR_1);
-		printf("X, Y0, Y1: %d, %d, %d \n", pos_x0, pos_y0, pos_y1);
-	}
+	// while(!tmc5272_isAtTargetPosition(tmc_x, MOTOR_0)) 
+	// {
+	// 	uint32_t pos_x0 = tmc5272_getPosition(tmc_x, MOTOR_0);
+	// 	uint32_t pos_y0 = tmc5272_getPosition(tmc_y, MOTOR_0);
+	// 	uint32_t pos_y1 = tmc5272_getPosition(tmc_y, MOTOR_1);
+	// 	printf("X, Y0, Y1: %d, %d, %d \n", pos_x0, pos_y0, pos_y1);
+	// }
 
 	// Require user pushbutton for Tricoder start
 	printf("Press PB to start Tricoder operation. \n");
@@ -133,8 +133,8 @@ int main(void)
 		int32_t tc_y_pos = tmc5272_tricoder_getPosition(tmc_tc, TC_Y);
 
 		// Rotate each axis to its encoder position
-		tmc5272_rotateToPosition(tmc_x, MOTOR_0, tc_x_pos);
-		tmc5272_rotateToPosition(tmc_y, ALL_MOTORS, tc_y_pos);
+		tmc5272_rotateToPosition(tmc_x, MOTOR_0, 10*tc_x_pos);
+		tmc5272_rotateToPosition(tmc_y, ALL_MOTORS, 10*tc_y_pos);
 
 		// Readout position & encoder
 		printf("Mx0: %d  ENC: %d", tmc5272_getPosition(tmc_x, MOTOR_0), tc_x_pos);
