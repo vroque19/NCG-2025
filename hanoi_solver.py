@@ -9,17 +9,18 @@ poles = [
 
 # Track moves made throughout the game
 move_history = [(0,0)]
-def pm(source, destination):
+def move(source, destination):
     move_history.append((source, destination))
-    print(f"{source}->{destination}")
+    # print(f"{source}->{destination}")
+
 def auto_solve_hanoi(n, source, destination):
-    if n == 1:
-        pm(source, destination)
+    if n == 1: # base case
+        move(source, destination)
     else:
         aux = 3 - (source + destination)
-        auto_solve_hanoi(n - 1, source, aux)
-        pm(source, destination)
-        auto_solve_hanoi(n-1, aux, destination)
+        auto_solve_hanoi(n - 1, source, aux) # recursive call
+        move(source, destination)
+        auto_solve_hanoi(n-1, aux, destination) # recursive call
 
 
 def print_poles():
@@ -128,7 +129,10 @@ print("Towers of Hanoi \n")
 #     move_disk(src, dest)
     
 #     check_legality()
-print("Optimal Solve:")
-auto_solve_hanoi(3, 0, 2)
-print(move_history)
+print("Optimal Solve for 4 rings:")
+auto_solve_hanoi(4, 0, 2)
+for i in range(1, len(move_history)):
+
+    print(f"{i}: {move_history[i]}")
+
 
