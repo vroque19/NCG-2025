@@ -17,7 +17,12 @@ typedef struct {
     bool is_busy;
     history_stack move_history;
 } game_state_t;
-
+// types
+typedef enum {
+    MANUAL_MODE,
+    TOUCHSCREEN_MODE,
+    AUTOMATED_MODE, MENU
+} game_mode_t;
 // Move validation result
 typedef enum {
     MOVE_VALID,

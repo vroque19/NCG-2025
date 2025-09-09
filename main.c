@@ -10,9 +10,9 @@
 
 int main(void) {
   // init for comms
-//   spi_main_init();
-//   write_mem_map();
-//   read_adc_id();
+  spi_main_init();
+  write_mem_map();
+  read_adc_id();
 // init_motors();
   global_uart_init();
   solenoid_gpio_init();

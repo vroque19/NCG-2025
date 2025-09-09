@@ -6,7 +6,7 @@
 #include "game_logic.h"
 
 // Global state variables
-volatile game_mode_t current_mode = TOUCHSCREEN_MODE;
+volatile game_mode_t current_mode = MENU;
 volatile int GLOBAL_UART_ISR_FLAG = 0;
 volatile page_t current_page = PAGE_MAIN_MENU;
 
@@ -24,6 +24,7 @@ const screen_component comp_table[] = {
 		{PAGE_MANUAL, SOLENOID_ID, solenoid_handler},
         {PAGE_MANUAL, EXIT_MANUAL_ID, exit_to_main_menu},
         {PAGE_AUTOMATED, START_AUTOMATED_ID, start_automated},
+        {PAGE_AUTOMATED, EXIT_AUTOMATED_ID, exit_to_main_menu},
         {PAGE_MAIN_MENU, PAGE_TOUCHSCREEN_ID, switch_page_touchscreen},
         {PAGE_MAIN_MENU, PAGE_MANUAL_ID, switch_page_manual},
         {PAGE_MAIN_MENU, PAGE_AUTOMATED_ID, switch_page_automated}
@@ -134,10 +135,38 @@ void global_uart_main_loop(void) {
     printf("~~Main Loop~~\n\n");
     MXC_UART_TransactionAsync(&global_uart_req);
     MXC_Delay(MXC_DELAY_MSEC(1000));
-    switch_page_manual();
+    // switch_page_manual();
     while (1) {
         // Wait for UART interrupt
         while (!GLOBAL_UART_ISR_FLAG) {
+            if(current_mode==MANUAL_MODE) {
+                printf("Running manual mode logic\n");
+                    // Create GPIO Port/Pins Config struct
+    // Copy base MXC cfg struct. (MSDK uses const.)
+        mxc_gpio_cfg_t spi_port_cfg = TMC5272_SPI_PORT_CFG_MXC;
+        // Modify VSSEL (VDDIOH = 3.3V)
+        spi_port_cfg.vssel = MXC_GPIO_VSSEL_VDDIOH;
+        // Add masks for X, Y, and TC axes.
+        spi_port_cfg.mask |= (TMC5272_SPI_SS_PIN_DEV_X | TMC5272_SPI_SS_PIN_DEV_Y | TMC5272_SPI_SS_PIN_DEV_TC);
+        
+        // Create device struct for each IC
+        tmc5272_dev_t* tmc_x = &(tmc5272_dev_t){
+            .spi_port = MXC_SPI1,
+            .gpio_cfg_spi = &spi_port_cfg,
+            .ss_index = 1
+        };
+        tmc5272_dev_t* tmc_y = &(tmc5272_dev_t){
+            .spi_port = MXC_SPI1,
+            .gpio_cfg_spi = &spi_port_cfg,
+            .ss_index = 2
+        };
+        tmc5272_dev_t* tmc_tc = &(tmc5272_dev_t){
+            .spi_port = MXC_SPI1,
+            .gpio_cfg_spi = &spi_port_cfg,
+            .ss_index = 3
+        };
+                run_manual_mode_logic(tmc_x, tmc_y, tmc_tc);
+            }
         }
         // printf("handling touch...");
         __disable_irq(); // debounce

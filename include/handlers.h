@@ -10,12 +10,7 @@
 
 
 
-// types
-typedef enum {
-    MANUAL_MODE,
-    TOUCHSCREEN_MODE,
-    AUTOMATED_MODE
-} game_mode_t;
+
 
 typedef enum {
     PAGE_MAIN_MENU,
@@ -41,6 +36,7 @@ void handle_tower_1_btn(void);
 void handle_tower_2_btn(void);
 // void move_0_to_1_handler(void);
 // Main Menu to page functions
+void run_manual_mode_logic(tmc5272_dev_t *tmc_x, tmc5272_dev_t *tmc_y, tmc5272_dev_t *tmc_tc);
 void switch_page_touchscreen(void);
 void switch_page_manual(void);
 void switch_page_automated(void);

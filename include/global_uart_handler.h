@@ -14,12 +14,12 @@ extern volatile game_mode_t current_mode;
 extern volatile page_t current_page;
 
 // struct to map pages to modes and their handlers
-typedef struct {
-    page_t page;
-    game_mode_t mode;
-    void (*handler)(void);
-    const char* mode_name;
-} page_mode_mapping_t;
+// typedef struct {
+//     page_t page;
+//     game_mode_t mode;
+//     void (*handler)(void);
+//     const char* mode_name;
+// } page_mode_mapping_t;
 
 /**
  * @brief Initializes UART interrupts to read data from the nextion display

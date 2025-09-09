@@ -1,6 +1,7 @@
 #include "handlers.h"
 #include "global_uart_handler.h"
 #include "mode_touchscreen.h"
+#include "mxc_delay.h"
 
 static void switch_page_helper(page_t page, game_mode_t mode);
 
@@ -26,6 +27,7 @@ void udpate_status_txt(char *status) {
 
 void exit_to_main_menu(void) {
 	hanoi_reset_game();
+	switch_mode(MENU);
     printf("exiting to main menu. move count: %d\n", current_game.moves_made);
 }
 
@@ -134,9 +136,9 @@ static void switch_page_helper(page_t page, game_mode_t mode) {
 	hanoi_init_game(MAX_RINGS);
 	hanoi_print_game_state("Initialized game", &current_game);
 	switch_mode(mode);
-	// nextion_write_game_state(&current_game);
+	nextion_write_game_state(&current_game);
 	MXC_Delay(1000);
-	// poll_weights();
+	poll_weights();
 }
 
 void switch_page_touchscreen(void) {
@@ -147,58 +149,52 @@ void switch_page_touchscreen(void) {
 void switch_page_manual(void) {
 	printf("switching to manual \n\n");
 	switch_page_helper(PAGE_MANUAL, MANUAL_MODE);
-	    printf("Create Motor IC\n\n");
-// Create GPIO Port/Pins Config struct
-	// Copy base MXC cfg struct. (MSDK uses const.)
-    mxc_gpio_cfg_t spi_port_cfg = TMC5272_SPI_PORT_CFG_MXC;
-	// Modify VSSEL (VDDIOH = 3.3V)
-    printf("Inside tricoder handler function\n\n");
-	spi_port_cfg.vssel = MXC_GPIO_VSSEL_VDDIOH;
-	// Add masks for X, Y, and TC axes.
-    spi_port_cfg.mask |= (TMC5272_SPI_SS_PIN_DEV_X | TMC5272_SPI_SS_PIN_DEV_Y | TMC5272_SPI_SS_PIN_DEV_TC);
-    printf("Create Device Struct\n\n");
-	
-	// Create device struct for each IC
-	tmc5272_dev_t* tmc_x = &(tmc5272_dev_t){
-		.spi_port = MXC_SPI1,
-		.gpio_cfg_spi = &spi_port_cfg,
-		.ss_index = 1
-	};
-	tmc5272_dev_t* tmc_y = &(tmc5272_dev_t){
-		.spi_port = MXC_SPI1,
-		.gpio_cfg_spi = &spi_port_cfg,
-		.ss_index = 2
-	};
-	tmc5272_dev_t* tmc_tc = &(tmc5272_dev_t){
-		.spi_port = MXC_SPI1,
-		.gpio_cfg_spi = &spi_port_cfg,
-		.ss_index = 3
-	};
-	// Initialize each moving motor
-	tmc5272_init(tmc_x);
-	tmc5272_init(tmc_y);
-    printf("Create Tricoders\n\n");
-
-	// Init tricoders
-	tmc5272_tricoder_init(tmc_tc, TC_X);
-	tmc5272_tricoder_init(tmc_tc, TC_Y);
-
-	
-    printf("Set Velocity Curve\n\n");
-	/**** Motor Setup ****/
-	// Velocity
-	tmc5272_setVelocityCurve(tmc_x, MOTOR_0, 200000, 1000);
-	tmc5272_setVelocityCurve(tmc_y, ALL_MOTORS, 100000, 5000);
-	
-	// Invert direction of necessary motors
-	tmc5272_setMotorDirection(tmc_y, MOTOR_0, MOTOR_DIR_INVERT);
-	while(current_mode==MANUAL_MODE) {
-		printf("Calling tricoder_handler()\n");
-		tricoder_handler(tmc_x, tmc_y, tmc_tc);
-	}
+	printf("Create Motor IC\n\n");
 	// poll_weights();
 	
 }
+
+
+// New function to contain the continuous manual mode logic
+void run_manual_mode_logic(tmc5272_dev_t *tmc_x, tmc5272_dev_t *tmc_y, tmc5272_dev_t *tmc_tc) {
+	// printf("Running manual mode");
+    // // Create GPIO Port/Pins Config struct
+    // // Copy base MXC cfg struct. (MSDK uses const.)
+    // mxc_gpio_cfg_t spi_port_cfg = TMC5272_SPI_PORT_CFG_MXC;
+    // // Modify VSSEL (VDDIOH = 3.3V)
+    // spi_port_cfg.vssel = MXC_GPIO_VSSEL_VDDIOH;
+    // // Add masks for X, Y, and TC axes.
+    // spi_port_cfg.mask |= (TMC5272_SPI_SS_PIN_DEV_X | TMC5272_SPI_SS_PIN_DEV_Y | TMC5272_SPI_SS_PIN_DEV_TC);
+    
+    // // Create device struct for each IC
+    // tmc5272_dev_t* tmc_x = &(tmc5272_dev_t){
+    //     .spi_port = MXC_SPI1,
+    //     .gpio_cfg_spi = &spi_port_cfg,
+    //     .ss_index = 1
+    // };
+    // tmc5272_dev_t* tmc_y = &(tmc5272_dev_t){
+    //     .spi_port = MXC_SPI1,
+    //     .gpio_cfg_spi = &spi_port_cfg,
+    //     .ss_index = 2
+    // };
+    // tmc5272_dev_t* tmc_tc = &(tmc5272_dev_t){
+    //     .spi_port = MXC_SPI1,
+    //     .gpio_cfg_spi = &spi_port_cfg,
+    //     .ss_index = 3
+    // };
+    
+    // Only perform this logic if we are in manual mode.
+    // if (current_mode == MANUAL_MODE) {
+        // Read the Tricoder position
+        int32_t tc_x_pos = tmc5272_tricoder_getPosition(tmc_tc, TC_X);
+        int32_t tc_y_pos = tmc5272_tricoder_getPosition(tmc_tc, TC_Y);
+    
+        // Rotate each axis to its encoder position
+        tmc5272_rotateToPosition(tmc_x, MOTOR_0, tc_x_pos);
+        tmc5272_rotateToPosition(tmc_y, ALL_MOTORS, tc_y_pos);
+    // }
+}
+
 void switch_page_automated(void) {
 	printf("switching to automated \n\n");
 	switch_page_helper(PAGE_AUTOMATED, AUTOMATED_MODE);
@@ -206,7 +202,9 @@ void switch_page_automated(void) {
 
 // Switch to a new operating mode
 void switch_mode(game_mode_t new_mode) {
-    if (new_mode == current_mode) return;
+	
+	if (new_mode == current_mode) return;
     current_mode = new_mode;
+	printf("Mode: %d\n", current_mode);
 
 }
