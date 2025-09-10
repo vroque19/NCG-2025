@@ -1,7 +1,8 @@
 /**
  * @file    main.c
- * @brief   Hello World!
- * @details This example uses the UART to print to a terminal and flashes an LED.
+ * @brief   Application code for Towers of Hanoi project
+ * @details This is example code for the Trinamic motor control driver library 
+ * used in Towers of Hanoi.
  */
 
 /******************************************************************************
