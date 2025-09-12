@@ -75,6 +75,7 @@ uint32_t tmc5272_getPosition(tmc5272_dev_t* tmc5272_dev, tmc5272_motor_num_t mot
 // ALL_MOTORS unsupported.
 int32_t tmc5272_getVelocity(tmc5272_dev_t* tmc5272_dev, tmc5272_motor_num_t motor);
 
+// Warning: Velocity_reached returns true if a stall is detected by SG2. 
 bool tmc5272_isAtTargetVelocity(tmc5272_dev_t* tmc5272_dev, tmc5272_motor_num_t motor);
 bool tmc5272_isAtTargetPosition(tmc5272_dev_t* tmc5272_dev, tmc5272_motor_num_t motor);
 void tmc5272_setPositionToValue(tmc5272_dev_t* tmc5272_dev, tmc5272_motor_num_t motor, uint32_t value);
@@ -90,6 +91,25 @@ void tmc5272_rotateAtVelocity(tmc5272_dev_t* tmc5272_dev, tmc5272_motor_num_t mo
 void tmc5272_rotateToPosition(tmc5272_dev_t* tmc5272_dev, tmc5272_motor_num_t motor, uint32_t position);
 void tmc5272_rotateByMicrosteps(tmc5272_dev_t* tmc5272_dev, tmc5272_motor_num_t motor, int32_t usteps);
 
+
+/* StallGuard */
+
+// SGT = [-64, 63]
+// SGT controls when the IC considers a "stall" has occured. Higher = less sensitive; lower = more sensitive (stalls are detected sooner).
+//
+// TCOOLTHRS = 20 bits [0, 65535]
+// TCOOLTHRS disables stall detection until the TSTEP (motor speed in ticks) is faster (less) than TCOOLTHRS.
+// TSTEP is inversely prop to rotation velocity, so lower values of TCOOLTHRS require higher speeds to enable SG2.
+//
+// Sample TSTEP values for 200 steps/rev stepper, 12.5 MHz clock: 
+// - TSTEP = 43.7 <--> 300k velocity (335.27 rpm)
+// - TSTEP = 65.5 <--> 200k velocity (223.52 rpm)
+// - TSTEP = 131.1 <--> 100k velocity (111.76 rpm)
+void tmc5272_configureStallGuard2(tmc5272_dev_t* tmc5272_dev, tmc5272_motor_num_t motor, int8_t SGT, uint32_t TCOOLTHRS, bool isFiltered);
+void tmc5272_setStallGuard2(tmc5272_dev_t* tmc5272_dev, tmc5272_motor_num_t motor, bool isEnabled);
+uint16_t tmc5272_sg_getSGValue(tmc5272_dev_t* tmc5272_dev, tmc5272_motor_num_t motor);
+bool tmc5272_sg_isStalled(tmc5272_dev_t* tmc5272_dev, tmc5272_motor_num_t motor);
+void tmc5272_sg_clearStall(tmc5272_dev_t* tmc5272_dev, tmc5272_motor_num_t motor);
 
 /* Tricoder */
 

@@ -347,6 +347,37 @@ void tmc5272_rotateByMicrosteps(tmc5272_dev_t* tmc5272_dev, tmc5272_motor_num_t 
 }
 
 
+/* StallGuard */
+
+void tmc5272_configureStallGuard2(tmc5272_dev_t* tmc5272_dev, tmc5272_motor_num_t motor, int8_t SGT, uint32_t TCOOLTHRS, bool isFiltered)
+{
+    tmc5272_fieldWrite(tmc5272_dev, TMC5272_COOLCONF_SGT_FIELD(motor), SGT);
+	tmc5272_fieldWrite(tmc5272_dev, TMC5272_TCOOLTHRS_FIELD(motor), TCOOLTHRS);
+	tmc5272_fieldWrite(tmc5272_dev, TMC5272_COOLCONF_SFILT_FIELD(motor), isFiltered);
+}
+
+// Configure SG2 first using the configureStallGuard2() function!
+void tmc5272_setStallGuard2(tmc5272_dev_t* tmc5272_dev, tmc5272_motor_num_t motor, bool isEnabled)
+{
+	tmc5272_fieldWrite(tmc5272_dev, TMC5272_SW_MODE_SG_STOP_FIELD(motor), isEnabled);
+}
+
+uint16_t tmc5272_sg_getSGValue(tmc5272_dev_t* tmc5272_dev, tmc5272_motor_num_t motor)
+{
+	return tmc5272_fieldRead(tmc5272_dev, TMC5272_DRV_STATUS_SG_RESULT_FIELD(motor));
+}
+
+bool tmc5272_sg_isStalled(tmc5272_dev_t* tmc5272_dev, tmc5272_motor_num_t motor)
+{
+	return tmc5272_fieldRead(tmc5272_dev, TMC5272_RAMP_STAT_EVENT_STOP_SG_FIELD(motor));
+}
+
+void tmc5272_sg_clearStall(tmc5272_dev_t* tmc5272_dev, tmc5272_motor_num_t motor)
+{
+	tmc5272_fieldWrite(tmc5272_dev, TMC5272_RAMP_STAT_EVENT_STOP_SG_FIELD(motor), 1);
+}
+
+
 /* Tricoder */
 
 // The initialization of Tricoder does not halt the motor. This is left to the application.
