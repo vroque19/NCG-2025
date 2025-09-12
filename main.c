@@ -108,50 +108,12 @@ int main(void)
 
 	/**** Main Program ****/
 
-	// Start by rotating each motor
-	// tmc5272_rotateByMicrosteps(tmc_x, MOTOR_0, 51200);
-	// MXC_Delay(MXC_DELAY_SEC(1));
-	// tmc5272_rotateByMicrosteps(tmc_y, ALL_MOTORS, 51200);
 
-	// while(!tmc5272_isAtTargetPosition(tmc_x, MOTOR_0)) 
-	// {
-	// 	uint32_t pos_x0 = tmc5272_getPosition(tmc_x, MOTOR_0);
-	// 	uint32_t pos_y0 = tmc5272_getPosition(tmc_y, MOTOR_0);
-	// 	uint32_t pos_y1 = tmc5272_getPosition(tmc_y, MOTOR_1);
-	// 	printf("X, Y0, Y1: %d, %d, %d \n", pos_x0, pos_y0, pos_y1);
-	// }
 
-	// Require user pushbutton for Tricoder start
-	printf("Press PB to start Tricoder operation. \n");
-	while(!PB_IsPressedAny()) {}
-	MXC_Delay(MXC_DELAY_MSEC(500));
 
 	// Main Loop
 
     while (1) {
-		// Read the Tricoder position
-		int32_t tc_x_pos = tmc5272_tricoder_getPosition(tmc_tc, TC_X);
-		int32_t tc_y_pos = tmc5272_tricoder_getPosition(tmc_tc, TC_Y);
-
-		// Rotate each axis to its encoder position
-		tmc5272_rotateToPosition(tmc_x, MOTOR_0, 10*tc_x_pos);
-		tmc5272_rotateToPosition(tmc_y, ALL_MOTORS, 10*tc_y_pos);
-
-		// Readout position & encoder
-		printf("Mx0: %d  ENC: %d", tmc5272_getPosition(tmc_x, MOTOR_0), tc_x_pos);
-		printf("\tMy0: %d  ENC: %d \n", tmc5272_getPosition(tmc_y, MOTOR_0), tc_y_pos);
-
-		// Failsafe brake
-		if(PB_IsPressedAny())
-		{
-			printf("Failsafe! \n");
-			tmc5272_rotateAtVelocity(tmc_x, MOTOR_0, 0, 50000);
-			tmc5272_rotateAtVelocity(tmc_x, MOTOR_1, 0, 50000);
-			tmc5272_rotateAtVelocity(tmc_y, MOTOR_0, 0, 50000);
-			tmc5272_rotateAtVelocity(tmc_y, MOTOR_1, 0, 50000);
-			
-			while(1) {}
-		}
 		
 
     }
