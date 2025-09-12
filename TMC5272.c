@@ -264,6 +264,9 @@ void tmc5272_setVelocityCurve(tmc5272_dev_t* tmc5272_dev, tmc5272_motor_num_t mo
 		return;
 	}
 
+	// Store current RAMPMODE.
+	uint8_t prev_ramp_mode = uinttmc5272_fieldRead(tmc5272_dev, TMC5272_RAMPMODE_FIELD(motor));
+
 	// Set RAMPMODE = Hold to retain whatever (lack of) motion is occurring.
 	tmc5272_fieldWrite(tmc5272_dev, TMC5272_RAMPMODE_FIELD(motor), TMC5272_MODE_HOLD);
 
@@ -278,6 +281,12 @@ void tmc5272_setVelocityCurve(tmc5272_dev_t* tmc5272_dev, tmc5272_motor_num_t mo
 
 	// Set velocity.
 	tmc5272_fieldWrite(tmc5272_dev, TMC5272_VMAX_FIELD(motor), vmax);
+
+	// Restore previous RAMPMODE if not velocity mode.
+	// This condition is because this function is (ideally) used prior to a positioning-mode
+	// command. If we're in a velocity mode, we don't want to start movement yet.
+	if(prev_ramp_mode == 0 || prev_ramp_mode == 3)
+	tmc5272_fieldWrite(tmc5272_dev, TMC5272_RAMPMODE_FIELD(motor), prev_ramp_mode);
 }
 
 void tmc5272_rotateAtVelocity(tmc5272_dev_t* tmc5272_dev, tmc5272_motor_num_t motor, int32_t velocity, uint32_t acceleration)

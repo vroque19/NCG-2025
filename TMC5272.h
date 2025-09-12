@@ -80,6 +80,9 @@ bool tmc5272_isAtTargetVelocity(tmc5272_dev_t* tmc5272_dev, tmc5272_motor_num_t 
 bool tmc5272_isAtTargetPosition(tmc5272_dev_t* tmc5272_dev, tmc5272_motor_num_t motor);
 void tmc5272_setPositionToValue(tmc5272_dev_t* tmc5272_dev, tmc5272_motor_num_t motor, uint32_t value);
 void tmc5272_setHomePosition(tmc5272_dev_t* tmc5272_dev, tmc5272_motor_num_t motor);
+
+// Switches to HOLD mode to set velocity and positioning. Restores RAMPMODE after Vel / Acc writes.
+// Warning: Do not use for velocity mode! There are dedicated velocity functions to use instead.
 void tmc5272_setVelocityCurve(tmc5272_dev_t* tmc5272_dev, tmc5272_motor_num_t motor, uint32_t vmax, uint32_t amax);
 
 /* Velocity Mode */
