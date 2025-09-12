@@ -243,10 +243,14 @@ void configure_adc_channel(uint8_t channel_idx, uint8_t enable_bit) {
     set_reg(ADC_CHANNEL_X(channel_idx), tx_data, bytes);
 }
 
-// not needed
 void set_ctrl(void) {
     size_t bytes = 2;
-    uint8_t tx_data[] = {0x01, 0x02};
+
+    // testing 0x00, 0x00
+    // for unipolar mode, functional
+
+    // uint8_t tx_data[] = {0x01, 0x02};
+    uint8_t tx_data[] = {0x00, 0x00};
     set_reg(ADC_CONTROL, tx_data, bytes);
 }
 
@@ -278,7 +282,7 @@ void write_mem_map(void) {
     // write to 4131 registers to configure for AIN0-AIN5
     // set_status();
     // set_data();
-    // set_ctrl();
+    set_ctrl();
     set_io_ctrl();
     set_vbias_ctrl();
     set_config_n();
