@@ -106,14 +106,35 @@ int main(void)
 	// tmc5272_setMotorDirection(tmc_y, MOTOR_0, MOTOR_DIR_INVERT);
 
 
+	// StallGuard
+	uint32_t SGT = 6;
+	uint32_t TCOOLTHRS = 60;
+	bool isFiltered = 1;
+	tmc5272_configureStallGuard2(tmc_x, MOTOR_0, SGT, TCOOLTHRS, isFiltered);
+	tmc5272_setStallGuard2(tmc_x, MOTOR_0, TRUE);
+
 	/**** Main Program ****/
+	tmc5272_rotateAtVelocity(tmc_x, MOTOR_0, 300000, 2000);
+	while(!tmc5272_sg_isStalled(tmc_x, MOTOR_0)) {
+		
+		printf("SGV: %d \n", tmc5272_sg_getSGValue(tmc_x, MOTOR_0));
+		
+	}
+	LED_On(LED_RED);
 
+	MXC_Delay(MXC_DELAY_SEC(2));
+	tmc5272_sg_clearStall(tmc_x, MOTOR_0);
+	LED_On(LED_GREEN);
 
+	tmc5272_rotateByMicrosteps(tmc_x, MOTOR_0, 50000);
 
 
 	// Main Loop
 
     while (1) {
+
+		
+		
 		
 
     }
