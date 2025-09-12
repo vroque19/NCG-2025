@@ -1,4 +1,5 @@
 #include "load_cell.h"
+#include "4131.h"
 
  // conversion factors for 3 load cells
 //  int global_base_array[3] = {33063, 32787, 31948};
@@ -22,7 +23,7 @@ uint32_t get_calibration_data(void) {
         data[i] = get_adc_data();
         MXC_Delay(MXC_DELAY_MSEC(10));
     }
-    uint32_t res = get_average(data, n);
+    uint32_t res = get_adc_data();
     return res;
 }
 
@@ -42,7 +43,6 @@ double code_to_grams(uint32_t base, uint32_t code, double conversion_factor){
     double delta = abs((int)code - (int)base);
     if(delta > 1) {
         double grams = delta * conversion_factor;
-        printf("\ngrams: %d\n", grams);
         return grams;
     }
     return 0;
@@ -61,7 +61,7 @@ double get_load_cell_data(uint8_t channel_idx, uint32_t base) {
     double conversion_factors[] = {0.766561084, 0.77, 0.76};
     double weight = code_to_grams(base, code, conversion_factors[channel_idx]);
     // printf("***********\n");
-    // printf("Load cell %d weight in grams: %.2fg\n", channel_idx, weight);
+    printf("Load cell %d weight in grams: %.2fg\n", channel_idx, weight);
     // printf("***********\n");
     // printf("\n");
     // disable channel
