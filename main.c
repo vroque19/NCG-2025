@@ -4,11 +4,8 @@
 // #include "nextion.h"
 // #include "mode_touchscreen.h"
 // #include <stddef.h>
-#include "load_cell.h"
 #include "motors.h"
 #include "global_uart_handler.h"
-#include "mxc_delay.h"
-#include "nextion.h"
 
 
 int main(void) {
@@ -21,17 +18,6 @@ int main(void) {
   solenoid_gpio_init();
   printf("Step 3: Setting up initial display...\n");
   // Main application loop
-  MXC_Delay(MXC_DELAY_MSEC(250));
-  uint8_t cal0 = calibrate(0);
-  // uint8_t cal1 = calibrate(1);
-  // uint8_t cal2 = calibrate(2);
-  // printf("Calibration for load cell 1: %d\n", cal1);
-  printf("Calibration for load cell 0: %d\n", cal0);
-  // printf("Calibration for load cell 2: %d\n", cal2);
-  while(1) {
-
-    test_switch(33627, 32755, 32755);
-  }
   global_uart_main_loop();
   MXC_SPI_Shutdown(SPI_MAIN);
   return E_NO_ERROR;

@@ -2,8 +2,8 @@
 #include "4131.h"
 
  // conversion factors for 3 load cells
-//  int global_base_array[3] = {33063, 32787, 31948};
- int global_base_array[3] = {33063, 33509, 32755};
+ int global_base_array[3] = {32749, 32787, 31948};
+//  int global_base_array[3] = {33063, 33509, 32755};
 
 uint32_t get_average(uint32_t *list, uint8_t n) {
     uint32_t sum = 0;
