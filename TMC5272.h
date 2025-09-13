@@ -62,6 +62,8 @@ int32_t tmc5272_readRegister(tmc5272_dev_t* tmc5272_dev, uint8_t address, uint8_
 // ALL_MOTORS unsupported.
 void tmc5272_writeRegister(tmc5272_dev_t* tmc5272_dev, uint8_t address, int32_t value, uint8_t* spi_status);
 
+void tmc5272_dumpRegisters(tmc5272_dev_t* tmc5272_dev);
+
 /* Part Initialization */
 
 void tmc5272_init(tmc5272_dev_t* tmc5272_dev);

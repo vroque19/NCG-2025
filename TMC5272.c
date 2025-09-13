@@ -49,6 +49,20 @@ void tmc5272_writeRegister(tmc5272_dev_t* tmc5272_dev, uint8_t address, int32_t 
 	*spi_status = rx_data[0];
 }
 
+void tmc5272_dumpRegisters(tmc5272_dev_t* tmc5272_dev)
+{
+	uint32_t reg_val = 0x0;
+	uint8_t status = 0;
+	
+	// Iterate through each register:
+	// 0x[Reg] : 0x[Value]  (Status: 0x[Status])
+	for(uint8_t i = 0; i < 0x93; i++) {
+		reg_val = tmc5272_readRegister(tmc5272_dev, i, &status);
+		printf("0x%2X : %8X  (Status: 0x%2X)\n", i, reg_val, status);
+	}
+}
+
+
 void tmc5272_init(tmc5272_dev_t* tmc5272_dev)
 {
 	/**** Comms Initialization ****/
@@ -265,7 +279,7 @@ void tmc5272_setVelocityCurve(tmc5272_dev_t* tmc5272_dev, tmc5272_motor_num_t mo
 	}
 
 	// Store current RAMPMODE.
-	uint8_t prev_ramp_mode = uinttmc5272_fieldRead(tmc5272_dev, TMC5272_RAMPMODE_FIELD(motor));
+	uint8_t prev_ramp_mode = tmc5272_fieldRead(tmc5272_dev, TMC5272_RAMPMODE_FIELD(motor));
 
 	// Set RAMPMODE = Hold to retain whatever (lack of) motion is occurring.
 	tmc5272_fieldWrite(tmc5272_dev, TMC5272_RAMPMODE_FIELD(motor), TMC5272_MODE_HOLD);
