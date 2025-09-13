@@ -88,6 +88,7 @@ int main(void)
 	};
 
 	// Initialize each moving motor
+	printf("Init\n");
 	tmc5272_init(tmc_x);
 	tmc5272_init(tmc_y);
 
@@ -95,7 +96,19 @@ int main(void)
 	tmc5272_tricoder_init(tmc_tc, TC_X);
 	tmc5272_tricoder_init(tmc_tc, TC_Y);
 
+	// Failsafe setup
+	tmc5272_rotateAtVelocity(tmc_x, ALL_MOTORS, 0, 8000);
+
+	// Register dump & pause
+	tmc5272_dumpRegisters(tmc_x);
+	printf("Program halted. Press any pushbutton to continue... \n");
+	while(!PB_IsPressedAny()) 
+	{
+		// Do nothing.
+	}
+	MXC_Delay(MXC_DELAY_MSEC(500));
 	
+
 	/**** Motor Setup ****/
 
 	// Velocity
@@ -105,7 +118,6 @@ int main(void)
 	// Invert direction of necessary motors
 	// tmc5272_setMotorDirection(tmc_y, MOTOR_0, MOTOR_DIR_INVERT);
 
-
 	// StallGuard
 	uint32_t SGT = 6;
 	uint32_t TCOOLTHRS = 60;
@@ -113,7 +125,10 @@ int main(void)
 	tmc5272_configureStallGuard2(tmc_x, MOTOR_0, SGT, TCOOLTHRS, isFiltered);
 	tmc5272_setStallGuard2(tmc_x, MOTOR_0, TRUE);
 
+
 	/**** Main Program ****/
+
+	// StallGuard Homing
 	tmc5272_rotateAtVelocity(tmc_x, MOTOR_0, 300000, 2000);
 	while(!tmc5272_sg_isStalled(tmc_x, MOTOR_0)) {
 		
@@ -126,15 +141,9 @@ int main(void)
 	tmc5272_sg_clearStall(tmc_x, MOTOR_0);
 	LED_On(LED_GREEN);
 
-	tmc5272_rotateByMicrosteps(tmc_x, MOTOR_0, 50000);
-
-	// Require user pushbutton for Tricoder start
-	printf("Press PB to start Tricoder operation. \n");
-	while(!PB_IsPressedAny()) {}
-	MXC_Delay(MXC_DELAY_MSEC(500));
-
 	// Main Loop
-
+	tmc5272_setHomePosition(tmc_x, ALL_MOTORS);
+	
     while (1) {
 		// Read the Tricoder position
 		int32_t tc_x_pos = tmc5272_tricoder_getPosition(tmc_tc, TC_X);
