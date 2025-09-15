@@ -278,12 +278,6 @@ void tmc5272_setVelocityCurve(tmc5272_dev_t* tmc5272_dev, tmc5272_motor_num_t mo
 		return;
 	}
 
-	// Store current RAMPMODE.
-	uint8_t prev_ramp_mode = tmc5272_fieldRead(tmc5272_dev, TMC5272_RAMPMODE_FIELD(motor));
-
-	// Set RAMPMODE = Hold to retain whatever (lack of) motion is occurring.
-	tmc5272_fieldWrite(tmc5272_dev, TMC5272_RAMPMODE_FIELD(motor), TMC5272_MODE_HOLD);
-
 	// Set V1 and V2 = 0.
 	// This disables A1 and A2 phases of the velocity curve.
 	tmc5272_fieldWrite(tmc5272_dev, TMC5272_V1_FIELD(motor), 0);
@@ -295,12 +289,6 @@ void tmc5272_setVelocityCurve(tmc5272_dev_t* tmc5272_dev, tmc5272_motor_num_t mo
 
 	// Set velocity.
 	tmc5272_fieldWrite(tmc5272_dev, TMC5272_VMAX_FIELD(motor), vmax);
-
-	// Restore previous RAMPMODE if not velocity mode.
-	// This condition is because this function is (ideally) used prior to a positioning-mode
-	// command. If we're in a velocity mode, we don't want to start movement yet.
-	if(prev_ramp_mode == 0 || prev_ramp_mode == 3)
-	tmc5272_fieldWrite(tmc5272_dev, TMC5272_RAMPMODE_FIELD(motor), prev_ramp_mode);
 }
 
 void tmc5272_rotateAtVelocity(tmc5272_dev_t* tmc5272_dev, tmc5272_motor_num_t motor, int32_t velocity, uint32_t acceleration)
@@ -318,23 +306,25 @@ void tmc5272_rotateAtVelocity(tmc5272_dev_t* tmc5272_dev, tmc5272_motor_num_t mo
 		velocity = -velocity;
 		rampMode = TMC5272_MODE_VELNEG;
 	}
+	
+	// Set RAMPMODE = Hold to retain whatever (lack of) motion is occurring.
+	tmc5272_fieldWrite(tmc5272_dev, TMC5272_RAMPMODE_FIELD(motor), TMC5272_MODE_HOLD);
+
 	// Set velocity
 	tmc5272_setVelocityCurve(tmc5272_dev, motor, (uint32_t)velocity, acceleration);
 	
-	// Modify RAMPMODE to use velocity control and set direction
-	// Note: We modify rampmode _after_ setting the velocity curve, in
-	// case velocity was an unreasonable value (e.g. 0xFFFFFFFF)!
+	// Set RAMPMODE = Velocity (also encodes directionality)
 	tmc5272_fieldWrite(tmc5272_dev, TMC5272_RAMPMODE_FIELD(motor), rampMode);
 
 	return;
 }
 
 /* Note: Call position rotation functions after setting velocity curve.*/
-void tmc5272_rotateToPosition(tmc5272_dev_t* tmc5272_dev, tmc5272_motor_num_t motor, uint32_t target)
+void tmc5272_rotateToPosition(tmc5272_dev_t* tmc5272_dev, tmc5272_motor_num_t motor, uint32_t target, uint32_t velocity, uint32_t acceleration)
 {
 	if(motor == ALL_MOTORS) {
 		FOR_EACH_MOTOR(m) {
-			tmc5272_rotateToPosition(tmc5272_dev, m, target);
+			tmc5272_rotateToPosition(tmc5272_dev, m, target, velocity, acceleration);
 		}
 		return;
 	}
@@ -348,16 +338,19 @@ void tmc5272_rotateToPosition(tmc5272_dev_t* tmc5272_dev, tmc5272_motor_num_t mo
 	// Write target position
 	tmc5272_fieldWrite(tmc5272_dev, TMC5272_XTARGET_FIELD(motor), target);
 
+	// Set velocity & acceleration
+	tmc5272_setVelocityCurve(tmc5272_dev, motor, velocity, acceleration);
+
 	// Switch to Position mode
 	tmc5272_fieldWrite(tmc5272_dev, TMC5272_RAMPMODE_FIELD(motor), TMC5272_MODE_POSITION);
 }
 
 /* Note: Call position rotation functions after setting velocity curve.*/
-void tmc5272_rotateByMicrosteps(tmc5272_dev_t* tmc5272_dev, tmc5272_motor_num_t motor, int32_t usteps)
+void tmc5272_rotateByMicrosteps(tmc5272_dev_t* tmc5272_dev, tmc5272_motor_num_t motor, int32_t usteps, uint32_t velocity, uint32_t acceleration)
 {
 	if(motor == ALL_MOTORS) {
 		FOR_EACH_MOTOR(m) {
-			tmc5272_rotateByMicrosteps(tmc5272_dev, m, usteps);
+			tmc5272_rotateByMicrosteps(tmc5272_dev, m, usteps, velocity, acceleration);
 		}
 		return;
 	}
@@ -366,7 +359,7 @@ void tmc5272_rotateByMicrosteps(tmc5272_dev_t* tmc5272_dev, tmc5272_motor_num_t 
 	uint32_t target_position = tmc5272_getPosition(tmc5272_dev, motor) + usteps;
 	
 	// Rotate to it
-	tmc5272_rotateToPosition(tmc5272_dev, motor, target_position);
+	tmc5272_rotateToPosition(tmc5272_dev, motor, target_position, velocity, acceleration);
 }
 
 

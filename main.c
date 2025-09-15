@@ -53,6 +53,13 @@
 #define TMC5272_SPI_SS_PIN_DEV_TC	MXC_GPIO_PIN_27
 #define TMC5272_SPI_SS_IDX_DEV_TC	3
 
+// Velocity & Acceleration
+#define VEL_X	300000
+#define ACC_X	10000
+
+#define VEL_Y	300000
+#define ACC_Y	10000
+
 /* **** Globals **** */
 
 /* **** Functions **** */
@@ -110,10 +117,6 @@ int main(void)
 	
 
 	/**** Motor Setup ****/
-
-	// Velocity
-	tmc5272_setVelocityCurve(tmc_x, MOTOR_0, 300000, 10000);
-	tmc5272_setVelocityCurve(tmc_y, ALL_MOTORS, 300000, 10000);
 	
 	// Invert direction of necessary motors
 	// tmc5272_setMotorDirection(tmc_y, MOTOR_0, MOTOR_DIR_INVERT);
@@ -143,15 +146,15 @@ int main(void)
 
 	// Main Loop
 	tmc5272_setHomePosition(tmc_x, ALL_MOTORS);
-	
+
     while (1) {
 		// Read the Tricoder position
 		int32_t tc_x_pos = tmc5272_tricoder_getPosition(tmc_tc, TC_X);
 		int32_t tc_y_pos = tmc5272_tricoder_getPosition(tmc_tc, TC_Y);
 
 		// Rotate each axis to its encoder position
-		tmc5272_rotateToPosition(tmc_x, MOTOR_0, 10*tc_x_pos);
-		tmc5272_rotateToPosition(tmc_y, ALL_MOTORS, 10*tc_y_pos);
+		tmc5272_rotateToPosition(tmc_x, MOTOR_0, 10*tc_x_pos, VEL_X, ACC_X);
+		tmc5272_rotateToPosition(tmc_y, ALL_MOTORS, 10*tc_y_pos, VEL_Y, ACC_Y);
 
 		// Readout position & encoder
 		printf("Mx0: %d  ENC: %d", tmc5272_getPosition(tmc_x, MOTOR_0), tc_x_pos);

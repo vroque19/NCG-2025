@@ -83,8 +83,7 @@ bool tmc5272_isAtTargetPosition(tmc5272_dev_t* tmc5272_dev, tmc5272_motor_num_t 
 void tmc5272_setPositionToValue(tmc5272_dev_t* tmc5272_dev, tmc5272_motor_num_t motor, uint32_t value);
 void tmc5272_setHomePosition(tmc5272_dev_t* tmc5272_dev, tmc5272_motor_num_t motor);
 
-// Switches to HOLD mode to set velocity and positioning. Restores RAMPMODE after Vel / Acc writes.
-// Warning: Do not use for velocity mode! There are dedicated velocity functions to use instead.
+// Only use to modify a velocity curve.
 void tmc5272_setVelocityCurve(tmc5272_dev_t* tmc5272_dev, tmc5272_motor_num_t motor, uint32_t vmax, uint32_t amax);
 
 /* Velocity Mode */
@@ -93,8 +92,8 @@ void tmc5272_rotateAtVelocity(tmc5272_dev_t* tmc5272_dev, tmc5272_motor_num_t mo
 
 /* Position Mode */
 
-void tmc5272_rotateToPosition(tmc5272_dev_t* tmc5272_dev, tmc5272_motor_num_t motor, uint32_t position);
-void tmc5272_rotateByMicrosteps(tmc5272_dev_t* tmc5272_dev, tmc5272_motor_num_t motor, int32_t usteps);
+void tmc5272_rotateToPosition(tmc5272_dev_t* tmc5272_dev, tmc5272_motor_num_t motor, uint32_t position, uint32_t velocity, uint32_t acceleration);
+void tmc5272_rotateByMicrosteps(tmc5272_dev_t* tmc5272_dev, tmc5272_motor_num_t motor, int32_t usteps, uint32_t velocity, uint32_t acceleration);
 
 
 /* StallGuard */
