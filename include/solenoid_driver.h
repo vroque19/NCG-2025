@@ -8,7 +8,7 @@
 #include "gpio.h"
 
 #define SOLENOID_GPIO_PORT_OUT   MXC_GPIO2
-#define SOLENOID_GPIO_PIN_OUT    MXC_GPIO_PIN_13 // pin 15 does not work
+#define SOLENOID_GPIO_PIN_OUT    MXC_GPIO_PIN_15
 
 /**
 * @brief initializes gpio pin for the solenoid driver

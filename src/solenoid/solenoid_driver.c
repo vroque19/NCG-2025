@@ -16,7 +16,7 @@ void solenoid_gpio_init(void) {
     }
     MXC_GPIO_Config(&solenoid_gpio_out);
     MXC_GPIO_OutClr(solenoid_gpio_out.port, solenoid_gpio_out.mask);
-    printf("Successfully configured GPIO pin\n\n%d\n\n", MXC_GPIO_OutGet(solenoid_gpio_out.port, SOLENOID_GPIO_PIN_OUT));
+    printf("Successfully configured GPIO pin: %d\n\n", MXC_GPIO_OutGet(solenoid_gpio_out.port, SOLENOID_GPIO_PIN_OUT));
 }
 
 void solenoid_on(void) {

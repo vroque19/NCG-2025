@@ -136,37 +136,49 @@ void global_uart_main_loop(void) {
     MXC_UART_TransactionAsync(&global_uart_req);
     MXC_Delay(MXC_DELAY_MSEC(1000));
     // switch_page_manual();
+    // Create GPIO Port/Pins Config struct
+    // Copy base MXC cfg struct. (MSDK uses const.)
+    mxc_gpio_cfg_t spi_port_cfg = TMC5272_SPI_PORT_CFG_MXC;
+    // Modify VSSEL (VDDIOH = 3.3V)
+    spi_port_cfg.vssel = MXC_GPIO_VSSEL_VDDIOH;
+    // Add masks for X, Y, and TC axes.
+    spi_port_cfg.mask |= (TMC5272_SPI_SS_PIN_DEV_X | TMC5272_SPI_SS_PIN_DEV_Y | TMC5272_SPI_SS_PIN_DEV_TC);
+    
+    // Create device struct for each IC
+    tmc5272_dev_t* tmc_x = &(tmc5272_dev_t){
+        .spi_port = MXC_SPI1,
+        .gpio_cfg_spi = &spi_port_cfg,
+        .ss_index = 1
+    };
+    tmc5272_dev_t* tmc_y = &(tmc5272_dev_t){
+        .spi_port = MXC_SPI1,
+        .gpio_cfg_spi = &spi_port_cfg,
+        .ss_index = 2
+    };
+    tmc5272_dev_t* tmc_tc = &(tmc5272_dev_t){
+        .spi_port = MXC_SPI1,
+        .gpio_cfg_spi = &spi_port_cfg,
+        .ss_index = 3
+    };
+    // Initialize each moving motor
+	tmc5272_init(tmc_x);
+	tmc5272_init(tmc_y);
+
+	/**** Motor Setup ****/
+	// Init tricoders
+	tmc5272_tricoder_init(tmc_tc, TC_X);
+	tmc5272_tricoder_init(tmc_tc, TC_Y);
+	// Velocity
+	tmc5272_setVelocityCurve(tmc_x, MOTOR_0, 300000, 10000);
+	tmc5272_setVelocityCurve(tmc_y, ALL_MOTORS, 300000, 10000);
     while (1) {
         // Wait for UART interrupt
         while (!GLOBAL_UART_ISR_FLAG) {
             if(current_mode==MANUAL_MODE) {
-                printf("Running manual mode logic\n");
-                    // Create GPIO Port/Pins Config struct
-    // Copy base MXC cfg struct. (MSDK uses const.)
-        mxc_gpio_cfg_t spi_port_cfg = TMC5272_SPI_PORT_CFG_MXC;
-        // Modify VSSEL (VDDIOH = 3.3V)
-        spi_port_cfg.vssel = MXC_GPIO_VSSEL_VDDIOH;
-        // Add masks for X, Y, and TC axes.
-        spi_port_cfg.mask |= (TMC5272_SPI_SS_PIN_DEV_X | TMC5272_SPI_SS_PIN_DEV_Y | TMC5272_SPI_SS_PIN_DEV_TC);
-        
-        // Create device struct for each IC
-        tmc5272_dev_t* tmc_x = &(tmc5272_dev_t){
-            .spi_port = MXC_SPI1,
-            .gpio_cfg_spi = &spi_port_cfg,
-            .ss_index = 1
-        };
-        tmc5272_dev_t* tmc_y = &(tmc5272_dev_t){
-            .spi_port = MXC_SPI1,
-            .gpio_cfg_spi = &spi_port_cfg,
-            .ss_index = 2
-        };
-        tmc5272_dev_t* tmc_tc = &(tmc5272_dev_t){
-            .spi_port = MXC_SPI1,
-            .gpio_cfg_spi = &spi_port_cfg,
-            .ss_index = 3
-        };
-                run_manual_mode_logic(tmc_x, tmc_y, tmc_tc);
-            }
+                // printf("Running manual mode logic\n");
+                
+                    run_manual_mode_logic(tmc_x, tmc_y, tmc_tc);
+                }
         }
         // printf("handling touch...");
         __disable_irq(); // debounce

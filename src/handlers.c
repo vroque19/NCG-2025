@@ -28,24 +28,18 @@ void udpate_status_txt(char *status) {
 void exit_to_main_menu(void) {
 	hanoi_reset_game();
 	switch_mode(MENU);
+	solenoid_off();
     printf("exiting to main menu. move count: %d\n", current_game.moves_made);
 }
 
 void solenoid_handler(void) {
-	// if(current_game.is_busy) {
-	// 	solenoid_off();
-	// } else{
-	// 	solenoid_on();
-	// }
-	// if(touch_count == 0) {
-	// 	solenoid_on();
-	// 	touch_count++;
-	// } else {
-	// 	solenoid_off();
-	// 	touch_count = 0;
-	// }
-	solenoid_toggle();
-	// udpate_status_txt("solenoid actuate\n");
+	if(touch_count == 0) {
+		solenoid_on();
+		touch_count++;
+	} else {
+		solenoid_off();
+		touch_count = 0;
+	}
 	printf("solenoid function\n");
 	return;
 }
@@ -58,7 +52,7 @@ void start_automated(void) {
 static void handle_tower_helper(int tower_idx) {
 	char dest_buff[50];
 	if(current_game.is_busy) {
-		printf("Busyyyyyyy");
+		// printf("Busyyyyyyy");
 		return;
 	}
 
@@ -85,13 +79,7 @@ static void handle_tower_helper(int tower_idx) {
 	increment_count();
 	nextion_write_game_state(&current_game);
 	touch_count = 0;
-	// Check win condition
-    // if (hanoi_is_solved()) {
-    //     current_game.game_complete = true;
-    //     write_to_txt_component(MAIN_TXT_BOX, "GAME SOLVED <3");
-    //     printf("🎉 Congratulations! Game complete in %d moves (minimum possible moves: %d)❤️❤️\n", 
-    //            current_game.moves_made, current_game.min_moves);
-    // }
+
 }
 
 void get_string_from_rings(int top_idx, uint8_t *tower_rings, char *tower_str, uint8_t str_size) {
@@ -137,7 +125,7 @@ static void switch_page_helper(page_t page, game_mode_t mode) {
 	hanoi_print_game_state("Initialized game", &current_game);
 	switch_mode(mode);
 	nextion_write_game_state(&current_game);
-	MXC_Delay(1000);
+	MXC_Delay(5000);
 	poll_weights();
 }
 
@@ -154,44 +142,16 @@ void switch_page_manual(void) {
 	
 }
 
-
 // New function to contain the continuous manual mode logic
 void run_manual_mode_logic(tmc5272_dev_t *tmc_x, tmc5272_dev_t *tmc_y, tmc5272_dev_t *tmc_tc) {
-	// printf("Running manual mode");
-    // // Create GPIO Port/Pins Config struct
-    // // Copy base MXC cfg struct. (MSDK uses const.)
-    // mxc_gpio_cfg_t spi_port_cfg = TMC5272_SPI_PORT_CFG_MXC;
-    // // Modify VSSEL (VDDIOH = 3.3V)
-    // spi_port_cfg.vssel = MXC_GPIO_VSSEL_VDDIOH;
-    // // Add masks for X, Y, and TC axes.
-    // spi_port_cfg.mask |= (TMC5272_SPI_SS_PIN_DEV_X | TMC5272_SPI_SS_PIN_DEV_Y | TMC5272_SPI_SS_PIN_DEV_TC);
-    
-    // // Create device struct for each IC
-    // tmc5272_dev_t* tmc_x = &(tmc5272_dev_t){
-    //     .spi_port = MXC_SPI1,
-    //     .gpio_cfg_spi = &spi_port_cfg,
-    //     .ss_index = 1
-    // };
-    // tmc5272_dev_t* tmc_y = &(tmc5272_dev_t){
-    //     .spi_port = MXC_SPI1,
-    //     .gpio_cfg_spi = &spi_port_cfg,
-    //     .ss_index = 2
-    // };
-    // tmc5272_dev_t* tmc_tc = &(tmc5272_dev_t){
-    //     .spi_port = MXC_SPI1,
-    //     .gpio_cfg_spi = &spi_port_cfg,
-    //     .ss_index = 3
-    // };
-    
-    // Only perform this logic if we are in manual mode.
-    // if (current_mode == MANUAL_MODE) {
-        // Read the Tricoder position
         int32_t tc_x_pos = tmc5272_tricoder_getPosition(tmc_tc, TC_X);
         int32_t tc_y_pos = tmc5272_tricoder_getPosition(tmc_tc, TC_Y);
     
         // Rotate each axis to its encoder position
         tmc5272_rotateToPosition(tmc_x, MOTOR_0, tc_x_pos);
         tmc5272_rotateToPosition(tmc_y, ALL_MOTORS, tc_y_pos);
+		// 		printf("Mx0: %d  ENC: %d", tmc5272_getPosition(tmc_x, MOTOR_0), tc_x_pos);
+		// printf("\tMy0: %d  ENC: %d \n", tmc5272_getPosition(tmc_y, MOTOR_0), tc_y_pos);
     // }
 }
 
