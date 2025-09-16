@@ -1,4 +1,5 @@
 #include "handlers.h"
+#include "TMC5272_SPI.h"
 #include "global_uart_handler.h"
 #include "mode_touchscreen.h"
 #include "mxc_delay.h"
@@ -33,14 +34,15 @@ void exit_to_main_menu(void) {
 }
 
 void solenoid_handler(void) {
+	// tmc5272_dev_t *tmc_y = get_tmc_y_device();
 	if(touch_count == 0) {
 		solenoid_on();
 		touch_count++;
+		// tmc5272_rotateByMicrosteps(tmc_y, ALL_MOTORS, 51200);
 	} else {
 		solenoid_off();
 		touch_count = 0;
 	}
-	printf("solenoid function\n");
 	return;
 }
 
@@ -138,8 +140,6 @@ void switch_page_manual(void) {
 	printf("switching to manual \n\n");
 	switch_page_helper(PAGE_MANUAL, MANUAL_MODE);
 	printf("Create Motor IC\n\n");
-	// poll_weights();
-	
 }
 
 // New function to contain the continuous manual mode logic
@@ -148,11 +148,11 @@ void run_manual_mode_logic(tmc5272_dev_t *tmc_x, tmc5272_dev_t *tmc_y, tmc5272_d
         int32_t tc_y_pos = tmc5272_tricoder_getPosition(tmc_tc, TC_Y);
     
         // Rotate each axis to its encoder position
-        tmc5272_rotateToPosition(tmc_x, MOTOR_0, tc_x_pos);
-        tmc5272_rotateToPosition(tmc_y, ALL_MOTORS, tc_y_pos);
-		// 		printf("Mx0: %d  ENC: %d", tmc5272_getPosition(tmc_x, MOTOR_0), tc_x_pos);
+        tmc5272_rotateToPosition(tmc_x, MOTOR_0, 10*tc_x_pos);
+        tmc5272_rotateToPosition(tmc_y, ALL_MOTORS, 10*tc_y_pos);
+
+		// printf("Mx0: %d  ENC: %d", tmc5272_getPosition(tmc_x, MOTOR_0), tc_x_pos);
 		// printf("\tMy0: %d  ENC: %d \n", tmc5272_getPosition(tmc_y, MOTOR_0), tc_y_pos);
-    // }
 }
 
 void switch_page_automated(void) {

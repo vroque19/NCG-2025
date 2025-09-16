@@ -1,6 +1,7 @@
 // // global_uart_handler.c
 #include "global_uart_handler.h"
 #include "handlers.h"
+#include "motors.h"
 #include "mxc_delay.h"
 #include "nextion.h"
 #include "game_logic.h"
@@ -61,17 +62,8 @@ void uart_isr(void) {
 
 void global_uart_callback(mxc_uart_req_t *req, int error) {
     /* Called once per successful transaction */
-    /* Possible reason for display error */
-    // printf(">>>> Callback function <<<< \n\n");
     if (error == E_NO_ERROR) {
         GLOBAL_UART_ISR_FLAG = 1;
-        
-        // printf("UART transaction completed successfully\n");
-        // printf("Received %d bytes\n", req->rxCnt);
-        // printf("Raw data: ");
-        // print_buff(global_rx_buffer, req->rxCnt);
-        // printf("\n");
-        
     } else {
         // Handle errors
         printf("UART transaction error: %d\n", error);
@@ -117,11 +109,6 @@ void handle_touch_event(uint8_t *rx_data) {
     if (!rx_data) return;
     page_t page = get_page(rx_data);
     uint8_t component = get_component(rx_data);
-    uint8_t event = get_event(rx_data);
-    // __disable_irq();
-    // printf("Processing: Event=0x%02X, Page=0x%02X, Component=0x%02X\n", 
-        // event, page, component);
-    
     // Find the appropriate handler for this component
     for(int i = 0; i < sizeof(comp_table)/sizeof(screen_component); i++) {
 		if(page==comp_table[i].page && component==comp_table[i].component) {
@@ -135,52 +122,14 @@ void global_uart_main_loop(void) {
     printf("~~Main Loop~~\n\n");
     MXC_UART_TransactionAsync(&global_uart_req);
     MXC_Delay(MXC_DELAY_MSEC(1000));
-    // switch_page_manual();
-    // Create GPIO Port/Pins Config struct
-    // Copy base MXC cfg struct. (MSDK uses const.)
-    mxc_gpio_cfg_t spi_port_cfg = TMC5272_SPI_PORT_CFG_MXC;
-    // Modify VSSEL (VDDIOH = 3.3V)
-    spi_port_cfg.vssel = MXC_GPIO_VSSEL_VDDIOH;
-    // Add masks for X, Y, and TC axes.
-    spi_port_cfg.mask |= (TMC5272_SPI_SS_PIN_DEV_X | TMC5272_SPI_SS_PIN_DEV_Y | TMC5272_SPI_SS_PIN_DEV_TC);
-    
-    // Create device struct for each IC
-    tmc5272_dev_t* tmc_x = &(tmc5272_dev_t){
-        .spi_port = MXC_SPI1,
-        .gpio_cfg_spi = &spi_port_cfg,
-        .ss_index = 1
-    };
-    tmc5272_dev_t* tmc_y = &(tmc5272_dev_t){
-        .spi_port = MXC_SPI1,
-        .gpio_cfg_spi = &spi_port_cfg,
-        .ss_index = 2
-    };
-    tmc5272_dev_t* tmc_tc = &(tmc5272_dev_t){
-        .spi_port = MXC_SPI1,
-        .gpio_cfg_spi = &spi_port_cfg,
-        .ss_index = 3
-    };
-    // Initialize each moving motor
-	tmc5272_init(tmc_x);
-	tmc5272_init(tmc_y);
-
-	/**** Motor Setup ****/
-	// Init tricoders
-	tmc5272_tricoder_init(tmc_tc, TC_X);
-	tmc5272_tricoder_init(tmc_tc, TC_Y);
-	// Velocity
-	tmc5272_setVelocityCurve(tmc_x, MOTOR_0, 300000, 10000);
-	tmc5272_setVelocityCurve(tmc_y, ALL_MOTORS, 300000, 10000);
+    init_motors();
     while (1) {
         // Wait for UART interrupt
         while (!GLOBAL_UART_ISR_FLAG) {
             if(current_mode==MANUAL_MODE) {
-                // printf("Running manual mode logic\n");
-                
-                    run_manual_mode_logic(tmc_x, tmc_y, tmc_tc);
+                    run_manual_mode_logic(tmc_devices.tmc_x, tmc_devices.tmc_y, tmc_devices.tmc_tc);
                 }
         }
-        // printf("handling touch...");
         __disable_irq(); // debounce
         handle_touch_event(global_rx_buffer);
         // Reset flag and re-arm interrupt
