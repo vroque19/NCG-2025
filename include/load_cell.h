@@ -8,6 +8,12 @@
 #define LOAD_CELL_0 0
 #define LOAD_CELL_1 1
 #define LOAD_CELL_2 2
+
+// struct to hold current polled readings
+typedef struct {
+    double weights[3];
+} weight_readings_t;
+extern weight_readings_t weight_readings;
 extern int global_base_array[3];
 uint32_t calibrate(uint8_t idx);
 uint32_t get_calibration_data(void);

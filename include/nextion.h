@@ -97,10 +97,10 @@ void terminate_command(void);
 void update_weight(double weight, char *objname);
 
 /**
- * @brief Reads from 4131 ain0, ain2, ain3 in sequence, converts to grams, and writes weights to the display
- * @return void
+ * @brief Reads from 4131 channels in sequence, converts to grams, and writes weights to the display
+ * @return array of weights
  */
-void poll_weights(void);
+double* poll_weights(void);
 
 /**
  * @brief Writes string to a Nextion TXT component

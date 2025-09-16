@@ -48,6 +48,7 @@ double code_to_grams(uint32_t base, uint32_t code, double conversion_factor){
     return 0;
 }
 
+// returns current reading from selected load cell
 double get_load_cell_data(uint8_t channel_idx, uint32_t base) {
     // enable channel
     configure_adc_channel(channel_idx, 0x80);
@@ -68,6 +69,8 @@ double get_load_cell_data(uint8_t channel_idx, uint32_t base) {
     configure_adc_channel(channel_idx, 0x00);
     return weight;
 }
+
+// returns current load cell readings
 
 /* for testing */
 void test_switch(uint32_t base0, uint32_t base1, uint32_t base2) {

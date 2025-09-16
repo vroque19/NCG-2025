@@ -1,4 +1,5 @@
 #include "nextion.h"
+#include "load_cell.h"
 
 
 volatile uint32_t *uart_int_en, *uart_int_flags; 
@@ -71,13 +72,17 @@ void update_weight(double weight, char *objname) {
 }
 
 // testing 3 load cells
-void poll_weights(void) {
+double* poll_weights(void) {
     double weight0 = get_load_cell_data(LOAD_CELL_0, global_base_array[LOAD_CELL_0]);
     double weight1 = get_load_cell_data(LOAD_CELL_1, global_base_array[LOAD_CELL_1]);
     double weight2 = get_load_cell_data(LOAD_CELL_2, global_base_array[LOAD_CELL_2]);
     update_weight(weight2, TXT_WEIGHT_2);
     update_weight(weight1, TXT_WEIGHT_1);
     update_weight(weight0, TXT_WEIGHT_0);
+        weight_readings.weights[0] = weight0;
+        weight_readings.weights[0] = weight0;
+        weight_readings.weights[0] = weight0;
+    return weight_readings.weights;
 }
 
 void update_reading(int idx, uint32_t base, char *objname) {

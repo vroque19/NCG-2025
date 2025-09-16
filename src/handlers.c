@@ -1,8 +1,12 @@
 #include "handlers.h"
 #include "TMC5272_SPI.h"
+#include "game_logic.h"
 #include "global_uart_handler.h"
 #include "mode_touchscreen.h"
+#include "motors.h"
 #include "mxc_delay.h"
+#include "nextion.h"
+#include "solenoid_driver.h"
 
 static void switch_page_helper(page_t page, game_mode_t mode);
 
@@ -35,12 +39,43 @@ void exit_to_main_menu(void) {
 
 void solenoid_handler(void) {
 	// tmc5272_dev_t *tmc_y = get_tmc_y_device();
+	double *prev_weights = poll_weights();
 	if(touch_count == 0) {
+		/*
+		Manual mode game logic
+		1. get the prev weights 
+		2/ actuate and move solenoid
+		3. get curr weights 
+		4. update game state
+		*/
+		
 		solenoid_on();
+		tmc5272_rotateByMicrosteps(tmc_devices.tmc_y, ALL_MOTORS, 51200);
+		double *curr_weights = poll_weights();
+		for(int i = 0; i < 3; i++) {
+			current_game.selected_tower = -1;
+			if(prev_weights[i] - curr_weights[i] > 50) {
+				current_game.selected_tower = i;
+			}
+		}
+		// if source < 0, no ring is picked up
+		if(current_game.selected_tower < 0) {
+			solenoid_off();
+		}
 		touch_count++;
-		// tmc5272_rotateByMicrosteps(tmc_y, ALL_MOTORS, 51200);
 	} else {
 		solenoid_off();
+		MXC_Delay(MXC_DELAY_MSEC(250)); // wait for ring to drop down
+		double *curr_weights = poll_weights();
+
+		for(int i = 0; i < 3; i++) {
+			current_game.selected_tower = -1;
+			if(curr_weights[i] - prev_weights[i] > 50) {
+				int dest_tower_idx = i;
+					hanoi_execute_move(current_game.selected_tower, dest_tower_idx);
+
+			}
+		}
 		touch_count = 0;
 	}
 	return;
@@ -62,15 +97,15 @@ static void handle_tower_helper(int tower_idx) {
 	select_box(tower_idx);
 	if(touch_count == 0) {
 		sprintf(dest_buff, "move from tower %d", tower_idx);
-		update_txt_box(dest_buff);
+		// update_txt_box(dest_buff);
 		touch_count++;
         current_game.selected_tower = tower_idx;
         return;
 	}
 	current_game.is_busy = true;
-	printf("/nCurrent game is busy: %d", current_game.is_busy);
+	// printf("/nCurrent game is busy: %d", current_game.is_busy);
 	sprintf(dest_buff, "moving to tower  %d", tower_idx);
-	update_txt_box(dest_buff);
+	// update_txt_box(dest_buff);
 	hanoi_execute_move(current_game.selected_tower, tower_idx);
 	move_tuple move;
 	move.destination = tower_idx;
@@ -84,6 +119,7 @@ static void handle_tower_helper(int tower_idx) {
 
 }
 
+// Prints the rings as a stack in string format
 void get_string_from_rings(int top_idx, uint8_t *tower_rings, char *tower_str, uint8_t str_size) {
 	int offset = 0;
 	// 1. write the opening bracket of the stack
@@ -95,9 +131,9 @@ void get_string_from_rings(int top_idx, uint8_t *tower_rings, char *tower_str, u
 	// 3. append the closing bracket
 	snprintf(tower_str + offset, str_size - offset, "]");
 	printf("\n");
-	
 }
 
+// Writes current towers' states to the display
 void nextion_write_game_state(game_state_t *game) {
 	char *txt_boxes_arr[3] = {"t9", "t11", "t10"};
 	for(int i = 0; i < 3; i++) {
@@ -162,7 +198,6 @@ void switch_page_automated(void) {
 
 // Switch to a new operating mode
 void switch_mode(game_mode_t new_mode) {
-	
 	if (new_mode == current_mode) return;
     current_mode = new_mode;
 	printf("Mode: %d\n", current_mode);
