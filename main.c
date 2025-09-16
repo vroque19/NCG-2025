@@ -55,10 +55,10 @@
 
 // Velocity & Acceleration
 #define VEL_X	300000
-#define ACC_X	1000
+#define ACC_X	10000
 
 #define VEL_Y	300000
-#define ACC_Y	1000
+#define ACC_Y	10000
 
 /* **** Globals **** */
 
@@ -104,8 +104,8 @@ int main(void)
 	tmc5272_tricoder_init(tmc_tc, TC_Y);
 
 	// Failsafe setup
-	tmc5272_rotateAtVelocity(tmc_x, ALL_MOTORS, 0, ACC_X);
-	tmc5272_rotateAtVelocity(tmc_y, ALL_MOTORS, 0, ACC_Y);
+	tmc5272_rotateAtVelocity(tmc_x, ALL_MOTORS, 0, 10000);
+	tmc5272_rotateAtVelocity(tmc_y, ALL_MOTORS, 0, 10000);
 
 	// Register dump & pause
 	tmc5272_dumpRegisters(tmc_x);
@@ -120,7 +120,8 @@ int main(void)
 	/**** Motor Setup ****/
 	
 	// Invert direction of necessary motors
-	// tmc5272_setMotorDirection(tmc_y, MOTOR_0, MOTOR_DIR_INVERT);
+	tmc5272_setMotorDirection(tmc_x, MOTOR_0, MOTOR_DIR_INVERT);
+	tmc5272_setMotorDirection(tmc_y, MOTOR_0, MOTOR_DIR_INVERT);
 
 	// StallGuard
 	uint32_t SGT = 0;
@@ -133,23 +134,42 @@ int main(void)
 	/**** Main Program ****/
 
 	// StallGuard Homing
+	// Back out from home
+	printf("Backing out from edge... \n");
+	tmc5272_rotateByMicrosteps(tmc_x, MOTOR_0, 200000, 100000, 3000);
+	while(!tmc5272_isAtTargetPosition(tmc_x, MOTOR_0)) {}
+
+	// Home side: Rotate until stall
+	tmc5272_rotateAtVelocity(tmc_x, MOTOR_0, -300000, 4000);
+	while(!tmc5272_sg_isStalled(tmc_x, MOTOR_0)) {
+		
+		printf("SGV: %d \n", tmc5272_sg_getSGValue(tmc_x, MOTOR_0));
+		
+	}
+	// Stop movement before stall clear
+	tmc5272_rotateAtVelocity(tmc_x, MOTOR_0, 0, ACC_X);
+	tmc5272_sg_clearStall(tmc_x, MOTOR_0);
+
+	// Set home position
+	tmc5272_setHomePosition(tmc_x, MOTOR_0);
+
+	// Far side: Rotate until stall
 	tmc5272_rotateAtVelocity(tmc_x, MOTOR_0, 300000, 4000);
 	while(!tmc5272_sg_isStalled(tmc_x, MOTOR_0)) {
 		
 		printf("SGV: %d \n", tmc5272_sg_getSGValue(tmc_x, MOTOR_0));
 		
 	}
+	uint32_t x_max = tmc5272_getPosition(tmc_x, MOTOR_0);
+
+	// Move back to center
+	tmc5272_rotateToPosition(tmc_x, MOTOR_0, x_max/2, VEL_X, ACC_X);
+	tmc5272_sg_clearStall(tmc_x, MOTOR_0);
+	while(!tmc5272_isAtTargetPosition(tmc_x, MOTOR_0));
+	
 	LED_On(LED_RED);
 
-	MXC_Delay(MXC_DELAY_SEC(2));
-	tmc5272_rotateToPosition(tmc_x, MOTOR_0, 0, VEL_X, ACC_X);
-	tmc5272_sg_clearStall(tmc_x, MOTOR_0);
-	LED_On(LED_GREEN);
-
 	// Main Loop
-	printf("Position: %d\n", tmc5272_getPosition(tmc_x, MOTOR_0));
-	MXC_Delay(MXC_DELAY_SEC(2));
-	printf("Position: %d\n", tmc5272_getPosition(tmc_x, MOTOR_0));
 
     while (1) {
 		// Read the Tricoder position
