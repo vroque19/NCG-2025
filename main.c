@@ -55,10 +55,10 @@
 
 // Velocity & Acceleration
 #define VEL_X	300000
-#define ACC_X	10000
+#define ACC_X	1000
 
 #define VEL_Y	300000
-#define ACC_Y	10000
+#define ACC_Y	1000
 
 /* **** Globals **** */
 
@@ -104,7 +104,8 @@ int main(void)
 	tmc5272_tricoder_init(tmc_tc, TC_Y);
 
 	// Failsafe setup
-	tmc5272_rotateAtVelocity(tmc_x, ALL_MOTORS, 0, 8000);
+	tmc5272_rotateAtVelocity(tmc_x, ALL_MOTORS, 0, ACC_X);
+	tmc5272_rotateAtVelocity(tmc_y, ALL_MOTORS, 0, ACC_Y);
 
 	// Register dump & pause
 	tmc5272_dumpRegisters(tmc_x);
@@ -122,7 +123,7 @@ int main(void)
 	// tmc5272_setMotorDirection(tmc_y, MOTOR_0, MOTOR_DIR_INVERT);
 
 	// StallGuard
-	uint32_t SGT = 6;
+	uint32_t SGT = 0;
 	uint32_t TCOOLTHRS = 60;
 	bool isFiltered = 1;
 	tmc5272_configureStallGuard2(tmc_x, MOTOR_0, SGT, TCOOLTHRS, isFiltered);
@@ -132,7 +133,7 @@ int main(void)
 	/**** Main Program ****/
 
 	// StallGuard Homing
-	tmc5272_rotateAtVelocity(tmc_x, MOTOR_0, 300000, 2000);
+	tmc5272_rotateAtVelocity(tmc_x, MOTOR_0, 300000, 4000);
 	while(!tmc5272_sg_isStalled(tmc_x, MOTOR_0)) {
 		
 		printf("SGV: %d \n", tmc5272_sg_getSGValue(tmc_x, MOTOR_0));
@@ -141,11 +142,14 @@ int main(void)
 	LED_On(LED_RED);
 
 	MXC_Delay(MXC_DELAY_SEC(2));
+	tmc5272_rotateToPosition(tmc_x, MOTOR_0, 0, VEL_X, ACC_X);
 	tmc5272_sg_clearStall(tmc_x, MOTOR_0);
 	LED_On(LED_GREEN);
 
 	// Main Loop
-	tmc5272_setHomePosition(tmc_x, ALL_MOTORS);
+	printf("Position: %d\n", tmc5272_getPosition(tmc_x, MOTOR_0));
+	MXC_Delay(MXC_DELAY_SEC(2));
+	printf("Position: %d\n", tmc5272_getPosition(tmc_x, MOTOR_0));
 
     while (1) {
 		// Read the Tricoder position
