@@ -49,7 +49,7 @@ void tmc5272_SPI_readWrite(tmc5272_dev_t* tmc5272_dev, uint8_t* tx_data, uint8_t
     return;
 }
 
-int32_t tmc5272_readRegister(tmc5272_dev_t* tmc5272_dev, uint8_t address, uint8_t* spi_status)
+int32_t tmc5272_readRegister(tmc5272_dev_t* tmc5272_dev, uint8_t address)
 {
 	uint8_t tx_data[5] = { 0 };
 	uint8_t rx_data[5] = { 0 };
@@ -66,12 +66,11 @@ int32_t tmc5272_readRegister(tmc5272_dev_t* tmc5272_dev, uint8_t address, uint8_
 	// Send another request to receive the read reply
 	tmc5272_SPI_readWrite(tmc5272_dev, &tx_data[0], sizeof(tx_data), rx_data);
 
-	// Return status and data
-	*spi_status = rx_data[0];
+	// Return data
 	return ((int32_t)rx_data[1] << 24) | ((int32_t) rx_data[2] << 16) | ((int32_t) rx_data[3] <<  8) | ((int32_t) rx_data[4]);
 }
 
-void tmc5272_writeRegister(tmc5272_dev_t* tmc5272_dev, uint8_t address, int32_t value, uint8_t* spi_status)
+uint8_t tmc5272_writeRegister(tmc5272_dev_t* tmc5272_dev, uint8_t address, int32_t value)
 {
 	uint8_t tx_data[5] = { 0 };
 	uint8_t rx_data[5] = { 0 };
@@ -85,20 +84,19 @@ void tmc5272_writeRegister(tmc5272_dev_t* tmc5272_dev, uint8_t address, int32_t 
 	// Send the write request
 	tmc5272_SPI_readWrite(tmc5272_dev, &tx_data[0], sizeof(tx_data), rx_data);
 
-	// Store status received in rx
-	*spi_status = rx_data[0];
+	// Return status received by rx first 8 bits
+	return rx_data[0];
 }
 
 void tmc5272_dumpRegisters(tmc5272_dev_t* tmc5272_dev)
 {
 	uint32_t reg_val = 0x0;
-	uint8_t status = 0;
 	
 	// Iterate through each register:
-	// 0x[Reg] : 0x[Value]  (Status: 0x[Status])
+	// 0x[Reg] : 0x[Value]
 	for(uint8_t i = 0; i < 0x93; i++) {
-		reg_val = tmc5272_readRegister(tmc5272_dev, i, &status);
-		printf("0x%2X : %8X  (Status: 0x%2X)\n", i, reg_val, status);
+		reg_val = tmc5272_readRegister(tmc5272_dev, i);
+		printf("0x%2X : %8X  \n", i, reg_val);
 	}
 }
 
@@ -112,7 +110,7 @@ void tmc5272_init(tmc5272_dev_t* tmc5272_dev)
 	// Recommendation: Get register settings from TMCL-IDE -> Export from Register Browser.
 
 	// Set HOLD mode FIRST!
-	tmc5272_writeRegister(tmc5272_dev, TMC5272_RAMPMODE, 0x0000000F, NULL);
+	tmc5272_writeRegister(tmc5272_dev, TMC5272_RAMPMODE, 0x0000000F); //
 	tmc5272_dev->shadow.rampmode[MOTOR_0] = HOLD_MODE;
 	tmc5272_dev->shadow.rampmode[MOTOR_1] = HOLD_MODE;
 
@@ -120,114 +118,114 @@ void tmc5272_init(tmc5272_dev_t* tmc5272_dev)
 	// ACTUAL SETTINGS FOR TMC5272 (created: 2025/09/03 16:20:11)                                        //
 	//vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv//
 
-	tmc5272_writeRegister(tmc5272_dev, 0x00, 	0x00020002, NULL); 		// writing value 0x00020002 = 131074 = 0.0 to address 0 = 0x00(GCONF)
-	tmc5272_writeRegister(tmc5272_dev, 0x03, 	0x00000300, NULL); 		// writing value 0x00000300 = 768 = 0.0 to address 1 = 0x03(SLAVECONF)
-	tmc5272_writeRegister(tmc5272_dev, 0x04, 	0x60223318, NULL); 		// writing value 0x60223318 = 1612854040 = 0.0 to address 2 = 0x04(IOIN)
-	tmc5272_writeRegister(tmc5272_dev, 0x05, 	0x000003CF, NULL); 		// writing value 0x000003CF = 975 = 0.0 to address 3 = 0x05(DRV_CONF)
-	tmc5272_writeRegister(tmc5272_dev, 0x06, 	0x00000000, NULL); 		// writing value 0x00000000 = 0 = 0.0 to address 4 = 0x06(GLOBAL_SCALER)
-	tmc5272_writeRegister(tmc5272_dev, 0x08, 	0x00000019, NULL); 		// writing value 0x00000019 = 25 = 0.0 to address 6 = 0x08(MSLUT_ADDR)
-	tmc5272_writeRegister(tmc5272_dev, 0x09, 	0xFFFF8056, NULL); 		// writing value 0xFFFF8056 = 0 = 0.0 to address 7 = 0x09(MSLUT_DATA)
-	tmc5272_writeRegister(tmc5272_dev, 0x10, 	0xFFFFFFFF, NULL); 		// writing value 0xFFFFFFFF = 0 = 0.0 to address 8 = 0x10(M0_X_COMPARE)
-	tmc5272_writeRegister(tmc5272_dev, 0x11, 	0x00000000, NULL); 		// writing value 0x00000000 = 0 = 0.0 to address 9 = 0x11(M0_X_COMPARE_REPEAT)
-	tmc5272_writeRegister(tmc5272_dev, 0x13, 	0x0000000A, NULL); 		// writing value 0x0000000A = 10 = 0.0 to address 11 = 0x13(M0_TPOWERDOWN)
-	tmc5272_writeRegister(tmc5272_dev, 0x15, 	0x00000000, NULL); 		// writing value 0x00000000 = 0 = 0.0 to address 12 = 0x15(M0_TPWMTHRS)
-	tmc5272_writeRegister(tmc5272_dev, 0x16, 	0x00000000, NULL); 		// writing value 0x00000000 = 0 = 0.0 to address 13 = 0x16(M0_TCOOLTHRS)
-	tmc5272_writeRegister(tmc5272_dev, 0x17, 	0x00000000, NULL); 		// writing value 0x00000000 = 0 = 0.0 to address 14 = 0x17(M0_THIGH)
-	tmc5272_writeRegister(tmc5272_dev, 0x18, 	0x00000000, NULL); 		// writing value 0x00000000 = 0 = 0.0 to address 15 = 0x18(M0_XACTUAL)
-	tmc5272_writeRegister(tmc5272_dev, 0x1B, 	0x00000000, NULL); 		// writing value 0x00000000 = 0 = 0.0 to address 16 = 0x1B(M0_VSTART)
-	tmc5272_writeRegister(tmc5272_dev, 0x1C, 	0x00000000, NULL); 		// writing value 0x00000000 = 0 = 0.0 to address 17 = 0x1C(M0_A1)
-	tmc5272_writeRegister(tmc5272_dev, 0x1D, 	0x00000000, NULL); 		// writing value 0x00000000 = 0 = 0.0 to address 18 = 0x1D(M0_V1)
-	tmc5272_writeRegister(tmc5272_dev, 0x1E, 	0x00000000, NULL); 		// writing value 0x00000000 = 0 = 0.0 to address 19 = 0x1E(M0_A2)
-	tmc5272_writeRegister(tmc5272_dev, 0x1F, 	0x00000000, NULL); 		// writing value 0x00000000 = 0 = 0.0 to address 20 = 0x1F(M0_V2)
+	tmc5272_writeRegister(tmc5272_dev, 0x00, 	0x00020002); // 		// writing value 0x00020002 = 131074 = 0.0 to address 0 = 0x00(GCONF)
+	tmc5272_writeRegister(tmc5272_dev, 0x03, 	0x00000300); // 		// writing value 0x00000300 = 768 = 0.0 to address 1 = 0x03(SLAVECONF)
+	tmc5272_writeRegister(tmc5272_dev, 0x04, 	0x60223318); // 		// writing value 0x60223318 = 1612854040 = 0.0 to address 2 = 0x04(IOIN)
+	tmc5272_writeRegister(tmc5272_dev, 0x05, 	0x000003CF); // 		// writing value 0x000003CF = 975 = 0.0 to address 3 = 0x05(DRV_CONF)
+	tmc5272_writeRegister(tmc5272_dev, 0x06, 	0x00000000); // 		// writing value 0x00000000 = 0 = 0.0 to address 4 = 0x06(GLOBAL_SCALER)
+	tmc5272_writeRegister(tmc5272_dev, 0x08, 	0x00000019); // 		// writing value 0x00000019 = 25 = 0.0 to address 6 = 0x08(MSLUT_ADDR)
+	tmc5272_writeRegister(tmc5272_dev, 0x09, 	0xFFFF8056); // 		// writing value 0xFFFF8056 = 0 = 0.0 to address 7 = 0x09(MSLUT_DATA)
+	tmc5272_writeRegister(tmc5272_dev, 0x10, 	0xFFFFFFFF); // 		// writing value 0xFFFFFFFF = 0 = 0.0 to address 8 = 0x10(M0_X_COMPARE)
+	tmc5272_writeRegister(tmc5272_dev, 0x11, 	0x00000000); // 		// writing value 0x00000000 = 0 = 0.0 to address 9 = 0x11(M0_X_COMPARE_REPEAT)
+	tmc5272_writeRegister(tmc5272_dev, 0x13, 	0x0000000A); // 		// writing value 0x0000000A = 10 = 0.0 to address 11 = 0x13(M0_TPOWERDOWN)
+	tmc5272_writeRegister(tmc5272_dev, 0x15, 	0x00000000); // 		// writing value 0x00000000 = 0 = 0.0 to address 12 = 0x15(M0_TPWMTHRS)
+	tmc5272_writeRegister(tmc5272_dev, 0x16, 	0x00000000); // 		// writing value 0x00000000 = 0 = 0.0 to address 13 = 0x16(M0_TCOOLTHRS)
+	tmc5272_writeRegister(tmc5272_dev, 0x17, 	0x00000000); // 		// writing value 0x00000000 = 0 = 0.0 to address 14 = 0x17(M0_THIGH)
+	tmc5272_writeRegister(tmc5272_dev, 0x18, 	0x00000000); // 		// writing value 0x00000000 = 0 = 0.0 to address 15 = 0x18(M0_XACTUAL)
+	tmc5272_writeRegister(tmc5272_dev, 0x1B, 	0x00000000); // 		// writing value 0x00000000 = 0 = 0.0 to address 16 = 0x1B(M0_VSTART)
+	tmc5272_writeRegister(tmc5272_dev, 0x1C, 	0x00000000); // 		// writing value 0x00000000 = 0 = 0.0 to address 17 = 0x1C(M0_A1)
+	tmc5272_writeRegister(tmc5272_dev, 0x1D, 	0x00000000); // 		// writing value 0x00000000 = 0 = 0.0 to address 18 = 0x1D(M0_V1)
+	tmc5272_writeRegister(tmc5272_dev, 0x1E, 	0x00000000); // 		// writing value 0x00000000 = 0 = 0.0 to address 19 = 0x1E(M0_A2)
+	tmc5272_writeRegister(tmc5272_dev, 0x1F, 	0x00000000); // 		// writing value 0x00000000 = 0 = 0.0 to address 20 = 0x1F(M0_V2)
 	
-	tmc5272_writeRegister(tmc5272_dev, 0x23, 	0x00000000, NULL); 		// writing value 0x00000000 = 0 = 0.0 to address 24 = 0x23(M0_D2)
-	tmc5272_writeRegister(tmc5272_dev, 0x24, 	0x0000000A, NULL); 		// writing value 0x0000000A = 10 = 0.0 to address 25 = 0x24(M0_D1)
-	tmc5272_writeRegister(tmc5272_dev, 0x25, 	0x0000000A, NULL); 		// writing value 0x0000000A = 10 = 0.0 to address 26 = 0x25(M0_VSTOP)
-	tmc5272_writeRegister(tmc5272_dev, 0x26, 	0x00000000, NULL); 		// writing value 0x00000000 = 0 = 0.0 to address 27 = 0x26(M0_TVMAX)
-	tmc5272_writeRegister(tmc5272_dev, 0x27, 	0x00000000, NULL); 		// writing value 0x00000000 = 0 = 0.0 to address 28 = 0x27(M0_TZEROWAIT)
+	tmc5272_writeRegister(tmc5272_dev, 0x23, 	0x00000000); // 		// writing value 0x00000000 = 0 = 0.0 to address 24 = 0x23(M0_D2)
+	tmc5272_writeRegister(tmc5272_dev, 0x24, 	0x0000000A); // 		// writing value 0x0000000A = 10 = 0.0 to address 25 = 0x24(M0_D1)
+	tmc5272_writeRegister(tmc5272_dev, 0x25, 	0x0000000A); // 		// writing value 0x0000000A = 10 = 0.0 to address 26 = 0x25(M0_VSTOP)
+	tmc5272_writeRegister(tmc5272_dev, 0x26, 	0x00000000); // 		// writing value 0x00000000 = 0 = 0.0 to address 27 = 0x26(M0_TVMAX)
+	tmc5272_writeRegister(tmc5272_dev, 0x27, 	0x00000000); // 		// writing value 0x00000000 = 0 = 0.0 to address 28 = 0x27(M0_TZEROWAIT)
 	
-	tmc5272_writeRegister(tmc5272_dev, 0x29, 	0x00000000, NULL); 		// writing value 0x00000000 = 0 = 0.0 to address 30 = 0x29(M0_VDCMIN)
-	tmc5272_writeRegister(tmc5272_dev, 0x2A, 	0x00000000, NULL); 		// writing value 0x00000000 = 0 = 0.0 to address 31 = 0x2A(M0_SW_MODE)
-	tmc5272_writeRegister(tmc5272_dev, 0x2D, 	0x10000000, NULL); 		// writing value 0x10000000 = 268435456 = 0.0 to address 32 = 0x2D(M0_POSITION_PI_CTRL)
-	tmc5272_writeRegister(tmc5272_dev, 0x2E, 	0x00000000, NULL); 		// writing value 0x00000000 = 0 = 0.0 to address 33 = 0x2E(M0_X_ENC)
-	tmc5272_writeRegister(tmc5272_dev, 0x2F, 	0x00108000, NULL); 		// writing value 0x00108000 = 1081344 = 0.0 to address 34 = 0x2F(M0_ENCMODE)
-	tmc5272_writeRegister(tmc5272_dev, 0x30, 	0x00010000, NULL); 		// writing value 0x00010000 = 65536 = 0.0 to address 35 = 0x30(M0_ENC_CONST)
-	tmc5272_writeRegister(tmc5272_dev, 0x33, 	0x00000000, NULL); 		// writing value 0x00000000 = 0 = 0.0 to address 36 = 0x33(M0_ENC_DEVIATION)
-	tmc5272_writeRegister(tmc5272_dev, 0x34, 	0x00000000, NULL); 		// writing value 0x00000000 = 0 = 0.0 to address 37 = 0x34(M0_VIRTUAL_STOP_L)
-	tmc5272_writeRegister(tmc5272_dev, 0x35, 	0x00000000, NULL); 		// writing value 0x00000000 = 0 = 0.0 to address 38 = 0x35(M0_VIRTUAL_STOP_R)
-	tmc5272_writeRegister(tmc5272_dev, 0x38, 	0x10410153, NULL); 		// writing value 0x10410153 = 272695635 = 0.0 to address 39 = 0x38(M0_CHOPCONF)
-	tmc5272_writeRegister(tmc5272_dev, 0x39, 	0x00000000, NULL); 		// writing value 0x00000000 = 0 = 0.0 to address 40 = 0x39(M0_COOLCONF)
-	tmc5272_writeRegister(tmc5272_dev, 0x3A, 	0x00000000, NULL); 		// writing value 0x00000000 = 0 = 0.0 to address 41 = 0x3A(M0_DCCTRL)
-	tmc5272_writeRegister(tmc5272_dev, 0x3C, 	0xC40C001D, NULL); 		// writing value 0xC40C001D = 0 = 0.0 to address 42 = 0x3C(M0_PWMCONF)
-	tmc5272_writeRegister(tmc5272_dev, 0x3F, 	0x00000200, NULL); 		// writing value 0x00000200 = 512 = 0.0 to address 43 = 0x3F(M0_SG4_CONF)
-	tmc5272_writeRegister(tmc5272_dev, 0x45, 	0xFFFFFFFF, NULL); 		// writing value 0xFFFFFFFF = 0 = 0.0 to address 44 = 0x45(M1_X_COMPARE)
-	tmc5272_writeRegister(tmc5272_dev, 0x46, 	0x00000000, NULL); 		// writing value 0x00000000 = 0 = 0.0 to address 45 = 0x46(M1_X_COMPARE_REPEAT)
-	tmc5272_writeRegister(tmc5272_dev, 0x47, 	0x04011F08, NULL); 		// writing value 0x04011F08 = 67182344 = 0.0 to address 46 = 0x47(M1_IHOLD_IRUN)
-	tmc5272_writeRegister(tmc5272_dev, 0x48, 	0x0000000A, NULL); 		// writing value 0x0000000A = 10 = 0.0 to address 47 = 0x48(M1_TPOWERDOWN)
-	tmc5272_writeRegister(tmc5272_dev, 0x4A, 	0x00000000, NULL); 		// writing value 0x00000000 = 0 = 0.0 to address 48 = 0x4A(M1_TPWMTHRS)
-	tmc5272_writeRegister(tmc5272_dev, 0x4B, 	0x00000000, NULL); 		// writing value 0x00000000 = 0 = 0.0 to address 49 = 0x4B(M1_TCOOLTHRS)
-	tmc5272_writeRegister(tmc5272_dev, 0x4C, 	0x00000000, NULL); 		// writing value 0x00000000 = 0 = 0.0 to address 50 = 0x4C(M1_THIGH)
-	tmc5272_writeRegister(tmc5272_dev, 0x4D, 	0x00000000, NULL); 		// writing value 0x00000000 = 0 = 0.0 to address 51 = 0x4D(M1_XACTUAL)
-	tmc5272_writeRegister(tmc5272_dev, 0x50, 	0x00000000, NULL); 		// writing value 0x00000000 = 0 = 0.0 to address 52 = 0x50(M1_VSTART)
-	tmc5272_writeRegister(tmc5272_dev, 0x51, 	0x00000000, NULL); 		// writing value 0x00000000 = 0 = 0.0 to address 53 = 0x51(M1_A1)
-	tmc5272_writeRegister(tmc5272_dev, 0x52, 	0x00000000, NULL); 		// writing value 0x00000000 = 0 = 0.0 to address 54 = 0x52(M1_V1)
-	tmc5272_writeRegister(tmc5272_dev, 0x53, 	0x00000000, NULL); 		// writing value 0x00000000 = 0 = 0.0 to address 55 = 0x53(M1_A2)
-	tmc5272_writeRegister(tmc5272_dev, 0x54, 	0x00000000, NULL); 		// writing value 0x00000000 = 0 = 0.0 to address 56 = 0x54(M1_V2)
+	tmc5272_writeRegister(tmc5272_dev, 0x29, 	0x00000000); // 		// writing value 0x00000000 = 0 = 0.0 to address 30 = 0x29(M0_VDCMIN)
+	tmc5272_writeRegister(tmc5272_dev, 0x2A, 	0x00000000); // 		// writing value 0x00000000 = 0 = 0.0 to address 31 = 0x2A(M0_SW_MODE)
+	tmc5272_writeRegister(tmc5272_dev, 0x2D, 	0x10000000); // 		// writing value 0x10000000 = 268435456 = 0.0 to address 32 = 0x2D(M0_POSITION_PI_CTRL)
+	tmc5272_writeRegister(tmc5272_dev, 0x2E, 	0x00000000); // 		// writing value 0x00000000 = 0 = 0.0 to address 33 = 0x2E(M0_X_ENC)
+	tmc5272_writeRegister(tmc5272_dev, 0x2F, 	0x00108000); // 		// writing value 0x00108000 = 1081344 = 0.0 to address 34 = 0x2F(M0_ENCMODE)
+	tmc5272_writeRegister(tmc5272_dev, 0x30, 	0x00010000); // 		// writing value 0x00010000 = 65536 = 0.0 to address 35 = 0x30(M0_ENC_CONST)
+	tmc5272_writeRegister(tmc5272_dev, 0x33, 	0x00000000); // 		// writing value 0x00000000 = 0 = 0.0 to address 36 = 0x33(M0_ENC_DEVIATION)
+	tmc5272_writeRegister(tmc5272_dev, 0x34, 	0x00000000); // 		// writing value 0x00000000 = 0 = 0.0 to address 37 = 0x34(M0_VIRTUAL_STOP_L)
+	tmc5272_writeRegister(tmc5272_dev, 0x35, 	0x00000000); // 		// writing value 0x00000000 = 0 = 0.0 to address 38 = 0x35(M0_VIRTUAL_STOP_R)
+	tmc5272_writeRegister(tmc5272_dev, 0x38, 	0x10410153); // 		// writing value 0x10410153 = 272695635 = 0.0 to address 39 = 0x38(M0_CHOPCONF)
+	tmc5272_writeRegister(tmc5272_dev, 0x39, 	0x00000000); // 		// writing value 0x00000000 = 0 = 0.0 to address 40 = 0x39(M0_COOLCONF)
+	tmc5272_writeRegister(tmc5272_dev, 0x3A, 	0x00000000); // 		// writing value 0x00000000 = 0 = 0.0 to address 41 = 0x3A(M0_DCCTRL)
+	tmc5272_writeRegister(tmc5272_dev, 0x3C, 	0xC40C001D); // 		// writing value 0xC40C001D = 0 = 0.0 to address 42 = 0x3C(M0_PWMCONF)
+	tmc5272_writeRegister(tmc5272_dev, 0x3F, 	0x00000200); // 		// writing value 0x00000200 = 512 = 0.0 to address 43 = 0x3F(M0_SG4_CONF)
+	tmc5272_writeRegister(tmc5272_dev, 0x45, 	0xFFFFFFFF); // 		// writing value 0xFFFFFFFF = 0 = 0.0 to address 44 = 0x45(M1_X_COMPARE)
+	tmc5272_writeRegister(tmc5272_dev, 0x46, 	0x00000000); // 		// writing value 0x00000000 = 0 = 0.0 to address 45 = 0x46(M1_X_COMPARE_REPEAT)
+	tmc5272_writeRegister(tmc5272_dev, 0x47, 	0x04011F08); // 		// writing value 0x04011F08 = 67182344 = 0.0 to address 46 = 0x47(M1_IHOLD_IRUN)
+	tmc5272_writeRegister(tmc5272_dev, 0x48, 	0x0000000A); // 		// writing value 0x0000000A = 10 = 0.0 to address 47 = 0x48(M1_TPOWERDOWN)
+	tmc5272_writeRegister(tmc5272_dev, 0x4A, 	0x00000000); // 		// writing value 0x00000000 = 0 = 0.0 to address 48 = 0x4A(M1_TPWMTHRS)
+	tmc5272_writeRegister(tmc5272_dev, 0x4B, 	0x00000000); // 		// writing value 0x00000000 = 0 = 0.0 to address 49 = 0x4B(M1_TCOOLTHRS)
+	tmc5272_writeRegister(tmc5272_dev, 0x4C, 	0x00000000); // 		// writing value 0x00000000 = 0 = 0.0 to address 50 = 0x4C(M1_THIGH)
+	tmc5272_writeRegister(tmc5272_dev, 0x4D, 	0x00000000); // 		// writing value 0x00000000 = 0 = 0.0 to address 51 = 0x4D(M1_XACTUAL)
+	tmc5272_writeRegister(tmc5272_dev, 0x50, 	0x00000000); // 		// writing value 0x00000000 = 0 = 0.0 to address 52 = 0x50(M1_VSTART)
+	tmc5272_writeRegister(tmc5272_dev, 0x51, 	0x00000000); // 		// writing value 0x00000000 = 0 = 0.0 to address 53 = 0x51(M1_A1)
+	tmc5272_writeRegister(tmc5272_dev, 0x52, 	0x00000000); // 		// writing value 0x00000000 = 0 = 0.0 to address 54 = 0x52(M1_V1)
+	tmc5272_writeRegister(tmc5272_dev, 0x53, 	0x00000000); // 		// writing value 0x00000000 = 0 = 0.0 to address 55 = 0x53(M1_A2)
+	tmc5272_writeRegister(tmc5272_dev, 0x54, 	0x00000000); // 		// writing value 0x00000000 = 0 = 0.0 to address 56 = 0x54(M1_V2)
 	
-	tmc5272_writeRegister(tmc5272_dev, 0x58, 	0x00000000, NULL); 		// writing value 0x00000000 = 0 = 0.0 to address 60 = 0x58(M1_D2)
-	tmc5272_writeRegister(tmc5272_dev, 0x59, 	0x0000000A, NULL); 		// writing value 0x0000000A = 10 = 0.0 to address 61 = 0x59(M1_D1)
-	tmc5272_writeRegister(tmc5272_dev, 0x5A, 	0x0000000A, NULL); 		// writing value 0x0000000A = 10 = 0.0 to address 62 = 0x5A(M1_VSTOP)
-	tmc5272_writeRegister(tmc5272_dev, 0x5B, 	0x00000000, NULL); 		// writing value 0x00000000 = 0 = 0.0 to address 63 = 0x5B(M1_TVMAX)
-	tmc5272_writeRegister(tmc5272_dev, 0x5C, 	0x00000000, NULL); 		// writing value 0x00000000 = 0 = 0.0 to address 64 = 0x5C(M1_TZEROWAIT)
+	tmc5272_writeRegister(tmc5272_dev, 0x58, 	0x00000000); // 		// writing value 0x00000000 = 0 = 0.0 to address 60 = 0x58(M1_D2)
+	tmc5272_writeRegister(tmc5272_dev, 0x59, 	0x0000000A); // 		// writing value 0x0000000A = 10 = 0.0 to address 61 = 0x59(M1_D1)
+	tmc5272_writeRegister(tmc5272_dev, 0x5A, 	0x0000000A); // 		// writing value 0x0000000A = 10 = 0.0 to address 62 = 0x5A(M1_VSTOP)
+	tmc5272_writeRegister(tmc5272_dev, 0x5B, 	0x00000000); // 		// writing value 0x00000000 = 0 = 0.0 to address 63 = 0x5B(M1_TVMAX)
+	tmc5272_writeRegister(tmc5272_dev, 0x5C, 	0x00000000); // 		// writing value 0x00000000 = 0 = 0.0 to address 64 = 0x5C(M1_TZEROWAIT)
 	
-	tmc5272_writeRegister(tmc5272_dev, 0x5E, 	0x00000000, NULL); 		// writing value 0x00000000 = 0 = 0.0 to address 66 = 0x5E(M1_VDCMIN)
-	tmc5272_writeRegister(tmc5272_dev, 0x5F, 	0x00000000, NULL); 		// writing value 0x00000000 = 0 = 0.0 to address 67 = 0x5F(M1_SW_MODE)
-	tmc5272_writeRegister(tmc5272_dev, 0x62, 	0x10000000, NULL); 		// writing value 0x10000000 = 268435456 = 0.0 to address 68 = 0x62(M1_POSITION_PI_CTRL)
-	tmc5272_writeRegister(tmc5272_dev, 0x63, 	0x00000000, NULL); 		// writing value 0x00000000 = 0 = 0.0 to address 69 = 0x63(M1_X_ENC)
-	tmc5272_writeRegister(tmc5272_dev, 0x64, 	0x00108000, NULL); 		// writing value 0x00108000 = 1081344 = 0.0 to address 70 = 0x64(M1_ENCMODE)
-	tmc5272_writeRegister(tmc5272_dev, 0x65, 	0x00010000, NULL); 		// writing value 0x00010000 = 65536 = 0.0 to address 71 = 0x65(M1_ENC_CONST)
-	tmc5272_writeRegister(tmc5272_dev, 0x68, 	0x00000000, NULL); 		// writing value 0x00000000 = 0 = 0.0 to address 72 = 0x68(M1_ENC_DEVIATION)
-	tmc5272_writeRegister(tmc5272_dev, 0x69, 	0x00000000, NULL); 		// writing value 0x00000000 = 0 = 0.0 to address 73 = 0x69(M1_VIRTUAL_STOP_L)
-	tmc5272_writeRegister(tmc5272_dev, 0x6A, 	0x00000000, NULL); 		// writing value 0x00000000 = 0 = 0.0 to address 74 = 0x6A(M1_VIRTUAL_STOP_R)
-	tmc5272_writeRegister(tmc5272_dev, 0x6D, 	0x10410153, NULL); 		// writing value 0x10410153 = 272695635 = 0.0 to address 75 = 0x6D(M1_CHOPCONF)
-	tmc5272_writeRegister(tmc5272_dev, 0x6E, 	0x00000000, NULL); 		// writing value 0x00000000 = 0 = 0.0 to address 76 = 0x6E(M1_COOLCONF)
-	tmc5272_writeRegister(tmc5272_dev, 0x6F, 	0x00000000, NULL); 		// writing value 0x00000000 = 0 = 0.0 to address 77 = 0x6F(M1_DCCTRL)
-	tmc5272_writeRegister(tmc5272_dev, 0x71, 	0xC40C001D, NULL); 		// writing value 0xC40C001D = 0 = 0.0 to address 78 = 0x71(M1_PWMCONF)
-	tmc5272_writeRegister(tmc5272_dev, 0x74, 	0x00000200, NULL); 		// writing value 0x00000200 = 512 = 0.0 to address 79 = 0x74(M1_SG4_CONF)
+	tmc5272_writeRegister(tmc5272_dev, 0x5E, 	0x00000000); // 		// writing value 0x00000000 = 0 = 0.0 to address 66 = 0x5E(M1_VDCMIN)
+	tmc5272_writeRegister(tmc5272_dev, 0x5F, 	0x00000000); // 		// writing value 0x00000000 = 0 = 0.0 to address 67 = 0x5F(M1_SW_MODE)
+	tmc5272_writeRegister(tmc5272_dev, 0x62, 	0x10000000); // 		// writing value 0x10000000 = 268435456 = 0.0 to address 68 = 0x62(M1_POSITION_PI_CTRL)
+	tmc5272_writeRegister(tmc5272_dev, 0x63, 	0x00000000); // 		// writing value 0x00000000 = 0 = 0.0 to address 69 = 0x63(M1_X_ENC)
+	tmc5272_writeRegister(tmc5272_dev, 0x64, 	0x00108000); // 		// writing value 0x00108000 = 1081344 = 0.0 to address 70 = 0x64(M1_ENCMODE)
+	tmc5272_writeRegister(tmc5272_dev, 0x65, 	0x00010000); // 		// writing value 0x00010000 = 65536 = 0.0 to address 71 = 0x65(M1_ENC_CONST)
+	tmc5272_writeRegister(tmc5272_dev, 0x68, 	0x00000000); // 		// writing value 0x00000000 = 0 = 0.0 to address 72 = 0x68(M1_ENC_DEVIATION)
+	tmc5272_writeRegister(tmc5272_dev, 0x69, 	0x00000000); // 		// writing value 0x00000000 = 0 = 0.0 to address 73 = 0x69(M1_VIRTUAL_STOP_L)
+	tmc5272_writeRegister(tmc5272_dev, 0x6A, 	0x00000000); // 		// writing value 0x00000000 = 0 = 0.0 to address 74 = 0x6A(M1_VIRTUAL_STOP_R)
+	tmc5272_writeRegister(tmc5272_dev, 0x6D, 	0x10410153); // 		// writing value 0x10410153 = 272695635 = 0.0 to address 75 = 0x6D(M1_CHOPCONF)
+	tmc5272_writeRegister(tmc5272_dev, 0x6E, 	0x00000000); // 		// writing value 0x00000000 = 0 = 0.0 to address 76 = 0x6E(M1_COOLCONF)
+	tmc5272_writeRegister(tmc5272_dev, 0x6F, 	0x00000000); // 		// writing value 0x00000000 = 0 = 0.0 to address 77 = 0x6F(M1_DCCTRL)
+	tmc5272_writeRegister(tmc5272_dev, 0x71, 	0xC40C001D); // 		// writing value 0xC40C001D = 0 = 0.0 to address 78 = 0x71(M1_PWMCONF)
+	tmc5272_writeRegister(tmc5272_dev, 0x74, 	0x00000200); // 		// writing value 0x00000200 = 512 = 0.0 to address 79 = 0x74(M1_SG4_CONF)
 
 //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
 	
 	// IHOLD_IRUN
 	// IRUN = 32/32; IHOLD = 8
-	tmc5272_writeRegister(tmc5272_dev, TMC5272_IHOLD_IRUN(MOTOR_0), 0x04011F08, NULL); 
-	tmc5272_writeRegister(tmc5272_dev, TMC5272_IHOLD_IRUN(MOTOR_1), 0x04011F08, NULL); 
+	tmc5272_writeRegister(tmc5272_dev, TMC5272_IHOLD_IRUN(MOTOR_0), 0x04011F08); // 
+	tmc5272_writeRegister(tmc5272_dev, TMC5272_IHOLD_IRUN(MOTOR_1), 0x04011F08); // 
 
 	// AMAX / DMAX and VMAX
-	tmc5272_writeRegister(tmc5272_dev, TMC5272_AMAX(MOTOR_0), 0, NULL);
-	tmc5272_writeRegister(tmc5272_dev, TMC5272_VMAX(MOTOR_0), 0, NULL);
-	tmc5272_writeRegister(tmc5272_dev, TMC5272_DMAX(MOTOR_0), 0, NULL);
+	tmc5272_writeRegister(tmc5272_dev, TMC5272_AMAX(MOTOR_0), 0); //
+	tmc5272_writeRegister(tmc5272_dev, TMC5272_VMAX(MOTOR_0), 0); //
+	tmc5272_writeRegister(tmc5272_dev, TMC5272_DMAX(MOTOR_0), 0); //
 	tmc5272_dev->shadow.amax[MOTOR_0] = 0;
 	tmc5272_dev->shadow.vmax[MOTOR_0] = 0;
 
-	tmc5272_writeRegister(tmc5272_dev, TMC5272_AMAX(MOTOR_1), 0, NULL);
-	tmc5272_writeRegister(tmc5272_dev, TMC5272_VMAX(MOTOR_1), 0, NULL);
-	tmc5272_writeRegister(tmc5272_dev, TMC5272_DMAX(MOTOR_1), 0, NULL);
+	tmc5272_writeRegister(tmc5272_dev, TMC5272_AMAX(MOTOR_1), 0); //
+	tmc5272_writeRegister(tmc5272_dev, TMC5272_VMAX(MOTOR_1), 0); //
+	tmc5272_writeRegister(tmc5272_dev, TMC5272_DMAX(MOTOR_1), 0); //
 	tmc5272_dev->shadow.amax[MOTOR_1] = 0;
 	tmc5272_dev->shadow.vmax[MOTOR_1] = 0;
 
 	// Set V1 and V2 = 0.
 	// This disables A1 and A2 phases of the velocity curve.
 	// Motor 0
-	tmc5272_writeRegister(tmc5272_dev, TMC5272_V1(MOTOR_0), 0, NULL);
-	tmc5272_writeRegister(tmc5272_dev, TMC5272_V2(MOTOR_0), 0, NULL);
+	tmc5272_writeRegister(tmc5272_dev, TMC5272_V1(MOTOR_0), 0); //
+	tmc5272_writeRegister(tmc5272_dev, TMC5272_V2(MOTOR_0), 0); //
 	// Motor 1
-	tmc5272_writeRegister(tmc5272_dev, TMC5272_V1(MOTOR_1), 0, NULL);
-	tmc5272_writeRegister(tmc5272_dev, TMC5272_V2(MOTOR_1), 0, NULL);
+	tmc5272_writeRegister(tmc5272_dev, TMC5272_V1(MOTOR_1), 0); //
+	tmc5272_writeRegister(tmc5272_dev, TMC5272_V2(MOTOR_1), 0); //
 
 
 	// XTARGET
-	tmc5272_writeRegister(tmc5272_dev, TMC5272_XTARGET(MOTOR_0), 0, NULL);
-	tmc5272_writeRegister(tmc5272_dev, TMC5272_XTARGET(MOTOR_1), 0, NULL);
+	tmc5272_writeRegister(tmc5272_dev, TMC5272_XTARGET(MOTOR_0), 0); //
+	tmc5272_writeRegister(tmc5272_dev, TMC5272_XTARGET(MOTOR_1), 0); //
 	tmc5272_dev->shadow.xtarget[MOTOR_0] = 0;
 	tmc5272_dev->shadow.xtarget[MOTOR_1] = 0;
 
@@ -354,12 +352,12 @@ void tmc5272_setVelocityCurve(tmc5272_dev_t* tmc5272_dev, tmc5272_motor_num_t mo
 	}
 
 	// Set AMAX and DMAX.
-	tmc5272_writeRegister(tmc5272_dev, TMC5272_AMAX(motor), amax, NULL);
-	tmc5272_writeRegister(tmc5272_dev, TMC5272_DMAX(motor), amax, NULL);
+	tmc5272_writeRegister(tmc5272_dev, TMC5272_AMAX(motor), amax); //
+	tmc5272_writeRegister(tmc5272_dev, TMC5272_DMAX(motor), amax); //
 	tmc5272_dev->shadow.amax[motor] = amax;
 
 	// Set velocity.
-	tmc5272_writeRegister(tmc5272_dev, TMC5272_VMAX(motor), vmax, NULL);
+	tmc5272_writeRegister(tmc5272_dev, TMC5272_VMAX(motor), vmax); //
 	tmc5272_dev->shadow.vmax[motor] = vmax;
 }
 
@@ -426,7 +424,7 @@ void tmc5272_rotateToPosition(tmc5272_dev_t* tmc5272_dev, tmc5272_motor_num_t mo
 		tmc5272_dev->shadow.rampmode[motor] = TMC5272_MODE_HOLD;
 	}
 	// Write target position
-	tmc5272_writeRegister(tmc5272_dev, TMC5272_XTARGET(motor), target, NULL);
+	tmc5272_writeRegister(tmc5272_dev, TMC5272_XTARGET(motor), target); //
 	tmc5272_dev->shadow.xtarget[motor] = target;
 
 	// Set velocity & acceleration
@@ -525,7 +523,7 @@ void tmc5272_tricoder_init(tmc5272_dev_t* tmc5272_dev, tmc5272_motor_num_t motor
 	tmc5272_fieldWrite(tmc5272_dev, TMC5272_CHOPCONF_TOFF_FIELD(motor), 0x3);
 
 	// 0x00108000: All defaults. This covers qsc_enc_en that datasheet instructs to set to 1.
-	tmc5272_writeRegister(tmc5272_dev, TMC5272_ENCMODE(motor), 0x00108000, NULL); 
+	tmc5272_writeRegister(tmc5272_dev, TMC5272_ENCMODE(motor), 0x00108000); // 
 
 	// ENC_CONST: Set multiplying factor per encoder step.
 	// Tricoder only detects fullsteps (200usteps), which is a factor of 256. 
@@ -569,7 +567,7 @@ uint8_t tmc5272_tricoder_isCoilShortVS(tmc5272_dev_t* tmc5272_dev, tmc5272_motor
 	}
 
 	// Read DRV_STATUS register
-	uint32_t drv_status = tmc5272_readRegister(tmc5272_dev, TMC5272_DRV_STATUS(motor), NULL);
+	uint32_t drv_status = tmc5272_readRegister(tmc5272_dev, TMC5272_DRV_STATUS(motor)); //
 
 	// Coil short will be on phase A or B
 	uint8_t is_coil_short = (drv_status & (TMC5272_DRV_STATUS_S2VSB_MASK | TMC5272_DRV_STATUS_S2VSA_MASK)) >> TMC5272_DRV_STATUS_S2VSA_SHIFT;

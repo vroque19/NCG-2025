@@ -98,9 +98,9 @@ void tmc5272_SPI_readWrite(tmc5272_dev_t* tmc5272_dev, uint8_t* tx_data, uint8_t
 
 /* TMC-API Wrappers */
 // ALL_MOTORS unsupported.
-int32_t tmc5272_readRegister(tmc5272_dev_t* tmc5272_dev, uint8_t address, uint8_t* spi_status);
+int32_t tmc5272_readRegister(tmc5272_dev_t* tmc5272_dev, uint8_t address);
 // ALL_MOTORS unsupported.
-void tmc5272_writeRegister(tmc5272_dev_t* tmc5272_dev, uint8_t address, int32_t value, uint8_t* spi_status);
+uint8_t tmc5272_writeRegister(tmc5272_dev_t* tmc5272_dev, uint8_t address, int32_t value);
 
 void tmc5272_dumpRegisters(tmc5272_dev_t* tmc5272_dev);
 
@@ -196,7 +196,7 @@ static inline uint32_t tmc5272_fieldExtract(uint32_t data, RegisterField field)
 
 static inline uint32_t tmc5272_fieldRead(tmc5272_dev_t* tmc5272_dev, RegisterField field)
 {
-	uint32_t value = tmc5272_readRegister(tmc5272_dev, field.address, NULL);
+	uint32_t value = tmc5272_readRegister(tmc5272_dev, field.address);
 
     return tmc5272_fieldExtract(value, field);
 }
@@ -208,11 +208,11 @@ static inline uint32_t tmc5272_fieldUpdate(uint32_t data, RegisterField field, u
 
 static inline void tmc5272_fieldWrite(tmc5272_dev_t* tmc5272_dev, RegisterField field, uint32_t value)
 {
-	uint32_t regValue = tmc5272_readRegister(tmc5272_dev, field.address, NULL);
+	uint32_t regValue = tmc5272_readRegister(tmc5272_dev, field.address);
 
 	regValue = tmc5272_fieldUpdate(regValue, field, value);
 
-    tmc5272_writeRegister(tmc5272_dev, field.address, regValue, NULL);
+    tmc5272_writeRegister(tmc5272_dev, field.address, regValue);
 }
 
 #endif /* TMC_IC_TMC5272_H_ */
