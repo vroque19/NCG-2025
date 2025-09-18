@@ -6,15 +6,27 @@
 * This software is proprietary to Analog Devices, Inc. and its licensors.
 *******************************************************************************/
 
-
 #ifndef TMC_IC_TMC5272_H_
 #define TMC_IC_TMC5272_H_
 
 #include <stdint.h>
+#include <stdio.h>
 #include <stdbool.h>
 #include <stddef.h>
-#include "TMC5272_SPI.h"
+
+#include "spi.h"
+#include "mxc_device.h"
+#include "mxc_pins.h"
+
 #include "TMC5272_HW_Abstraction.h"
+
+/**** Definitions ****/
+
+// SPI Settings
+#define SPI_SPEED           10000   // Bit Rate (Max.: 1,850,000)
+#define TMC5272_SPI_SIZE    5       // Bytes per transaction
+#define SPI_NUM_CLIENTS     3       // Max SS line being used 
+
 
 /**** Macros ****/
 
@@ -26,7 +38,33 @@
     for (uint8_t motor_var = 0; motor_var < TMC5272_MOTORS; motor_var++)
 
 
-/**** Enums & Typedefs ****/
+/**** Data Structures ****/
+
+typedef enum {
+    POSITION_MODE,
+    VELOCITY_POS_MODE,
+    VELOCITY_NEG_MODE,
+    HOLD_MODE
+} tmc5272_rampmode_t;
+
+/* Shadow registers locally hold TMC5272 device state.
+ * Note: Arrays describe register settings per motor. 
+ */
+typedef struct {
+    tmc5272_rampmode_t rampmode[TMC5272_MOTORS];
+    
+    uint32_t vmax[TMC5272_MOTORS];
+    uint32_t amax[TMC5272_MOTORS];
+    
+    uint32_t xtarget[TMC5272_MOTORS];
+} tmc5272_shadow_t;
+
+typedef struct  {
+    mxc_spi_regs_t* spi_port;           // SPI Port
+    mxc_gpio_cfg_t* gpio_cfg_spi;       // GPIO Config for SPI port (incl. all SS lines)
+    uint8_t ss_index;                   // SPI SS pin index
+    tmc5272_shadow_t shadow;
+} tmc5272_dev_t;
 
 typedef enum {
     MOTOR_0,
@@ -55,6 +93,8 @@ typedef enum {
 /**** Functions *****/
 
 /* Low-Level Communications */
+void tmc5272_SPI_init(tmc5272_dev_t* tmc5272_dev);
+void tmc5272_SPI_readWrite(tmc5272_dev_t* tmc5272_dev, uint8_t* tx_data, uint8_t dataLength, uint8_t* rx_data);
 
 /* TMC-API Wrappers */
 // ALL_MOTORS unsupported.

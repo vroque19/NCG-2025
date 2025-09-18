@@ -9,6 +9,46 @@
 
 /* Function Definitions */
 
+void tmc5272_SPI_init(tmc5272_dev_t* tmc5272_dev)
+{
+    /*** Try to initialize SPI comms ***/
+    if (MXC_SPI_Init(tmc5272_dev->spi_port, 1, 0, SPI_NUM_CLIENTS, (0 << tmc5272_dev->ss_index), SPI_SPEED) != E_NO_ERROR) 
+    {
+        printf("\nSPI MASTER INITIALIZATION ERROR: %d\n", tmc5272_dev->ss_index);
+        while (1) {}
+    }
+    
+    MXC_SPI_SetDataSize(tmc5272_dev->spi_port, 8); // 8 bits per byte
+    MXC_SPI_SetWidth(tmc5272_dev->spi_port, SPI_WIDTH_STANDARD);
+    MXC_SPI_SetMode(tmc5272_dev->spi_port, SPI_MODE_3);
+
+    /***** Configure SPI GPIO pins *****/
+    // Note: This step must be done _after_ MXC_SPI_Init(), 
+    // because that function calls GPIO_Config() using MSDK's (unmodified) gpio_cfg_spi.
+    MXC_GPIO_Config(tmc5272_dev->gpio_cfg_spi);
+}
+
+
+void tmc5272_SPI_readWrite(tmc5272_dev_t* tmc5272_dev, uint8_t* tx_data, uint8_t dataLength, uint8_t* rx_data)
+{
+    /***** Initialize Transaction Parameters *****/
+    mxc_spi_req_t master_req;
+    master_req.spi = tmc5272_dev->spi_port;
+    master_req.txData = tx_data;
+    master_req.rxData = rx_data;
+    master_req.txLen = dataLength;
+    master_req.rxLen = dataLength;
+    master_req.ssIdx = tmc5272_dev->ss_index;
+    master_req.ssDeassert = 1;
+    master_req.txCnt = 0;
+    master_req.rxCnt = 0;
+    master_req.completeCB = NULL;
+
+    /***** Perform Transaction *****/
+    MXC_SPI_MasterTransaction(&master_req);
+    return;
+}
+
 int32_t tmc5272_readRegister(tmc5272_dev_t* tmc5272_dev, uint8_t address, uint8_t* spi_status)
 {
 	uint8_t tx_data[5] = { 0 };
@@ -73,15 +113,12 @@ void tmc5272_init(tmc5272_dev_t* tmc5272_dev)
 
 	// Set HOLD mode FIRST!
 	tmc5272_writeRegister(tmc5272_dev, TMC5272_RAMPMODE, 0x0000000F, NULL);
-	
-	// IHOLD_IRUN
-	// IRUN = 32/32; IHOLD = 8
-	tmc5272_writeRegister(tmc5272_dev, TMC5272_IHOLD_IRUN(MOTOR_0), 0x04011F08, NULL); 
-	tmc5272_writeRegister(tmc5272_dev, TMC5272_IHOLD_IRUN(MOTOR_1), 0x04011F08, NULL); 
+	tmc5272_dev->shadow.rampmode[MOTOR_0] = HOLD_MODE;
+	tmc5272_dev->shadow.rampmode[MOTOR_1] = HOLD_MODE;
 
 	//====================================================================================================//
-// ACTUAL SETTINGS FOR TMC5272 (created: 2025/09/03 16:20:11)                                        //
-//vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv//
+	// ACTUAL SETTINGS FOR TMC5272 (created: 2025/09/03 16:20:11)                                        //
+	//vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv//
 
 	tmc5272_writeRegister(tmc5272_dev, 0x00, 	0x00020002, NULL); 		// writing value 0x00020002 = 131074 = 0.0 to address 0 = 0x00(GCONF)
 	tmc5272_writeRegister(tmc5272_dev, 0x03, 	0x00000300, NULL); 		// writing value 0x00000300 = 768 = 0.0 to address 1 = 0x03(SLAVECONF)
@@ -102,15 +139,13 @@ void tmc5272_init(tmc5272_dev_t* tmc5272_dev)
 	tmc5272_writeRegister(tmc5272_dev, 0x1D, 	0x00000000, NULL); 		// writing value 0x00000000 = 0 = 0.0 to address 18 = 0x1D(M0_V1)
 	tmc5272_writeRegister(tmc5272_dev, 0x1E, 	0x00000000, NULL); 		// writing value 0x00000000 = 0 = 0.0 to address 19 = 0x1E(M0_A2)
 	tmc5272_writeRegister(tmc5272_dev, 0x1F, 	0x00000000, NULL); 		// writing value 0x00000000 = 0 = 0.0 to address 20 = 0x1F(M0_V2)
-	tmc5272_writeRegister(tmc5272_dev, 0x20, 	0x00000000, NULL); 		// writing value 0x00000000 = 0 = 0.0 to address 21 = 0x20(M0_AMAX)
-	tmc5272_writeRegister(tmc5272_dev, 0x21, 	0x00000000, NULL); 		// writing value 0x00000000 = 0 = 0.0 to address 22 = 0x21(M0_VMAX)
-	tmc5272_writeRegister(tmc5272_dev, 0x22, 	0x00000000, NULL); 		// writing value 0x00000000 = 0 = 0.0 to address 23 = 0x22(M0_DMAX)
+	
 	tmc5272_writeRegister(tmc5272_dev, 0x23, 	0x00000000, NULL); 		// writing value 0x00000000 = 0 = 0.0 to address 24 = 0x23(M0_D2)
 	tmc5272_writeRegister(tmc5272_dev, 0x24, 	0x0000000A, NULL); 		// writing value 0x0000000A = 10 = 0.0 to address 25 = 0x24(M0_D1)
 	tmc5272_writeRegister(tmc5272_dev, 0x25, 	0x0000000A, NULL); 		// writing value 0x0000000A = 10 = 0.0 to address 26 = 0x25(M0_VSTOP)
 	tmc5272_writeRegister(tmc5272_dev, 0x26, 	0x00000000, NULL); 		// writing value 0x00000000 = 0 = 0.0 to address 27 = 0x26(M0_TVMAX)
 	tmc5272_writeRegister(tmc5272_dev, 0x27, 	0x00000000, NULL); 		// writing value 0x00000000 = 0 = 0.0 to address 28 = 0x27(M0_TZEROWAIT)
-	tmc5272_writeRegister(tmc5272_dev, 0x28, 	0x00000000, NULL); 		// writing value 0x00000000 = 0 = 0.0 to address 29 = 0x28(M0_XTARGET)
+	
 	tmc5272_writeRegister(tmc5272_dev, 0x29, 	0x00000000, NULL); 		// writing value 0x00000000 = 0 = 0.0 to address 30 = 0x29(M0_VDCMIN)
 	tmc5272_writeRegister(tmc5272_dev, 0x2A, 	0x00000000, NULL); 		// writing value 0x00000000 = 0 = 0.0 to address 31 = 0x2A(M0_SW_MODE)
 	tmc5272_writeRegister(tmc5272_dev, 0x2D, 	0x10000000, NULL); 		// writing value 0x10000000 = 268435456 = 0.0 to address 32 = 0x2D(M0_POSITION_PI_CTRL)
@@ -138,15 +173,13 @@ void tmc5272_init(tmc5272_dev_t* tmc5272_dev)
 	tmc5272_writeRegister(tmc5272_dev, 0x52, 	0x00000000, NULL); 		// writing value 0x00000000 = 0 = 0.0 to address 54 = 0x52(M1_V1)
 	tmc5272_writeRegister(tmc5272_dev, 0x53, 	0x00000000, NULL); 		// writing value 0x00000000 = 0 = 0.0 to address 55 = 0x53(M1_A2)
 	tmc5272_writeRegister(tmc5272_dev, 0x54, 	0x00000000, NULL); 		// writing value 0x00000000 = 0 = 0.0 to address 56 = 0x54(M1_V2)
-	tmc5272_writeRegister(tmc5272_dev, 0x55, 	0x00000000, NULL); 		// writing value 0x00000000 = 0 = 0.0 to address 57 = 0x55(M1_AMAX)
-	tmc5272_writeRegister(tmc5272_dev, 0x56, 	0x00000000, NULL); 		// writing value 0x00000000 = 0 = 0.0 to address 58 = 0x56(M1_VMAX)
-	tmc5272_writeRegister(tmc5272_dev, 0x57, 	0x00000000, NULL); 		// writing value 0x00000000 = 0 = 0.0 to address 59 = 0x57(M1_DMAX)
+	
 	tmc5272_writeRegister(tmc5272_dev, 0x58, 	0x00000000, NULL); 		// writing value 0x00000000 = 0 = 0.0 to address 60 = 0x58(M1_D2)
 	tmc5272_writeRegister(tmc5272_dev, 0x59, 	0x0000000A, NULL); 		// writing value 0x0000000A = 10 = 0.0 to address 61 = 0x59(M1_D1)
 	tmc5272_writeRegister(tmc5272_dev, 0x5A, 	0x0000000A, NULL); 		// writing value 0x0000000A = 10 = 0.0 to address 62 = 0x5A(M1_VSTOP)
 	tmc5272_writeRegister(tmc5272_dev, 0x5B, 	0x00000000, NULL); 		// writing value 0x00000000 = 0 = 0.0 to address 63 = 0x5B(M1_TVMAX)
 	tmc5272_writeRegister(tmc5272_dev, 0x5C, 	0x00000000, NULL); 		// writing value 0x00000000 = 0 = 0.0 to address 64 = 0x5C(M1_TZEROWAIT)
-	tmc5272_writeRegister(tmc5272_dev, 0x5D, 	0x00000000, NULL); 		// writing value 0x00000000 = 0 = 0.0 to address 65 = 0x5D(M1_XTARGET)
+	
 	tmc5272_writeRegister(tmc5272_dev, 0x5E, 	0x00000000, NULL); 		// writing value 0x00000000 = 0 = 0.0 to address 66 = 0x5E(M1_VDCMIN)
 	tmc5272_writeRegister(tmc5272_dev, 0x5F, 	0x00000000, NULL); 		// writing value 0x00000000 = 0 = 0.0 to address 67 = 0x5F(M1_SW_MODE)
 	tmc5272_writeRegister(tmc5272_dev, 0x62, 	0x10000000, NULL); 		// writing value 0x10000000 = 268435456 = 0.0 to address 68 = 0x62(M1_POSITION_PI_CTRL)
@@ -163,6 +196,42 @@ void tmc5272_init(tmc5272_dev_t* tmc5272_dev)
 	tmc5272_writeRegister(tmc5272_dev, 0x74, 	0x00000200, NULL); 		// writing value 0x00000200 = 512 = 0.0 to address 79 = 0x74(M1_SG4_CONF)
 
 //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
+	
+	// IHOLD_IRUN
+	// IRUN = 32/32; IHOLD = 8
+	tmc5272_writeRegister(tmc5272_dev, TMC5272_IHOLD_IRUN(MOTOR_0), 0x04011F08, NULL); 
+	tmc5272_writeRegister(tmc5272_dev, TMC5272_IHOLD_IRUN(MOTOR_1), 0x04011F08, NULL); 
+
+	// AMAX / DMAX and VMAX
+	tmc5272_writeRegister(tmc5272_dev, TMC5272_AMAX(MOTOR_0), 0, NULL);
+	tmc5272_writeRegister(tmc5272_dev, TMC5272_VMAX(MOTOR_0), 0, NULL);
+	tmc5272_writeRegister(tmc5272_dev, TMC5272_DMAX(MOTOR_0), 0, NULL);
+	tmc5272_dev->shadow.amax[MOTOR_0] = 0;
+	tmc5272_dev->shadow.vmax[MOTOR_0] = 0;
+
+	tmc5272_writeRegister(tmc5272_dev, TMC5272_AMAX(MOTOR_1), 0, NULL);
+	tmc5272_writeRegister(tmc5272_dev, TMC5272_VMAX(MOTOR_1), 0, NULL);
+	tmc5272_writeRegister(tmc5272_dev, TMC5272_DMAX(MOTOR_1), 0, NULL);
+	tmc5272_dev->shadow.amax[MOTOR_1] = 0;
+	tmc5272_dev->shadow.vmax[MOTOR_1] = 0;
+
+	// Set V1 and V2 = 0.
+	// This disables A1 and A2 phases of the velocity curve.
+	// Motor 0
+	tmc5272_writeRegister(tmc5272_dev, TMC5272_V1(MOTOR_0), 0, NULL);
+	tmc5272_writeRegister(tmc5272_dev, TMC5272_V2(MOTOR_0), 0, NULL);
+	// Motor 1
+	tmc5272_writeRegister(tmc5272_dev, TMC5272_V1(MOTOR_1), 0, NULL);
+	tmc5272_writeRegister(tmc5272_dev, TMC5272_V2(MOTOR_1), 0, NULL);
+
+
+	// XTARGET
+	tmc5272_writeRegister(tmc5272_dev, TMC5272_XTARGET(MOTOR_0), 0, NULL);
+	tmc5272_writeRegister(tmc5272_dev, TMC5272_XTARGET(MOTOR_1), 0, NULL);
+	tmc5272_dev->shadow.xtarget[MOTOR_0] = 0;
+	tmc5272_dev->shadow.xtarget[MOTOR_1] = 0;
+
+
 	// Clear reset flag
     tmc5272_fieldWrite(tmc5272_dev, TMC5272_GSTAT_REGISTER_RESET_FIELD, 1);
 	
@@ -278,17 +347,20 @@ void tmc5272_setVelocityCurve(tmc5272_dev_t* tmc5272_dev, tmc5272_motor_num_t mo
 		return;
 	}
 
-	// Set V1 and V2 = 0.
-	// This disables A1 and A2 phases of the velocity curve.
-	tmc5272_fieldWrite(tmc5272_dev, TMC5272_V1_FIELD(motor), 0);
-	tmc5272_fieldWrite(tmc5272_dev, TMC5272_V2_FIELD(motor), 0);
+	// Return if redundant function call
+	if(vmax == tmc5272_dev->shadow.vmax[motor] && amax == tmc5272_dev->shadow.amax[motor])
+	{
+		return;
+	}
 
 	// Set AMAX and DMAX.
-	tmc5272_fieldWrite(tmc5272_dev, TMC5272_AMAX_FIELD(motor), amax);
-	tmc5272_fieldWrite(tmc5272_dev, TMC5272_DMAX_FIELD(motor), amax);
+	tmc5272_writeRegister(tmc5272_dev, TMC5272_AMAX(motor), amax, NULL);
+	tmc5272_writeRegister(tmc5272_dev, TMC5272_DMAX(motor), amax, NULL);
+	tmc5272_dev->shadow.amax[motor] = amax;
 
 	// Set velocity.
-	tmc5272_fieldWrite(tmc5272_dev, TMC5272_VMAX_FIELD(motor), vmax);
+	tmc5272_writeRegister(tmc5272_dev, TMC5272_VMAX(motor), vmax, NULL);
+	tmc5272_dev->shadow.vmax[motor] = vmax;
 }
 
 void tmc5272_rotateAtVelocity(tmc5272_dev_t* tmc5272_dev, tmc5272_motor_num_t motor, int32_t velocity, uint32_t acceleration)
@@ -306,17 +378,25 @@ void tmc5272_rotateAtVelocity(tmc5272_dev_t* tmc5272_dev, tmc5272_motor_num_t mo
 		velocity = -velocity;
 		rampMode = TMC5272_MODE_VELNEG;
 	}
+
+	// Avoid redundant function calls
+	if (	velocity == tmc5272_dev->shadow.vmax[motor] && 
+			acceleration == tmc5272_dev->shadow.amax[motor] &&
+			rampMode == tmc5272_dev->shadow.rampmode[motor]) 
+		{
+			return;
+		}
 	
 	// Set RAMPMODE = Hold to retain whatever (lack of) motion is occurring.
 	tmc5272_fieldWrite(tmc5272_dev, TMC5272_RAMPMODE_FIELD(motor), TMC5272_MODE_HOLD);
+	tmc5272_dev->shadow.rampmode[motor] = TMC5272_MODE_HOLD;
 
 	// Set velocity
 	tmc5272_setVelocityCurve(tmc5272_dev, motor, (uint32_t)velocity, acceleration);
 	
 	// Set RAMPMODE = Velocity (also encodes directionality)
 	tmc5272_fieldWrite(tmc5272_dev, TMC5272_RAMPMODE_FIELD(motor), rampMode);
-
-	return;
+	tmc5272_dev->shadow.rampmode[motor] = rampMode;
 }
 
 /* Note: Call position rotation functions after setting velocity curve.*/
@@ -329,20 +409,32 @@ void tmc5272_rotateToPosition(tmc5272_dev_t* tmc5272_dev, tmc5272_motor_num_t mo
 		return;
 	}
 
+	// Return if redundant function call
+	if(
+		tmc5272_dev->shadow.rampmode[motor] == POSITION_MODE &&
+		target == tmc5272_dev->shadow.xtarget[motor] &&
+		velocity == tmc5272_dev->shadow.vmax[motor] &&
+		acceleration == tmc5272_dev->shadow.amax[motor]) {
+			return;
+	}
+
 	// If not in Position mode, switch to HOLD mode to avoid changing anything.
 	// (If we're already in position mode, just stay in position mode.)
-	if(tmc5272_fieldRead(tmc5272_dev, TMC5272_RAMPMODE_FIELD(motor)) != TMC5272_MODE_POSITION) 
+	if(tmc5272_dev->shadow.rampmode[motor] != TMC5272_MODE_POSITION) 
 	{
 		tmc5272_fieldWrite(tmc5272_dev, TMC5272_RAMPMODE_FIELD(motor), TMC5272_MODE_HOLD);
+		tmc5272_dev->shadow.rampmode[motor] = TMC5272_MODE_HOLD;
 	}
 	// Write target position
-	tmc5272_fieldWrite(tmc5272_dev, TMC5272_XTARGET_FIELD(motor), target);
+	tmc5272_writeRegister(tmc5272_dev, TMC5272_XTARGET(motor), target, NULL);
+	tmc5272_dev->shadow.xtarget[motor] = target;
 
 	// Set velocity & acceleration
 	tmc5272_setVelocityCurve(tmc5272_dev, motor, velocity, acceleration);
 
 	// Switch to Position mode
 	tmc5272_fieldWrite(tmc5272_dev, TMC5272_RAMPMODE_FIELD(motor), TMC5272_MODE_POSITION);
+	tmc5272_dev->shadow.rampmode[motor] = TMC5272_MODE_POSITION;
 }
 
 /* Note: Call position rotation functions after setting velocity curve.*/
