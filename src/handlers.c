@@ -7,6 +7,7 @@
 #include "mxc_delay.h"
 #include "nextion.h"
 #include "solenoid_driver.h"
+#include "stack.h"
 
 static void switch_page_helper(page_t page, game_mode_t mode);
 
@@ -92,27 +93,40 @@ static void handle_tower_helper(int tower_idx) {
 		// printf("Busyyyyyyy");
 		return;
 	}
-
+	
+	MXC_Delay(MXC_DELAY_MSEC(250)); // wait for arm movement
 	printf("Game not busy ... ");
-	select_box(tower_idx);
+	// select_box(tower_idx);
 	if(touch_count == 0) {
 		sprintf(dest_buff, "move from tower %d", tower_idx);
-		// update_txt_box(dest_buff);
+		update_txt_box(dest_buff);
 		touch_count++;
         current_game.selected_tower = tower_idx;
+		printf("Source Tower: %d\n", current_game.selected_tower);
         return;
 	}
 	current_game.is_busy = true;
-	// printf("/nCurrent game is busy: %d", current_game.is_busy);
 	sprintf(dest_buff, "moving to tower  %d", tower_idx);
-	// update_txt_box(dest_buff);
+	update_txt_box(dest_buff);
+	int source_tower = current_game.selected_tower;
+	int dest_tower = tower_idx;
+	int selected_ring = peek_tower(&current_game.towers[source_tower])-1;
+	printf("/nCurrent game is busy: %d", current_game.is_busy);
+	int source_height = get_top_idx_from_tower(&current_game.towers[source_tower]);
+	printf("Source Height: %d\n", source_height);
+	int dest_height = get_top_idx_from_tower(&current_game.towers[dest_tower]) + 1;
+	if(hanoi_validate_move(current_game.selected_tower, tower_idx)==MOVE_VALID) {
+		nextion_move_rings(source_tower, dest_tower, source_height, dest_height, selected_ring);
+	}
+	// printf("Selected Ring: %d\n", selected_ring);
+	// printf("Source Tower: %d\n", source_tower);
+	// printf("Dest Height: %d\n", dest_height);
 	hanoi_execute_move(current_game.selected_tower, tower_idx);
-	move_tuple move;
-	move.destination = tower_idx;
-	move.source = current_game.selected_tower;
-	clear_boxes();
-	poll_weights();
-	// MXC_Delay(MXC_DELAY_MSEC(5)); // wait for arm movement
+	// move_tuple move;
+	// move.destination = tower_idx;
+	// move.source = source_tower;
+	// clear_boxes();
+	// poll_weights();
 	increment_count();
 	nextion_write_game_state(&current_game);
 	touch_count = 0;
@@ -164,7 +178,7 @@ static void switch_page_helper(page_t page, game_mode_t mode) {
 	switch_mode(mode);
 	nextion_write_game_state(&current_game);
 	MXC_Delay(5000);
-	poll_weights();
+	// poll_weights();
 }
 
 void switch_page_touchscreen(void) {

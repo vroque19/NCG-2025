@@ -3,7 +3,7 @@
 
 
 volatile uint32_t *uart_int_en, *uart_int_flags; 
-
+weight_readings_t weight_readings = {};
 /* Initialize UART for the Nextion display */
 void nextion_init(void) {
     if(MXC_UART_Init(GLOBAL_UART_REG, BAUD_RATE) != E_NO_ERROR) {
@@ -79,9 +79,10 @@ double* poll_weights(void) {
     update_weight(weight2, TXT_WEIGHT_2);
     update_weight(weight1, TXT_WEIGHT_1);
     update_weight(weight0, TXT_WEIGHT_0);
+    
         weight_readings.weights[0] = weight0;
-        weight_readings.weights[0] = weight0;
-        weight_readings.weights[0] = weight0;
+        weight_readings.weights[1] = weight1;
+        weight_readings.weights[2] = weight2;
     return weight_readings.weights;
 }
 

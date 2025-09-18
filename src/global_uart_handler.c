@@ -109,6 +109,8 @@ void handle_touch_event(uint8_t *rx_data) {
     if (!rx_data) return;
     page_t page = get_page(rx_data);
     uint8_t component = get_component(rx_data);
+    printf("Component: %d\n\n", component);
+
     // Find the appropriate handler for this component
     for(int i = 0; i < sizeof(comp_table)/sizeof(screen_component); i++) {
 		if(page==comp_table[i].page && component==comp_table[i].component) {

@@ -9,6 +9,7 @@
 #include "solenoid_driver.h"
 #include "moves.h"
 #include "TMC5272.h"
+#include <stdint.h>
 
 
 

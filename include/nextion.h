@@ -26,9 +26,9 @@
 #define TOWER_0_BTN_ID "b0"
 #define TOWER_1_BTN_ID "b2"
 #define TOWER_2_BTN_ID "b3"
-#define TOWER_0_ID 0x0E
-#define TOWER_1_ID 0x0F
-#define TOWER_2_ID 0x10
+#define TOWER_0_ID 0x14
+#define TOWER_1_ID 0x15
+#define TOWER_2_ID 0x16
 #define BUTTON_OFF "61309" // light blue
 #define BUTTON_ON "562" // dark blue
 #define TOGGLE_1TO2_ID 0x0A
@@ -41,10 +41,10 @@
 #define PAGE_MANUAL_ID 0x03
 #define PAGE_AUTOMATED_ID 0x05
 
-#define EXIT_TOUCHSCREEN_ID 0x0A
+#define EXIT_TOUCHSCREEN_ID 0x0D
 
 // MANUAL PAGE IDs
-#define SOLENOID_ID 0x07
+#define SOLENOID_ID 0x01
 #define EXIT_MANUAL_ID 0x09
 
 // AUTOMATED PAGE IDs
@@ -59,20 +59,7 @@ extern volatile int UART_ISR_FLAG; // 1 when interrupt occurs
 #define RX_LVL 1U<<4 // threshold interrupt
 extern volatile uint32_t *uart_int_en, *uart_int_flags; // debugging
 
-// // RING LOCATIONS FOR VISUALS
-// #define bottom_pos_y 130
-// #define mid_pos_y 114
-// #define top_pos_y 96
-// #define left_pos_x 50
-// #define mid_pos_x 220
-// #define right_pos_x 390
-// /*
-// move t12,50,130,50,90,100,500
-// move t12 50,90,390,90,50,900
-// move t12,390,90,390,130,50,1000
-// */
-// uint8_t ring_pos_y[3] = {bottom_pos_y, mid_pos_y, top_pos_y};
-// uint8_t ring_pos_x[3] = {left_pos_x, mid_pos_x, right_pos_x};
+
 /**
  * @brief Wrapper for update_weight to specify which load cell is being targeted
  * @param idx the load cell index
