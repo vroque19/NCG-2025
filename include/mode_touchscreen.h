@@ -14,6 +14,7 @@
 #define ring_1_pos_x 60
 #define ring_2_pos_x 45
 #define tower_distance 145 // distance between each tower
+
 /*
 usage: move <comp>,<x1>,<y1>,<x2>,<y2>,<priority>,<time>
 move t14,45,162,45,100,5,1050
@@ -34,6 +35,8 @@ void update_txt_box(char *val);
 void clear_boxes(void);
 void select_box(int tower_idx);
 void nextion_move_rings(int source, int dest, int source_height, int dest_height, int ring_size);
+void nextion_change_ring_color(uint8_t ring_size, int color);
+
 
 
 

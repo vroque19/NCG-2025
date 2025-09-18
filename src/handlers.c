@@ -101,8 +101,14 @@ static void handle_tower_helper(int tower_idx) {
 		sprintf(dest_buff, "move from tower %d", tower_idx);
 		update_txt_box(dest_buff);
 		touch_count++;
+		
         current_game.selected_tower = tower_idx;
-		printf("Source Tower: %d\n", current_game.selected_tower);
+		int source_height = get_top_idx_from_tower(&current_game.towers[current_game.selected_tower]);
+		int selected_ring = peek_tower(&current_game.towers[tower_idx])-1;
+		// only change color if valid tower selected
+		if(source_height >= 0) {
+			nextion_change_ring_color(selected_ring, RING_COLOR_SELECTED);
+		}
         return;
 	}
 	current_game.is_busy = true;
@@ -111,22 +117,17 @@ static void handle_tower_helper(int tower_idx) {
 	int source_tower = current_game.selected_tower;
 	int dest_tower = tower_idx;
 	int selected_ring = peek_tower(&current_game.towers[source_tower])-1;
-	printf("/nCurrent game is busy: %d", current_game.is_busy);
 	int source_height = get_top_idx_from_tower(&current_game.towers[source_tower]);
-	printf("Source Height: %d\n", source_height);
 	int dest_height = get_top_idx_from_tower(&current_game.towers[dest_tower]) + 1;
+	// animate rings on display
 	if(hanoi_validate_move(current_game.selected_tower, tower_idx)==MOVE_VALID) {
 		nextion_move_rings(source_tower, dest_tower, source_height, dest_height, selected_ring);
 	}
-	// printf("Selected Ring: %d\n", selected_ring);
-	// printf("Source Tower: %d\n", source_tower);
-	// printf("Dest Height: %d\n", dest_height);
 	hanoi_execute_move(current_game.selected_tower, tower_idx);
-	// move_tuple move;
-	// move.destination = tower_idx;
-	// move.source = source_tower;
-	// clear_boxes();
-	// poll_weights();
+
+	poll_weights();
+	nextion_change_ring_color(selected_ring, RING_COLOR_DEFAULT);
+
 	increment_count();
 	nextion_write_game_state(&current_game);
 	touch_count = 0;

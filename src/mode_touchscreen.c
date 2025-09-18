@@ -1,5 +1,6 @@
 #include "mode_touchscreen.h"
 #include "nextion.h"
+#include <stdio.h>
 char *ring_comp_ids[3] = {RING_0, RING_1, RING_2};
 uint8_t ring_pos_y[3] = {bottom_pos_y, mid_pos_y, top_pos_y};
 
@@ -53,27 +54,35 @@ static void move_ring_helper(char *comp, int x1, int y1, int x2, int y2, int pri
 }
 
 void nextion_move_rings(int source, int dest, int source_height, int dest_height, int ring_size) {
-	printf("\nMoving ring size %d across display\n from %d to %d\ns:%d d:%d\n\n", ring_size, source, dest, source_height, dest_height);
+	// printf("\nMoving ring size %d across display\n from %d to %d\ns:%d d:%d\n\n", ring_size, source, dest, source_height, dest_height);
+	// __disable_irq(); // debounce
+
 	char *comp = ring_comp_ids[ring_size];
 	int x1 = ring_pos_x[ring_size] + source * tower_distance;
 	int y1 = ring_pos_y[source_height];
 	int x2 = x1;
 	int y2 = 100; // hard-coded height for all rings to travel to
 	// y pos changes
-	printf("Move up...%d, %d, %d, %d\n\n", x1, y1, x2, y2);
+	// printf("Move up...%d, %d, %d, %d\n\n", x1, y1, x2, y2);
 	move_ring_up(comp, x1, y1, x2, y2, 5, 700);
 	y1=y2;
-	// x1 = x2;
 	x2 = ring_pos_x[ring_size] + dest * tower_distance;
 	// x pos changes
-	printf("Move across...%d, %d, %d, %d\n\n", x1, y1, x2, y2);
+	// printf("Move across...%d, %d, %d, %d\n\n", x1, y1, x2, y2);
 	move_ring_across(comp, x1, y1, x2, y2, 4, 900);
 	x1 = x2;
 	y2 = ring_pos_y[dest_height];
 	// y pos changes
-	printf("Move down...%d, %d, %d, %d\n\n", x1, y1, x2, y2);
+	// printf("Move down...%d, %d, %d, %d\n\n", x1, y1, x2, y2);
 
 	move_ring_down(comp, x1, y1, x2, y2, 3, 500);
 
 }
 
+void nextion_change_ring_color(uint8_t ring_size, int color) {
+	char dest_buff[64];
+	char *ring_comp_id = ring_comp_ids[ring_size];
+	printf("Ring color changing: %s", ring_comp_id);
+	snprintf(dest_buff, sizeof(dest_buff), "%s.bco=%d", ring_comp_id, color);
+	nextion_send_command(dest_buff);
+}

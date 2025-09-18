@@ -51,6 +51,8 @@
 #define START_AUTOMATED_ID 0x08
 #define EXIT_AUTOMATED_ID 0x07
 
+#define RING_COLOR_DEFAULT 562
+#define RING_COLOR_SELECTED 63115
 
 /* INTERRUPT globals */
 extern volatile int UART_ISR_FLAG; // 1 when interrupt occurs
