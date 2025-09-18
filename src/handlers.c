@@ -4,6 +4,7 @@
 #include "global_uart_handler.h"
 #include "mode_touchscreen.h"
 #include "motors.h"
+#include "moves.h"
 #include "mxc_delay.h"
 #include "nextion.h"
 #include "solenoid_driver.h"
@@ -82,28 +83,44 @@ void solenoid_handler(void) {
 	return;
 }
 
+// recursive solution for auto solving algorithm
+void auto_solve_hanoi(int num_rings, int source, int dest) {
+	// poll_weights();
+	if(num_rings == 1) {
+		hanoi_execute_move(source, dest);
+	}
+	else {
+		int aux = 3 - (source + dest);
+		auto_solve_hanoi(num_rings - 1, source, aux);
+		hanoi_execute_move(source, dest);
+		auto_solve_hanoi(num_rings - 1, aux, dest);
+	}
+	nextion_write_game_state(&current_game);
+}
+
 void start_automated(void) {
-	printf("Autosolving towers of hanoi in 15 moves\n\n\n");
-	// TODO: add auto solving algorithm
+	printf("Autosolving towers of hanoi in 7 moves\n\n\n");
+	auto_solve_hanoi(MAX_RINGS, 0, 2);
+	if(current_game.game_complete) {
+		printf("Game Complete :)");
+		return;
+	}
 }
 
 static void handle_tower_helper(int tower_idx) {
-	char dest_buff[50];
 	if(current_game.is_busy) {
-		// printf("Busyyyyyyy");
 		return;
 	}
 	
+	char dest_buff[50];
 	MXC_Delay(MXC_DELAY_MSEC(250)); // wait for arm movement
-	printf("Game not busy ... ");
-	// select_box(tower_idx);
-	if(touch_count == 0) {
+	if(touch_count == 0) { // First tower selected
 		sprintf(dest_buff, "move from tower %d", tower_idx);
 		update_txt_box(dest_buff);
 		touch_count++;
-		
         current_game.selected_tower = tower_idx;
-		int source_height = get_top_idx_from_tower(&current_game.towers[current_game.selected_tower]);
+		uint8_t curr_tower = current_game.selected_tower;
+		int source_height = get_top_idx_from_tower(&current_game.towers[curr_tower]);
 		int selected_ring = peek_tower(&current_game.towers[tower_idx])-1;
 		// only change color if valid tower selected
 		if(source_height >= 0) {
@@ -120,7 +137,9 @@ static void handle_tower_helper(int tower_idx) {
 	int source_height = get_top_idx_from_tower(&current_game.towers[source_tower]);
 	int dest_height = get_top_idx_from_tower(&current_game.towers[dest_tower]) + 1;
 	// animate rings on display
-	if(hanoi_validate_move(current_game.selected_tower, tower_idx)==MOVE_VALID) {
+	move_result_t result = hanoi_validate_move(source_tower, tower_idx);
+    write_to_txt_component(MAIN_TXT_BOX, txt_responses[result]);
+	if((result)==MOVE_VALID) {
 		nextion_move_rings(source_tower, dest_tower, source_height, dest_height, selected_ring);
 	}
 	hanoi_execute_move(current_game.selected_tower, tower_idx);

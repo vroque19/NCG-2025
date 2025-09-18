@@ -31,7 +31,7 @@ typedef enum {
     MOVE_INVALID_SAME_TOWER,
     MOVE_INVALID_PHYSICAL_MISMATCH
 } move_result_t;
-
+extern char* txt_responses[5];
 // Function prototypes
 void hanoi_init_game(uint8_t num_rings);
 move_result_t hanoi_validate_move(uint8_t source_tower, uint8_t destination_tower);

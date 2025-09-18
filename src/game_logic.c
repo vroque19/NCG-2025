@@ -8,6 +8,14 @@
 // Global game state
 game_state_t current_game = {0};
 
+char* txt_responses[5] = {
+    "Move Made :)",
+    "Cannot move larger\r\n ring on smaller ring",
+    "No ring on start\r tower",
+    "Deselected Tower",
+    "Not valid tower"
+};
+
 // TODO: Add weight thresholds 
 static const double ring_weights[] = {
     1,  // Size 1
@@ -46,30 +54,65 @@ void hanoi_reset_game(void) {
 }
 
 
+// robot will 
+void hanoi_execute_move(uint8_t source_tower, uint8_t destination_tower) {
+    move_tuple move;
+    move.destination = destination_tower;
+    move.source = source_tower;
+    move_result_t result = hanoi_validate_move(source_tower, destination_tower);
+    // write_to_txt_component(MAIN_TXT_BOX, txt_responses[result]);
+    if (result != MOVE_VALID) {
+        printf("Invalid move: %d -> %d (reason: %d)\n", source_tower, destination_tower, result);
+        return;
+    }
+    tower_stack *source = &current_game.towers[source_tower];
+    tower_stack *dest = &current_game.towers[destination_tower];
+    
+    // Move the ring
+    /**
+     * go to source()
+     * pick up ring()
+     * go to dest()
+     * place ring()
+     */
+    uint8_t moving_ring = pop_tower(source);
+    push_tower(dest, moving_ring);
+    push_history(&current_game.move_history, move);
+
+    current_game.moves_made++;
+	hanoi_print_game_state("Current Game State: ", &current_game);
+
+    // Check win condition
+    if (hanoi_is_solved()) {
+        current_game.game_complete = true;
+        // write_to_txt_component(MAIN_TXT_BOX, "GAME SOLVED <3");
+        printf("🎉 Congratulations! Game complete in %d moves (minimum possible moves: %d)❤️❤️\n", 
+               current_game.moves_made, current_game.min_moves);
+    }
+    
+    return;
+}
+
 move_result_t hanoi_validate_move(uint8_t source_tower, uint8_t destination_tower) {
     move_tuple move;
     move.source = source_tower;
     move.destination = destination_tower;
     if (source_tower >= NUM_TOWERS || destination_tower >= NUM_TOWERS) {
-        // write_to_txt_component(MAIN_TXT_BOX, "Not valid tower");
         return MOVE_INVALID_PHYSICAL_MISMATCH;
     }
     if (source_tower == destination_tower) {
-        // write_to_txt_component(MAIN_TXT_BOX, "Deselected tower");
         return MOVE_INVALID_SAME_TOWER;
     }
     tower_stack *source = &current_game.towers[source_tower];
     tower_stack *dest = &current_game.towers[destination_tower];
     // Check if source tower has rings
     if (source->ring_count == 0) {
-        // write_to_txt_component(MAIN_TXT_BOX, "No ring on start\r tower");
         return MOVE_INVALID_EMPTY_SOURCE;
     }
     // Get top ring from source
     uint8_t top_source = peek_tower(source);
     // If destination is empty, move is valid
     if (dest->ring_count == 0) {
-        // write_to_txt_component(MAIN_TXT_BOX, "Move made :)");
         return MOVE_VALID;
     }
     // Get top ring from destination
@@ -77,53 +120,11 @@ move_result_t hanoi_validate_move(uint8_t source_tower, uint8_t destination_towe
     
     // Check if trying to place larger ring on smaller
     if (top_source > top_dest) {
-        // write_to_txt_component(MAIN_TXT_BOX, "Cannot move larger\r\n ring on smaller ring");
         return MOVE_INVALID_LARGER_ON_SMALLER;
     }
-    // write_to_txt_component(MAIN_TXT_BOX, "Move made :)");
 
     return MOVE_VALID;
 }
-
-// bool hanoi_execute_move(uint8_t source_tower, uint8_t destination_tower) {
-//     move_tuple move;
-//     move.destination = destination_tower;
-//     move.source = source_tower;
-//     move_result_t result = hanoi_validate_move(source_tower, destination_tower);
-    
-//     if (result != MOVE_VALID) {
-//         printf("Invalid move: %d -> %d (reason: %d)\n", source_tower, destination_tower, result);
-//         return false;
-//     }
-    
-//     tower_stack *source = &current_game.towers[source_tower];
-//     tower_stack *dest = &current_game.towers[destination_tower];
-    
-//     // Move the ring
-//     /**
-//      * go to source()
-//      * pick up ring()
-//      * go to dest()
-//      * place ring()
-//      */
-//     uint8_t moving_ring = pop_tower(source);
-//     push_tower(dest, moving_ring);
-//     push_history(&current_game.move_history, move);
-
-//     current_game.moves_made++;
-// 	hanoi_print_game_state("Initialized game", &current_game);
-
-    
-//     // Check win condition
-//     if (hanoi_is_solved()) {
-//         current_game.game_complete = true;
-//         write_to_txt_component(MAIN_TXT_BOX, "GAME SOLVED <3");
-//         printf("🎉 Congratulations! Game complete in %d moves (minimum possible moves: %d)❤️❤️\n", 
-//                current_game.moves_made, current_game.min_moves);
-//     }
-    
-//     return true;
-// }
 
 bool hanoi_is_solved() {
     tower_stack *target_tower = &current_game.towers[2];

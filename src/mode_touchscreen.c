@@ -55,7 +55,7 @@ static void move_ring_helper(char *comp, int x1, int y1, int x2, int y2, int pri
 
 void nextion_move_rings(int source, int dest, int source_height, int dest_height, int ring_size) {
 	// printf("\nMoving ring size %d across display\n from %d to %d\ns:%d d:%d\n\n", ring_size, source, dest, source_height, dest_height);
-	// __disable_irq(); // debounce
+	__disable_irq(); // debounce
 
 	char *comp = ring_comp_ids[ring_size];
 	int x1 = ring_pos_x[ring_size] + source * tower_distance;
