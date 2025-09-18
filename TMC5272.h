@@ -151,6 +151,8 @@ void tmc5272_rotateByMicrosteps(tmc5272_dev_t* tmc5272_dev, tmc5272_motor_num_t 
 // - TSTEP = 131.1 <--> 100k velocity (111.76 rpm)
 void tmc5272_configureStallGuard2(tmc5272_dev_t* tmc5272_dev, tmc5272_motor_num_t motor, int8_t SGT, uint32_t TCOOLTHRS, bool isFiltered);
 void tmc5272_setStallGuard2(tmc5272_dev_t* tmc5272_dev, tmc5272_motor_num_t motor, bool isEnabled);
+
+// ALL_MOTORS unsupported.
 uint16_t tmc5272_sg_getSGValue(tmc5272_dev_t* tmc5272_dev, tmc5272_motor_num_t motor);
 bool tmc5272_sg_isStalled(tmc5272_dev_t* tmc5272_dev, tmc5272_motor_num_t motor);
 void tmc5272_sg_clearStall(tmc5272_dev_t* tmc5272_dev, tmc5272_motor_num_t motor);
