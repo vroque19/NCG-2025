@@ -212,14 +212,30 @@ void set_filter_n(void) {
 }
 
 void configure_adc_channel(uint8_t channel_idx, uint8_t enable_bit) {
+    /*
+    These are the positive and negative inputs for the 4131-08
+    each ain is off by 1 bit since channels r 5 bytes
+    00000,00001: ainp:ain0 ainm:ain1
+    00010,00011: ainp:ain2 ainm:ain3
+    00100,00101: ainp:ain4 ainm:ain5
     uint8_t ain_m[] = {0x01, 0x43, 0x85}; // array of ain for channels 0-2
+    */
+    /*
+    These positive and negative inputs are for the 4131-04:
+    00000,00001: ainp:ain0 ainm:ain1
+    00100,00101: ainp:ain2 ainm:ain3
+    01010,01011: ainp:ain4 ainm:ain5
+    01110,01111: ainp:ain6 ainm:ain7
+    */
+    uint8_t ain_m[][2] = {{0x00, 0x01}, {0x000, 0x85}, {0x01, 0x4B}, {0x01, 0xCF}};
     size_t bytes = 3;
     uint8_t tx_data[3];
     tx_data[0] = enable_bit;
+    tx_data[0] |= ain_m[channel_idx][0];
     if(enable_bit == 0) {
         tx_data[1] = 0x00; // no ain
     } else {
-        tx_data[1] = ain_m[channel_idx]; // select ain
+        tx_data[1] = ain_m[channel_idx][1]; // select ain
     }
     tx_data[2] = 0x00; // Other channel settings (NA)
     // printf("Configuring ADC_CHANNEL_X(%d) with [0x%02X, 0x%02X, 0x%02X]\n",
@@ -229,10 +245,16 @@ void configure_adc_channel(uint8_t channel_idx, uint8_t enable_bit) {
 
 void set_ctrl(void) {
     size_t bytes = 2;
-    uint8_t tx_data[] = {0x01, 0x02};
+
+    // testing 0x00, 0x00
+    // for unipolar mode, functional
+
+    // uint8_t tx_data[] = {0x01, 0x02};
+    uint8_t tx_data[] = {0x00, 0x00};
     set_reg(ADC_CONTROL, tx_data, bytes);
 }
 
+// not needed
 void set_data(void) {
     size_t bytes = 2;
     uint8_t tx_data[] = {0x00, 0x00};
@@ -259,8 +281,8 @@ void set_mclk_count(void) {
 void write_mem_map(void) {
     // write to 4131 registers to configure for AIN0-AIN5
     // set_status();
-    // set_ctrl();
     // set_data();
+    set_ctrl();
     set_io_ctrl();
     set_vbias_ctrl();
     set_config_n();
