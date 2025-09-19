@@ -80,9 +80,9 @@ double* poll_weights(void) {
     update_weight(weight1, TXT_WEIGHT_1);
     update_weight(weight0, TXT_WEIGHT_0);
     
-        weight_readings.weights[0] = weight0;
-        weight_readings.weights[1] = weight1;
-        weight_readings.weights[2] = weight2;
+    weight_readings.weights[0] = weight0;
+    weight_readings.weights[1] = weight1;
+    weight_readings.weights[2] = weight2;
     return weight_readings.weights;
 }
 

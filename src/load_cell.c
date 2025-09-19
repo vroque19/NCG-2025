@@ -39,7 +39,7 @@ uint32_t calibrate(uint8_t idx) {
 
 /* converts adc code to grams */
 double code_to_grams(uint32_t base, uint32_t code, double conversion_factor){
-    printf("Code - Reference : %d - %d\n", code, base);
+    // printf("Code - Reference : %d - %d\n", code, base);
     double delta = abs((int)code - (int)base);
     if(delta > 1) {
         double grams = delta * conversion_factor;
@@ -52,19 +52,13 @@ double code_to_grams(uint32_t base, uint32_t code, double conversion_factor){
 double get_load_cell_data(uint8_t channel_idx, uint32_t base) {
     // enable channel
     configure_adc_channel(channel_idx, 0x80);
-    // wait before data read
-    MXC_Delay(MXC_DELAY_MSEC(300));
+    // wait before data read to let the register populate
+    MXC_Delay(MXC_DELAY_MSEC(250));
     uint32_t code = get_adc_data();
-    // printf("%d - %d\n", code, base);
-
     // check the status
     // read_status();
     double conversion_factors[] = {0.766561084, 0.77, 0.76};
     double weight = code_to_grams(base, code, conversion_factors[channel_idx]);
-    // printf("***********\n");
-    printf("Load cell %d weight in grams: %.2fg\n", channel_idx, weight);
-    // printf("***********\n");
-    // printf("\n");
     // disable channel
     configure_adc_channel(channel_idx, 0x00);
     return weight;

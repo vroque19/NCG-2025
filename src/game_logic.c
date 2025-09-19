@@ -80,7 +80,7 @@ void hanoi_execute_move(uint8_t source_tower, uint8_t destination_tower) {
     push_history(&current_game.move_history, move);
 
     current_game.moves_made++;
-	hanoi_print_game_state("Current Game State: ", &current_game);
+	// hanoi_print_game_state("Current Game State: ", &current_game);
 
     // Check win condition
     if (hanoi_is_solved()) {

@@ -15,14 +15,14 @@ static void switch_page_helper(page_t page, game_mode_t mode);
 // uint8_t move_count = 0;
 uint8_t touch_count = 0;
 
-// Update Move Count
+// Update Move Count on display
 void increment_count(void) {
 	char name[] = MOVE_COUNT_ID;
 	char prefix[] = ".val=";
 	char dest_buff[50]; // final command
 	snprintf(dest_buff, sizeof(dest_buff), "%s%s%d%s", name, prefix, current_game.moves_made); // combine obj, pref, weight, suff into one commands
     // printf("Move count : %d\n\n", move_count);
-	for(int i = 0; i < 2; i++) {
+	for(int i = 0; i < 1; i++) {
 		nextion_send_command(dest_buff);
 	}
 }
@@ -52,14 +52,14 @@ void solenoid_handler(void) {
 		*/
 		
 		solenoid_on();
-		tmc5272_rotateByMicrosteps(tmc_devices.tmc_y, ALL_MOTORS, 51200);
-		double *curr_weights = poll_weights();
-		for(int i = 0; i < 3; i++) {
-			current_game.selected_tower = -1;
-			if(prev_weights[i] - curr_weights[i] > 50) {
-				current_game.selected_tower = i;
-			}
-		}
+		// tmc5272_rotateByMicrosteps(tmc_devices.tmc_y, ALL_MOTORS, 51200);
+		// double *curr_weights = poll_weights();
+		// for(int i = 0; i < 3; i++) {
+		// 	current_game.selected_tower = -1;
+		// 	if(prev_weights[i] - curr_weights[i] > 50) {
+		// 		current_game.selected_tower = i;
+		// 	}
+		// }
 		// if source < 0, no ring is picked up
 		if(current_game.selected_tower < 0) {
 			solenoid_off();
@@ -83,9 +83,13 @@ void solenoid_handler(void) {
 	return;
 }
 
+// automated mode functions --
 // recursive solution for auto solving algorithm
 void auto_solve_hanoi(int num_rings, int source, int dest) {
-	// poll_weights();
+	poll_weights();
+	nextion_write_game_state(&current_game);
+	increment_count();
+
 	if(num_rings == 1) {
 		hanoi_execute_move(source, dest);
 	}
@@ -95,18 +99,21 @@ void auto_solve_hanoi(int num_rings, int source, int dest) {
 		hanoi_execute_move(source, dest);
 		auto_solve_hanoi(num_rings - 1, aux, dest);
 	}
+	poll_weights();
 	nextion_write_game_state(&current_game);
+	increment_count();
 }
 
 void start_automated(void) {
 	printf("Autosolving towers of hanoi in 7 moves\n\n\n");
 	auto_solve_hanoi(MAX_RINGS, 0, 2);
 	if(current_game.game_complete) {
-		printf("Game Complete :)");
+		printf("Game Complete :) %d\n", current_game.game_complete);
 		return;
 	}
 }
 
+// helper to handle touch-screen mode control
 static void handle_tower_helper(int tower_idx) {
 	if(current_game.is_busy) {
 		return;
@@ -153,6 +160,48 @@ static void handle_tower_helper(int tower_idx) {
 
 }
 
+
+// could make a struct instead
+void handle_tower_0_btn(void) {
+	handle_tower_helper(0);
+}
+
+void handle_tower_1_btn(void) {
+	handle_tower_helper(1);
+}
+
+void handle_tower_2_btn(void) {
+	handle_tower_helper(2);
+}
+
+static void switch_page_helper(page_t page, game_mode_t mode) {
+	hanoi_init_game(MAX_RINGS);
+	hanoi_print_game_state("Initialized game", &current_game);
+	switch_mode(mode);
+	nextion_write_game_state(&current_game);
+	MXC_Delay(5000);
+	// poll_weights();
+}
+
+// New function to contain the continuous manual mode logic
+void run_manual_mode_logic(tmc5272_dev_t *tmc_x, tmc5272_dev_t *tmc_y, tmc5272_dev_t *tmc_tc) {
+		int32_t tc_x_pos = tmc5272_tricoder_getPosition(tmc_tc, TC_X);
+		int32_t tc_y_pos = tmc5272_tricoder_getPosition(tmc_tc, TC_Y);
+		
+		// Rotate each axis to its encoder position
+		tmc5272_rotateToPosition(tmc_x, MOTOR_0, 10*tc_x_pos);
+		tmc5272_rotateToPosition(tmc_y, ALL_MOTORS, 10*tc_y_pos);
+
+		// printf("Mx0: %d  ENC: %d", tmc5272_getPosition(tmc_x, MOTOR_0), tc_x_pos);
+		// printf("\tMy0: %d  ENC: %d \n", tmc5272_getPosition(tmc_y, MOTOR_0), tc_y_pos);
+}
+
+void switch_page_touchscreen(void) {
+	write_to_txt_component(MAIN_TXT_BOX, "Begin Solving \r\nTowers of Hanoi:)");
+	printf("switching to touchscreen \n\n");
+	switch_page_helper(PAGE_TOUCHSCREEN, TOUCHSCREEN_MODE);
+}
+
 // Prints the rings as a stack in string format
 void get_string_from_rings(int top_idx, uint8_t *tower_rings, char *tower_str, uint8_t str_size) {
 	int offset = 0;
@@ -180,50 +229,12 @@ void nextion_write_game_state(game_state_t *game) {
 	// printf("Rings buffer for tower 0: %s %d\n", rings_str, top_idx);
 }
 
-void handle_tower_0_btn(void) {
-	handle_tower_helper(0);
-}
-
-void handle_tower_1_btn(void) {
-	handle_tower_helper(1);
-}
-
-void handle_tower_2_btn(void) {
-	handle_tower_helper(2);
-}
-
-static void switch_page_helper(page_t page, game_mode_t mode) {
-	hanoi_init_game(MAX_RINGS);
-	hanoi_print_game_state("Initialized game", &current_game);
-	switch_mode(mode);
-	nextion_write_game_state(&current_game);
-	MXC_Delay(5000);
-	// poll_weights();
-}
-
-void switch_page_touchscreen(void) {
-	write_to_txt_component(MAIN_TXT_BOX, "Begin Solving \r\nTowers of Hanoi:)");
-	printf("switching to touchscreen \n\n");
-	switch_page_helper(PAGE_TOUCHSCREEN, TOUCHSCREEN_MODE);
-}
 void switch_page_manual(void) {
 	printf("switching to manual \n\n");
 	switch_page_helper(PAGE_MANUAL, MANUAL_MODE);
 	printf("Create Motor IC\n\n");
 }
 
-// New function to contain the continuous manual mode logic
-void run_manual_mode_logic(tmc5272_dev_t *tmc_x, tmc5272_dev_t *tmc_y, tmc5272_dev_t *tmc_tc) {
-        int32_t tc_x_pos = tmc5272_tricoder_getPosition(tmc_tc, TC_X);
-        int32_t tc_y_pos = tmc5272_tricoder_getPosition(tmc_tc, TC_Y);
-    
-        // Rotate each axis to its encoder position
-        tmc5272_rotateToPosition(tmc_x, MOTOR_0, 10*tc_x_pos);
-        tmc5272_rotateToPosition(tmc_y, ALL_MOTORS, 10*tc_y_pos);
-
-		// printf("Mx0: %d  ENC: %d", tmc5272_getPosition(tmc_x, MOTOR_0), tc_x_pos);
-		// printf("\tMy0: %d  ENC: %d \n", tmc5272_getPosition(tmc_y, MOTOR_0), tc_y_pos);
-}
 
 void switch_page_automated(void) {
 	printf("switching to automated \n\n");
