@@ -1,5 +1,11 @@
-*.log
-/ex
 /build
+/ex
+*.log
+*.mk
+*.launch
 /.vscode
 /.settings
+cproject
+*.out
+.cache/
+compile_commands.json
