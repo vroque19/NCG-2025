@@ -107,8 +107,8 @@ void tmc5272_dumpRegisters(tmc5272_dev_t* tmc5272_dev);
 /* Part Initialization */
 
 void tmc5272_init(tmc5272_dev_t* tmc5272_dev);
-void tmc5272_setMotorDirection(tmc5272_dev_t* tmc5272_dev, tmc5272_motor_num_t motor, tmc5272_motor_dir_t dir);
-void tmc5272_configEmergencyStop(tmc5272_dev_t* tmc5272_dev, tmc5272_motor_num_t motor, uint8_t isEnabled);
+void tmc5272_setMotorPolarity(tmc5272_dev_t* tmc5272_dev, tmc5272_motor_num_t motor, tmc5272_motor_dir_t dir);
+void tmc5272_setEmergencyStop(tmc5272_dev_t* tmc5272_dev, tmc5272_motor_num_t motor, uint8_t isEnabled);
 
 
 /* Movement Commands */
@@ -120,8 +120,7 @@ int32_t tmc5272_getVelocity(tmc5272_dev_t* tmc5272_dev, tmc5272_motor_num_t moto
 // Warning: Velocity_reached returns true if a stall is detected by SG2. 
 bool tmc5272_isAtTargetVelocity(tmc5272_dev_t* tmc5272_dev, tmc5272_motor_num_t motor);
 bool tmc5272_isAtTargetPosition(tmc5272_dev_t* tmc5272_dev, tmc5272_motor_num_t motor);
-void tmc5272_setPositionToValue(tmc5272_dev_t* tmc5272_dev, tmc5272_motor_num_t motor, uint32_t value);
-void tmc5272_setHomePosition(tmc5272_dev_t* tmc5272_dev, tmc5272_motor_num_t motor);
+void tmc5272_setPositionValue(tmc5272_dev_t* tmc5272_dev, tmc5272_motor_num_t motor, uint32_t value);
 
 // Only use to modify a velocity curve.
 void tmc5272_setVelocityCurve(tmc5272_dev_t* tmc5272_dev, tmc5272_motor_num_t motor, uint32_t vmax, uint32_t amax);
@@ -149,8 +148,8 @@ void tmc5272_rotateByMicrosteps(tmc5272_dev_t* tmc5272_dev, tmc5272_motor_num_t 
 // - TSTEP = 43.7 <--> 300k velocity (335.27 rpm)
 // - TSTEP = 65.5 <--> 200k velocity (223.52 rpm)
 // - TSTEP = 131.1 <--> 100k velocity (111.76 rpm)
-void tmc5272_configureStallGuard2(tmc5272_dev_t* tmc5272_dev, tmc5272_motor_num_t motor, int8_t SGT, uint32_t TCOOLTHRS, bool isFiltered);
-void tmc5272_setStallGuard2(tmc5272_dev_t* tmc5272_dev, tmc5272_motor_num_t motor, bool isEnabled);
+void tmc5272_sg_configureStallGuard2(tmc5272_dev_t* tmc5272_dev, tmc5272_motor_num_t motor, int8_t SGT, uint32_t TCOOLTHRS, bool isFiltered);
+void tmc5272_sg_setStallGuard2(tmc5272_dev_t* tmc5272_dev, tmc5272_motor_num_t motor, bool isEnabled);
 
 // ALL_MOTORS unsupported.
 uint16_t tmc5272_sg_getSGValue(tmc5272_dev_t* tmc5272_dev, tmc5272_motor_num_t motor);

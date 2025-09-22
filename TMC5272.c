@@ -258,11 +258,11 @@ void tmc5272_setMotorDirection(tmc5272_dev_t* tmc5272_dev, tmc5272_motor_num_t m
 	}
 }
 
-void tmc5272_configEmergencyStop(tmc5272_dev_t* tmc5272_dev, tmc5272_motor_num_t motor, uint8_t isEnabled)
+void tmc5272_setEmergencyStop(tmc5272_dev_t* tmc5272_dev, tmc5272_motor_num_t motor, uint8_t isEnabled)
 {
 	if(motor == ALL_MOTORS) {
 		FOR_EACH_MOTOR(m) {
-			tmc5272_configEmergencyStop(tmc5272_dev, m, isEnabled);
+			tmc5272_setEmergencyStop(tmc5272_dev, m, isEnabled);
 		}
 		return;
 	}
@@ -312,7 +312,7 @@ bool tmc5272_isAtTargetPosition(tmc5272_dev_t* tmc5272_dev, tmc5272_motor_num_t 
 	return tmc5272_fieldRead(tmc5272_dev, TMC5272_RAMP_STAT_POSITION_REACHED_FIELD(motor));
 }
 
-void tmc5272_setPositionToValue(tmc5272_dev_t* tmc5272_dev, tmc5272_motor_num_t motor, uint32_t value)
+void tmc5272_setPositionValue(tmc5272_dev_t* tmc5272_dev, tmc5272_motor_num_t motor, uint32_t value)
 {
 	if(motor == ALL_MOTORS) {
 		FOR_EACH_MOTOR(m) {
@@ -322,18 +322,6 @@ void tmc5272_setPositionToValue(tmc5272_dev_t* tmc5272_dev, tmc5272_motor_num_t 
 	}
 	
 	tmc5272_fieldWrite(tmc5272_dev, TMC5272_XACTUAL_FIELD(motor), value);
-}
-
-void tmc5272_setHomePosition(tmc5272_dev_t* tmc5272_dev, tmc5272_motor_num_t motor)
-{
-	if(motor == ALL_MOTORS) {
-		FOR_EACH_MOTOR(m) {
-			tmc5272_setPositionToValue(tmc5272_dev, m, 0);
-		}
-		return;
-	}
-	
-	tmc5272_setPositionToValue(tmc5272_dev, motor, 0);
 }
 
 void tmc5272_setVelocityCurve(tmc5272_dev_t* tmc5272_dev, tmc5272_motor_num_t motor, uint32_t vmax, uint32_t amax) 
@@ -455,11 +443,11 @@ void tmc5272_rotateByMicrosteps(tmc5272_dev_t* tmc5272_dev, tmc5272_motor_num_t 
 
 /* StallGuard */
 
-void tmc5272_configureStallGuard2(tmc5272_dev_t* tmc5272_dev, tmc5272_motor_num_t motor, int8_t SGT, uint32_t TCOOLTHRS, bool isFiltered)
+void tmc5272_sg_configureStallGuard2(tmc5272_dev_t* tmc5272_dev, tmc5272_motor_num_t motor, int8_t SGT, uint32_t TCOOLTHRS, bool isFiltered)
 {
     if(motor == ALL_MOTORS) {
 		FOR_EACH_MOTOR(m) {
-			tmc5272_configureStallGuard2(tmc5272_dev, m, SGT, TCOOLTHRS, isFiltered);
+			tmc5272_sg_configureStallGuard2(tmc5272_dev, m, SGT, TCOOLTHRS, isFiltered);
 		}
 		return;
 	}
@@ -470,11 +458,11 @@ void tmc5272_configureStallGuard2(tmc5272_dev_t* tmc5272_dev, tmc5272_motor_num_
 }
 
 // Configure SG2 first using the configureStallGuard2() function!
-void tmc5272_setStallGuard2(tmc5272_dev_t* tmc5272_dev, tmc5272_motor_num_t motor, bool isEnabled)
+void tmc5272_sg_setStallGuard2(tmc5272_dev_t* tmc5272_dev, tmc5272_motor_num_t motor, bool isEnabled)
 {
 	if(motor == ALL_MOTORS) {
 		FOR_EACH_MOTOR(m) {
-			tmc5272_setStallGuard2(tmc5272_dev, m, isEnabled);
+			tmc5272_sg_setStallGuard2(tmc5272_dev, m, isEnabled);
 		}
 		return;
 	}
