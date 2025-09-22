@@ -22,13 +22,13 @@ uint32_t get_average(uint32_t *list, uint8_t n) {
 }
 
 uint32_t get_calibration_data(void) {
-  int n = 60;
+  int n = 15;
   uint32_t data[n];
-  MXC_Delay(MXC_DELAY_MSEC(100));
+  MXC_Delay(MXC_DELAY_MSEC(200));
   for (int i = 0; i <= n; i++) {
     data[i] = get_adc_data();
-  // printf("\n- - - - - -%d- - - - - -\n", data[i]);
-    MXC_Delay(MXC_DELAY_MSEC(120));
+  printf("\n- - - - - -%d- - - - - -\n", data[i]);
+    MXC_Delay(MXC_DELAY_MSEC(250));
   }
   data[0] = data[1];
   uint32_t res = get_average(data, n);
