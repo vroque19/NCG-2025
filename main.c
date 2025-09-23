@@ -109,7 +109,10 @@ int main(void)
 
 	// Register dump & pause
 	tmc5272_dumpRegisters(tmc_x);
-	printf("Program halted. Press any pushbutton to continue... \n");
+  printf("\n-------------------\n");
+  printf("This program demonstrates StallGuard homing on X and Y motors (CS 1 & 2),\n");
+  printf("then has X and Y motors track Tricoders (CS 3) for positioning. \n");
+	printf("\nProgram halted. Press any pushbutton to continue... \n");
 	while(!PB_IsPressedAny()) 
 	{
 		// Do nothing.
@@ -120,16 +123,16 @@ int main(void)
 	/**** Motor Setup ****/
 	
 	// Invert direction of necessary motors
-	tmc5272_setMotorDirection(tmc_x, MOTOR_0, MOTOR_DIR_INVERT);
-	tmc5272_setMotorDirection(tmc_y, MOTOR_0, MOTOR_DIR_INVERT);
+	// tmc5272_setMotorPolarity(tmc_x, MOTOR_0, MOTOR_DIR_INVERT);
+	// tmc5272_setMotorPolarity(tmc_y, MOTOR_0, MOTOR_DIR_INVERT);
 
 	// StallGuard
-	uint32_t SGT = 0;
-	uint32_t TCOOLTHRS = 60;
-	bool isFiltered = 1;
-	tmc5272_configureStallGuard2(tmc_x, MOTOR_0, SGT, TCOOLTHRS, isFiltered);
-	tmc5272_setStallGuard2(tmc_x, MOTOR_0, TRUE);
-
+	// X Axis
+	tmc5272_sg_configureStallGuard2(tmc_x, ALL_MOTORS, 0, 60, TRUE);
+	tmc5272_sg_setStallGuard2(tmc_x, ALL_MOTORS, TRUE);
+	// Y Axis
+	tmc5272_sg_configureStallGuard2(tmc_y, ALL_MOTORS, 0, 60, TRUE);
+	tmc5272_sg_setStallGuard2(tmc_y, ALL_MOTORS, TRUE);
 
 	/**** Main Program ****/
 
