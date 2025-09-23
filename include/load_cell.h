@@ -14,7 +14,6 @@ typedef struct {
     double weights[3];
 } weight_readings_t;
 extern weight_readings_t weight_readings;
-extern int global_base_array[3];
 uint32_t calibrate(uint8_t idx);
 uint32_t get_calibration_data(void);
 uint32_t get_average(uint32_t *list, uint8_t n);

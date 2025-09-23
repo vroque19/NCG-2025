@@ -2,10 +2,10 @@
 #include "nextion.h"
 #include <stdio.h>
 char *ring_comp_ids[3] = {RING_0, RING_1, RING_2};
-uint8_t ring_pos_y[3] = {bottom_pos_y, mid_pos_y, top_pos_y};
+uint8_t nextion_ring_pos_y[3] = {bottom_pos_y, mid_pos_y, top_pos_y};
 
 // start positions for rings 0, 1, 2
-uint8_t ring_pos_x[3] = {ring_0_pos_x, ring_1_pos_x, ring_2_pos_x};
+uint8_t nextion_ring_pos_x[3] = {ring_0_pos_x, ring_1_pos_x, ring_2_pos_x};
 // functions for display only used by touchscreen mode
 static void move_ring_up(char *comp, int x1, int y1,  int x2, int y2, int priority, int time_ms);
 
@@ -58,20 +58,20 @@ void nextion_move_rings(int source, int dest, int source_height, int dest_height
 	__disable_irq(); // debounce
 
 	char *comp = ring_comp_ids[ring_size];
-	int x1 = ring_pos_x[ring_size] + source * tower_distance;
-	int y1 = ring_pos_y[source_height];
+	int x1 = nextion_ring_pos_x[ring_size] + source * tower_distance;
+	int y1 = nextion_ring_pos_y[source_height];
 	int x2 = x1;
 	int y2 = 100; // hard-coded height for all rings to travel to
 	// y pos changes
 	// printf("Move up...%d, %d, %d, %d\n\n", x1, y1, x2, y2);
 	move_ring_up(comp, x1, y1, x2, y2, 5, 700);
 	y1=y2;
-	x2 = ring_pos_x[ring_size] + dest * tower_distance;
+	x2 = nextion_ring_pos_x[ring_size] + dest * tower_distance;
 	// x pos changes
 	// printf("Move across...%d, %d, %d, %d\n\n", x1, y1, x2, y2);
 	move_ring_across(comp, x1, y1, x2, y2, 4, 900);
 	x1 = x2;
-	y2 = ring_pos_y[dest_height];
+	y2 = nextion_ring_pos_y[dest_height];
 	// y pos changes
 	// printf("Move down...%d, %d, %d, %d\n\n", x1, y1, x2, y2);
 
@@ -82,7 +82,7 @@ void nextion_move_rings(int source, int dest, int source_height, int dest_height
 void nextion_change_ring_color(uint8_t ring_size, int color) {
 	char dest_buff[64];
 	char *ring_comp_id = ring_comp_ids[ring_size];
-	printf("Ring color changing: %s", ring_comp_id);
+	// printf("Ring color changing: %s", ring_comp_id);
 	snprintf(dest_buff, sizeof(dest_buff), "%s.bco=%d", ring_comp_id, color);
 	nextion_send_command(dest_buff);
 }

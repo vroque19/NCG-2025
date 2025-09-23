@@ -17,7 +17,6 @@ static uint8_t global_tx_buffer[BYTES];
 static mxc_uart_req_t global_uart_req;
 
 const screen_component comp_table[] = {
-        /* TODO: add all components */
 		{PAGE_TOUCHSCREEN, TOWER_0_ID, handle_tower_0_btn},
 		{PAGE_TOUCHSCREEN, TOWER_1_ID, handle_tower_1_btn},
 		{PAGE_TOUCHSCREEN, TOWER_2_ID, handle_tower_2_btn},
@@ -109,7 +108,7 @@ void handle_touch_event(uint8_t *rx_data) {
     if (!rx_data) return;
     page_t page = get_page(rx_data);
     uint8_t component = get_component(rx_data);
-    printf("Component: %d\n\n", component);
+    // printf("Component: %d\n\n", component);
 
     // Find the appropriate handler for this component
     for(int i = 0; i < sizeof(comp_table)/sizeof(screen_component); i++) {

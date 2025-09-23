@@ -1,52 +1,33 @@
 
 #include "moves.h"
+#include "TMC5272.h"
+#include "game_logic.h"
 #include "motors.h"
-// char* txt_responses[5] = {
-//     "Move Made :)",
-//     "Cannot move larger\r\n ring on smaller ring",
-//     "No ring on start\r tower",
-//     "Deselected Tower",
-//     "Not valid tower"
-// };
+#include "nextion.h"
+#include "solenoid_driver.h"
 
+// global array of ring positions on y axis
+uint32_t ring_pos_y[3] = {RING_0_DEFAULT_POS, RING_1_DEFAULT_POS, RING_2_DEFAULT_POS};
+// global array of tower positions on x axis
+uint32_t tower_pos_x[3] = {TOWER_0_POS, TOWER_1_POS, TOWER_2_POS};
 
-// // robot will 
-// void hanoi_execute_move(uint8_t source_tower, uint8_t destination_tower) {
-//     move_tuple move;
-//     move.destination = destination_tower;
-//     move.source = source_tower;
-//     move_result_t result = hanoi_validate_move(source_tower, destination_tower);
-//     write_to_txt_component(MAIN_TXT_BOX, txt_responses[result]);
-//     if (result != MOVE_VALID) {
-//         printf("Invalid move: %d -> %d (reason: %d)\n", source_tower, destination_tower, result);
-//         return;
-//     }
-    
-//     tower_stack *source = &current_game.towers[source_tower];
-//     tower_stack *dest = &current_game.towers[destination_tower];
-    
-//     // Move the ring
-//     /**
-//      * go to source()
-//      * pick up ring()
-//      * go to dest()
-//      * place ring()
-//      */
-//     uint8_t moving_ring = pop_tower(source);
-//     push_tower(dest, moving_ring);
-//     push_history(&current_game.move_history, move);
+void move_ring(uint8_t source_tower, uint8_t destination_tower) {
+    printf("Moving ring physically from source tower {%d}.\n Top idx is {%d}\n\n", source_tower, current_game.towers[source_tower].top_idx);
+    // move to source tower
+    tmc5272_rotateToPosition(tmc_devices.tmc_x, MOTOR_0, tower_pos_x[source_tower]);
+    // move to the top ring
+    tmc5272_rotateToPosition(tmc_devices.tmc_y, ALL_MOTORS, current_game.towers[source_tower].top_idx);
+    // grab ring
+    solenoid_on();
+    // move to the top
+    tmc5272_rotateToPosition(tmc_devices.tmc_y, ALL_MOTORS, 0);
+    // move to the destination tower
+    tmc5272_rotateToPosition(tmc_devices.tmc_x, MOTOR_0, tower_pos_x[destination_tower]);
+    // drop ring
+    solenoid_off();
+    printf("Successfully moved ring!!!\n\n\n");
+}
 
-//     current_game.moves_made++;
-// 	hanoi_print_game_state("Initialized game", &current_game);
-
-    
-//     // Check win condition
-//     if (hanoi_is_solved()) {
-//         current_game.game_complete = true;
-//         write_to_txt_component(MAIN_TXT_BOX, "GAME SOLVED <3");
-//         printf("🎉 Congratulations! Game complete in %d moves (minimum possible moves: %d)❤️❤️\n", 
-//                current_game.moves_made, current_game.min_moves);
-//     }
-    
-//     return;
-// }
+void move_to_home(void) {
+    return;
+}

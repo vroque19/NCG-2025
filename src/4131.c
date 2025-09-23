@@ -233,6 +233,7 @@ void configure_adc_channel(uint8_t channel_idx, uint8_t enable_bit) {
     tx_data[0] = enable_bit;
     tx_data[0] |= ain_m[channel_idx][0];
     if(enable_bit == 0) {
+        printf("disable channel\n");
         tx_data[1] = 0x00; // no ain
     } else {
         tx_data[1] = ain_m[channel_idx][1]; // select ain
