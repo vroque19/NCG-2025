@@ -1,0 +1,8 @@
+.settings/*
+.vscode/*
+build/*
+Exclude/*
+.cproject
+.project
+*.log
+*.launch
