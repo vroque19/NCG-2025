@@ -32,7 +32,7 @@
 
 // Establishes a loop to apply the same logic to every motor available on a device.
 // Usage:
-//     FOR_EACH_MOTOR(m) { motor_function(device, m) }  
+//     FOR_EACH_MOTOR(m) { motor_function(m) }  
 // where m goes in place of MOTOR_0, MOTOR_1, etc.
 #define FOR_EACH_MOTOR(motor_var) \
     for (uint8_t motor_var = 0; motor_var < TMC5272_MOTORS; motor_var++)
@@ -52,6 +52,8 @@ typedef enum {
  */
 typedef struct {
     tmc5272_rampmode_t rampmode[TMC5272_MOTORS];
+    bool axis_interpolation;
+    bool ramp_syn_pos_update;
     
     uint32_t vmax[TMC5272_MOTORS];
     uint32_t amax[TMC5272_MOTORS];
@@ -110,6 +112,21 @@ void tmc5272_init(tmc5272_dev_t* tmc5272_dev);
 void tmc5272_setMotorPolarity(tmc5272_dev_t* tmc5272_dev, tmc5272_motor_num_t motor, tmc5272_motor_dir_t dir);
 void tmc5272_setEmergencyStop(tmc5272_dev_t* tmc5272_dev, tmc5272_motor_num_t motor, uint8_t isEnabled);
 
+// Note: Motor must enter positioning mode first before enabling synchronization.
+// Recommendation is to do this by using rotateByMicrosteps() to move by 0, 
+// and then enable synchronous mode.
+//
+// Note: Synchronous movement is automatically implemented in velocity mode when
+// using ALL_MOTORS.
+//
+// Warning: 
+// - Synchronous positioning will be disabled if velocity mode is used.
+// - Synchronous mode uses a shadow register onboard the TMC5272, which is not updated
+//   until M1's target position is written. Therefore, if you do not write the target
+//   position of M0 **before** enabling synchronized positioning, the IC will use the
+//   last-written target position, causing the motors to have unintended
+//   movement on their first positional move command.
+void tmc5272_setSynchronizedPositioning(tmc5272_dev_t* tmc5272_dev, bool isEnabled);
 
 /* Movement Commands */
 // ALL_MOTORS unsupported.
@@ -127,6 +144,7 @@ void tmc5272_setVelocityCurve(tmc5272_dev_t* tmc5272_dev, tmc5272_motor_num_t mo
 
 /* Velocity Mode */
 
+// Note: This function clears syn_pos_update and axis_interpolation bitfields. (Not supported by the IC.)
 void tmc5272_rotateAtVelocity(tmc5272_dev_t* tmc5272_dev, tmc5272_motor_num_t motor, int32_t velocity, uint32_t acceleration);
 
 /* Position Mode */

@@ -110,9 +110,7 @@ void tmc5272_init(tmc5272_dev_t* tmc5272_dev)
 	// Recommendation: Get register settings from TMCL-IDE -> Export from Register Browser.
 
 	// Set HOLD mode FIRST!
-	tmc5272_writeRegister(tmc5272_dev, TMC5272_RAMPMODE, 0x0000000F); //
-	tmc5272_dev->shadow.rampmode[MOTOR_0] = HOLD_MODE;
-	tmc5272_dev->shadow.rampmode[MOTOR_1] = HOLD_MODE;
+	tmc5272_writeRegister(tmc5272_dev, TMC5272_RAMPMODE, 0x0000000F);
 
 	//====================================================================================================//
 	// ACTUAL SETTINGS FOR TMC5272 (created: 2025/09/03 16:20:11)                                        //
@@ -195,6 +193,15 @@ void tmc5272_init(tmc5272_dev_t* tmc5272_dev)
 
 //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
 	
+	// RAMPMODE = HOLD mode
+	tmc5272_writeRegister(tmc5272_dev, TMC5272_RAMPMODE, 0xF);
+	tmc5272_dev->shadow.rampmode[MOTOR_0] = HOLD_MODE;
+	tmc5272_dev->shadow.rampmode[MOTOR_1] = HOLD_MODE;
+	tmc5272_dev->shadow.axis_interpolation = FALSE;
+	tmc5272_dev->shadow.ramp_syn_pos_update = FALSE;
+
+	
+
 	// IHOLD_IRUN
 	// IRUN = 32/32; IHOLD = 8
 	tmc5272_writeRegister(tmc5272_dev, TMC5272_IHOLD_IRUN(MOTOR_0), 0x04011F08); // 
@@ -277,6 +284,11 @@ void tmc5272_setEmergencyStop(tmc5272_dev_t* tmc5272_dev, tmc5272_motor_num_t mo
 	}
 }
 
+void tmc5272_setSynchronizedPositioning(tmc5272_dev_t* tmc5272_dev, bool isEnabled)
+{
+	tmc5272_fieldWrite(tmc5272_dev, TMC5272_RAMPMODE_RAMP_SYN_POS_UPDATE_FIELD, isEnabled);
+}
+
 // Movement Commands
 uint32_t tmc5272_getPosition(tmc5272_dev_t* tmc5272_dev, tmc5272_motor_num_t motor) 
 {
@@ -351,10 +363,26 @@ void tmc5272_setVelocityCurve(tmc5272_dev_t* tmc5272_dev, tmc5272_motor_num_t mo
 
 void tmc5272_rotateAtVelocity(tmc5272_dev_t* tmc5272_dev, tmc5272_motor_num_t motor, int32_t velocity, uint32_t acceleration)
 {
-    if(motor == ALL_MOTORS) {
+    static bool isAllMotors = FALSE;
+	if(motor == ALL_MOTORS) 
+	{
+		// Set isAllMotors flag to allow each MOTOR_n function call to use alt logic. 
+		isAllMotors = TRUE;
+
 		FOR_EACH_MOTOR(m) {
 			tmc5272_rotateAtVelocity(tmc5272_dev, m, velocity, acceleration);
 		}
+
+		// Now that all motors have new vmax & amax, modify each motor's RAMPMODE
+		// to use Velocity mode. (Shadow reg holds each motor's rampmode bitfield).
+		uint32_t rampmode_reg = 0x0;
+		FOR_EACH_MOTOR(m) {
+			rampmode_reg |= (tmc5272_dev->shadow.rampmode[m] << (2 * m));
+		}
+    	tmc5272_writeRegister(tmc5272_dev, TMC5272_RAMPMODE, rampmode_reg);
+		
+		// Restore flag to FALSE
+		isAllMotors = FALSE;
 		return;
 	}
 
@@ -373,6 +401,17 @@ void tmc5272_rotateAtVelocity(tmc5272_dev_t* tmc5272_dev, tmc5272_motor_num_t mo
 			return;
 		}
 	
+	// Clear RAMPMODE syn_pos_update or axis_interpolation if active.
+	if(tmc5272_dev->shadow.ramp_syn_pos_update || tmc5272_dev->shadow.axis_interpolation)
+	{
+		uint32_t rampmode_reg = tmc5272_readRegister(tmc5272_dev, TMC5272_RAMPMODE);
+		// syn_pos_update, axis_interpolation = bits 8 and 9
+		rampmode_reg &= ~ (0x3 << 8);
+		tmc5272_writeRegister(tmc5272_dev, TMC5272_RAMPMODE, rampmode_reg);
+		tmc5272_dev->shadow.ramp_syn_pos_update = FALSE;
+		tmc5272_dev->shadow.axis_interpolation = FALSE;
+	}
+
 	// Set RAMPMODE = Hold to retain whatever (lack of) motion is occurring.
 	tmc5272_fieldWrite(tmc5272_dev, TMC5272_RAMPMODE_FIELD(motor), TMC5272_MODE_HOLD);
 	tmc5272_dev->shadow.rampmode[motor] = TMC5272_MODE_HOLD;
@@ -380,6 +419,14 @@ void tmc5272_rotateAtVelocity(tmc5272_dev_t* tmc5272_dev, tmc5272_motor_num_t mo
 	// Set velocity
 	tmc5272_setVelocityCurve(tmc5272_dev, motor, (uint32_t)velocity, acceleration);
 	
+	// Handle ALL_MOTORS case
+	if(isAllMotors) {
+		// Exit early to leave RAMPMODE in Hold mode until we're done applying changes to all motors.
+		// But write each motor's rampmode to shadow register so we can apply to RAMPMODE at the end.
+		tmc5272_dev->shadow.rampmode[motor] = rampMode;
+		return;
+	}
+
 	// Set RAMPMODE = Velocity (also encodes directionality)
 	tmc5272_fieldWrite(tmc5272_dev, TMC5272_RAMPMODE_FIELD(motor), rampMode);
 	tmc5272_dev->shadow.rampmode[motor] = rampMode;
@@ -388,10 +435,31 @@ void tmc5272_rotateAtVelocity(tmc5272_dev_t* tmc5272_dev, tmc5272_motor_num_t mo
 /* Note: Call position rotation functions after setting velocity curve.*/
 void tmc5272_rotateToPosition(tmc5272_dev_t* tmc5272_dev, tmc5272_motor_num_t motor, uint32_t target, uint32_t velocity, uint32_t acceleration)
 {
-	if(motor == ALL_MOTORS) {
+	static uint32_t isAllMotors = FALSE;
+	if(motor == ALL_MOTORS) 
+	{
+		// Set isAllMotors flag to modify function behavior across calls to modify each motor's settings.
+		isAllMotors = TRUE;
+
 		FOR_EACH_MOTOR(m) {
 			tmc5272_rotateToPosition(tmc5272_dev, m, target, velocity, acceleration);
 		}
+
+		// If we're already in position mode -- great! We should be moving by now. (Last XTARGET has been written.)
+		// If not, we should be in HOLD mode, and need to update all RAMPMODEs to Position simultaneously.
+		if(tmc5272_dev->shadow.rampmode[0] != TMC5272_MODE_POSITION || tmc5272_dev->shadow.rampmode[1] != TMC5272_MODE_POSITION) {
+			// All 0's in rampmode bitfield is Position mode
+			uint32_t rampmode_reg = 0x0;
+			// Maintain axis_interpolation and ramp_syn_pos_update bitfields.
+			rampmode_reg = tmc5272_dev->shadow.axis_interpolation << 9;
+			rampmode_reg = tmc5272_dev->shadow.ramp_syn_pos_update << 8;
+			// Write Position mode.
+			tmc5272_writeRegister(tmc5272_dev, TMC5272_RAMPMODE, rampmode_reg);
+		}
+
+		// Clear flag at ALL_MOTORS function completion.
+		isAllMotors = FALSE;
+
 		return;
 	}
 
@@ -411,12 +479,19 @@ void tmc5272_rotateToPosition(tmc5272_dev_t* tmc5272_dev, tmc5272_motor_num_t mo
 		tmc5272_fieldWrite(tmc5272_dev, TMC5272_RAMPMODE_FIELD(motor), TMC5272_MODE_HOLD);
 		tmc5272_dev->shadow.rampmode[motor] = TMC5272_MODE_HOLD;
 	}
-	// Write target position
-	tmc5272_writeRegister(tmc5272_dev, TMC5272_XTARGET(motor), target); //
-	tmc5272_dev->shadow.xtarget[motor] = target;
 
 	// Set velocity & acceleration
 	tmc5272_setVelocityCurve(tmc5272_dev, motor, velocity, acceleration);
+
+	// Write target position
+	tmc5272_writeRegister(tmc5272_dev, TMC5272_XTARGET(motor), target);
+	tmc5272_dev->shadow.xtarget[motor] = target;
+
+	// Handle ALL_MOTORS case
+	if(isAllMotors) {
+		// Exit early to leave RAMPMODE in Hold mode until we're done applying changes to all motors.
+		return;
+	}
 
 	// Switch to Position mode (if not already in it)
 	if(tmc5272_dev->shadow.rampmode[motor] != TMC5272_MODE_POSITION) 
@@ -426,7 +501,6 @@ void tmc5272_rotateToPosition(tmc5272_dev_t* tmc5272_dev, tmc5272_motor_num_t mo
 	}
 }
 
-/* Note: Call position rotation functions after setting velocity curve.*/
 void tmc5272_rotateByMicrosteps(tmc5272_dev_t* tmc5272_dev, tmc5272_motor_num_t motor, int32_t usteps, uint32_t velocity, uint32_t acceleration)
 {
 	if(motor == ALL_MOTORS) {
