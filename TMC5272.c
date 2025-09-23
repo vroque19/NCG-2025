@@ -418,9 +418,12 @@ void tmc5272_rotateToPosition(tmc5272_dev_t* tmc5272_dev, tmc5272_motor_num_t mo
 	// Set velocity & acceleration
 	tmc5272_setVelocityCurve(tmc5272_dev, motor, velocity, acceleration);
 
-	// Switch to Position mode
-	tmc5272_fieldWrite(tmc5272_dev, TMC5272_RAMPMODE_FIELD(motor), TMC5272_MODE_POSITION);
-	tmc5272_dev->shadow.rampmode[motor] = TMC5272_MODE_POSITION;
+	// Switch to Position mode (if not already in it)
+	if(tmc5272_dev->shadow.rampmode[motor] != TMC5272_MODE_POSITION) 
+	{
+		tmc5272_fieldWrite(tmc5272_dev, TMC5272_RAMPMODE_FIELD(motor), TMC5272_MODE_POSITION);
+		tmc5272_dev->shadow.rampmode[motor] = TMC5272_MODE_POSITION;
+	}
 }
 
 /* Note: Call position rotation functions after setting velocity curve.*/
