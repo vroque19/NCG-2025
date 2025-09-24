@@ -36,12 +36,22 @@ void exit_to_main_menu(void) {
 	hanoi_reset_game();
 	switch_mode(MENU);
 	solenoid_off();
+	touch_count = 0;
     printf("exiting to main menu. move count: %d\n", current_game.moves_made);
 }
 
 void solenoid_handler(void) {
 	// tmc5272_dev_t *tmc_y = get_tmc_y_device();
-	double *prev_weights = poll_weights();
+	printf("Initial Poll:\n");
+	double *temp_weights = poll_weights();
+	// MXC_Delay(MXC_DELAY_MSEC(1000));
+	 // Allocate memory for the previous weights and copy the data.
+    double *prev_weights = (double *)malloc(3 * sizeof(double));
+    if (prev_weights == NULL) {
+        // Handle memory allocation failure
+        return;
+    }
+    memcpy(prev_weights, temp_weights, 3 * sizeof(double));
 	if(touch_count == 0) {
 		/*
 		Manual mode game logic
@@ -53,26 +63,32 @@ void solenoid_handler(void) {
 		
 		solenoid_on();
 		// tmc5272_rotateByMicrosteps(tmc_devices.tmc_y, ALL_MOTORS, 51200);
-		// double *curr_weights = poll_weights();
-		// for(int i = 0; i < 3; i++) {
-		// 	current_game.selected_tower = -1;
-		// 	if(prev_weights[i] - curr_weights[i] > 50) {
-		// 		current_game.selected_tower = i;
-		// 	}
-		// }
+		printf("Solenoid is on\n\n");
+		printf("Second Poll:\n");
+		double *curr_weights = poll_weights();
+		for(int i = 0; i < 3; i++) {
+			printf("\n%d. Curr weight: %.2f\nPrev weight: %.2f\n", i, curr_weights[i], prev_weights[i]);
+			current_game.selected_tower = -1;
+			if(prev_weights[i] - curr_weights[i] > 50) {
+				current_game.selected_tower = i;
+			}
+		}
 		// if source < 0, no ring is picked up
 		if(current_game.selected_tower < 0) {
 			solenoid_off();
 		}
+		poll_weights();
 		touch_count++;
 	} else {
 		solenoid_off();
-		MXC_Delay(MXC_DELAY_MSEC(250)); // wait for ring to drop down
+		printf("Solenoid is off\n\n");
+		printf("Second Poll:\n");
 		double *curr_weights = poll_weights();
-		update_weights(poll_weights());
+		// update_weights(poll_weights());
 
 		for(int i = 0; i < 3; i++) {
 			current_game.selected_tower = -1;
+			printf("\nCurr weight: %.2f\nPrev weight: %.2f\n", curr_weights[i], prev_weights[i]);
 			if(curr_weights[i] - prev_weights[i] > 50) {
 				int dest_tower_idx = i;
 					hanoi_execute_move(current_game.selected_tower, dest_tower_idx);
@@ -101,7 +117,7 @@ void auto_solve_hanoi(int num_rings, int source, int dest) {
 		auto_solve_hanoi(num_rings - 1, aux, dest);
 	}
 	double* weights = poll_weights();
-	update_weights(weights);
+	// update_weights(weights);
 	nextion_write_game_state(&current_game);
 	increment_count();
 }
@@ -152,7 +168,7 @@ static void handle_tower_helper(int tower_idx) {
 		nextion_move_rings(source_tower, dest_tower, source_height, dest_height, selected_ring);
 		printf("Moved ring...");
 		double * weights = poll_weights();
-		update_weights(weights);
+		// update_weights(weights);
 	}
 	hanoi_execute_move(current_game.selected_tower, tower_idx);
 
@@ -182,8 +198,7 @@ static void switch_page_helper(page_t page, game_mode_t mode) {
 	hanoi_print_game_state("Initialized game", &current_game);
 	switch_mode(mode);
 	nextion_write_game_state(&current_game);
-	MXC_Delay(5000);
-	// poll_weights();
+	poll_weights();
 }
 
 // New function to contain the continuous manual mode logic

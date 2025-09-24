@@ -71,8 +71,8 @@ double code_to_grams(uint32_t base, uint32_t code, double conversion_factor){
 double get_load_cell_data(uint8_t channel_idx, uint32_t base) {
     // enable channel
     configure_adc_channel(channel_idx, 0x80);
-    // wait before data read to let the register populate
-    MXC_Delay(MXC_DELAY_MSEC(250));
+    // wait before data read to allow the register to populate
+    MXC_Delay(MXC_DELAY_MSEC(225));
     uint32_t code = get_adc_data();
     // check the status
     // read_status();
