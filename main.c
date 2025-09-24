@@ -63,6 +63,14 @@
 /* **** Globals **** */
 
 /* **** Functions **** */
+void status_PB(char* msg);
+void status_PB(char* msg) 
+{
+	printf("%s\n", msg);
+	while(!PB_IsPressedAny()) {}
+	MXC_Delay(800000);
+}
+
 
 /* ************************************************************************** */
 int main(void)
