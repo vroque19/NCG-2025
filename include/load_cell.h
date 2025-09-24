@@ -13,10 +13,24 @@
 typedef struct {
     double weights[3];
 } weight_readings_t;
+
+typedef struct {
+    double base_offset;
+    double conversion_factor;
+} load_cell_t;
+
+typedef struct {
+    load_cell_t* load_cell_0;
+    load_cell_t* load_cell_1;
+    load_cell_t* load_cell_2;
+} load_cell_towers_t;
+
+extern load_cell_towers_t load_cell_towers;
 extern weight_readings_t weight_readings;
-extern int global_base_array[3];
+
 uint32_t calibrate(uint8_t idx);
 uint32_t get_calibration_data(void);
+void calibrate_towers(void);
 uint32_t get_average(uint32_t *list, uint8_t n);
 double code_to_grams(uint32_t base, uint32_t code, double conversion_factor);
 double get_load_cell_data(uint8_t channel_idx, uint32_t base);

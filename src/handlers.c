@@ -20,7 +20,7 @@ void increment_count(void) {
 	char name[] = MOVE_COUNT_ID;
 	char prefix[] = ".val=";
 	char dest_buff[50]; // final command
-	snprintf(dest_buff, sizeof(dest_buff), "%s%s%d%s", name, prefix, current_game.moves_made); // combine obj, pref, weight, suff into one commands
+	snprintf(dest_buff, sizeof(dest_buff), "%s%s%d", name, prefix, current_game.moves_made); // combine obj, pref, weight, suff into one commands
     // printf("Move count : %d\n\n", move_count);
 	for(int i = 0; i < 1; i++) {
 		nextion_send_command(dest_buff);
@@ -69,6 +69,7 @@ void solenoid_handler(void) {
 		solenoid_off();
 		MXC_Delay(MXC_DELAY_MSEC(250)); // wait for ring to drop down
 		double *curr_weights = poll_weights();
+		update_weights(poll_weights());
 
 		for(int i = 0; i < 3; i++) {
 			current_game.selected_tower = -1;
@@ -99,7 +100,8 @@ void auto_solve_hanoi(int num_rings, int source, int dest) {
 		hanoi_execute_move(source, dest);
 		auto_solve_hanoi(num_rings - 1, aux, dest);
 	}
-	poll_weights();
+	double* weights = poll_weights();
+	update_weights(weights);
 	nextion_write_game_state(&current_game);
 	increment_count();
 }
@@ -148,14 +150,15 @@ static void handle_tower_helper(int tower_idx) {
     write_to_txt_component(MAIN_TXT_BOX, txt_responses[result]);
 	if((result)==MOVE_VALID) {
 		nextion_move_rings(source_tower, dest_tower, source_height, dest_height, selected_ring);
+		printf("Moved ring...");
+		double * weights = poll_weights();
+		update_weights(weights);
 	}
 	hanoi_execute_move(current_game.selected_tower, tower_idx);
 
-	poll_weights();
 	nextion_change_ring_color(selected_ring, RING_COLOR_DEFAULT);
-
 	increment_count();
-	nextion_write_game_state(&current_game);
+	// nextion_write_game_state(&current_game);
 	touch_count = 0;
 
 }

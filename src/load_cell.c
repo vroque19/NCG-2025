@@ -1,10 +1,8 @@
 #include "load_cell.h"
 #include "4131.h"
 
- // conversion factors for 3 load cells
- int global_base_array[3] = {32749, 32787, 31948};
-//  int global_base_array[3] = {33063, 33509, 32755};
 
+load_cell_towers_t load_cell_towers = {0};
 uint32_t get_average(uint32_t *list, uint8_t n) {
     uint32_t sum = 0;
     for(int i = 0; i < n; i++) {
@@ -37,9 +35,30 @@ uint32_t calibrate(uint8_t idx) {
     return base;
 }
 
+void calibrate_towers(void) {
+   // Correctly allocate memory for each load_cell_t struct on the heap
+  load_cell_towers.load_cell_0 = (load_cell_t*)malloc(sizeof(load_cell_t));
+  load_cell_towers.load_cell_1 = (load_cell_t*)malloc(sizeof(load_cell_t));
+  load_cell_towers.load_cell_2 = (load_cell_t*)malloc(sizeof(load_cell_t));
+  uint32_t calibration_data_0 = calibrate(0);
+    printf("LC 0: %d\n", calibration_data_0);
+    load_cell_towers.load_cell_0->base_offset = calibration_data_0;
+    load_cell_towers.load_cell_0->conversion_factor = 0.3920992819;
+
+    uint32_t calibration_data_1 = calibrate(1);
+    printf("LC 1: %d\n", calibration_data_1);
+    load_cell_towers.load_cell_1->base_offset = calibration_data_1;
+    load_cell_towers.load_cell_1->conversion_factor = 0.3920992819;
+
+    uint32_t calibration_data_2 = calibrate(2);
+    printf("LC 2: %d\n", calibration_data_2);
+    load_cell_towers.load_cell_2->base_offset = calibration_data_2;
+    load_cell_towers.load_cell_2->conversion_factor = 0.3920992819;
+}
+
 /* converts adc code to grams */
 double code_to_grams(uint32_t base, uint32_t code, double conversion_factor){
-    // printf("Code - Reference : %d - %d\n", code, base);
+    printf("Code - Reference : %d - %d\n", code, base);
     double delta = abs((int)code - (int)base);
     if(delta > 1) {
         double grams = delta * conversion_factor;
@@ -57,33 +76,9 @@ double get_load_cell_data(uint8_t channel_idx, uint32_t base) {
     uint32_t code = get_adc_data();
     // check the status
     // read_status();
-    double conversion_factors[] = {0.766561084, 0.77, 0.76};
-    double weight = code_to_grams(base, code, conversion_factors[channel_idx]);
+  
+    double weight = code_to_grams(base, code, .39);
     // disable channel
     configure_adc_channel(channel_idx, 0x00);
     return weight;
-}
-
-// returns current load cell readings
-
-/* for testing */
-void test_switch(uint32_t base0, uint32_t base1, uint32_t base2) {
-    // switch statement load cell test
-    printf("Select a load cell 0-2:\n ");
-        uint8_t cell_idx;
-        scanf("%d", &cell_idx);
-        printf("%d\n", cell_idx);
-        
-        switch(cell_idx) {
-            case 0:
-                get_load_cell_data(cell_idx, base0);
-                break;
-            case 1:
-                get_load_cell_data(cell_idx, base1);
-                break;
-            default:
-                get_load_cell_data(cell_idx, base2);
-                break;
-        }
-        MXC_Delay(MXC_DELAY_MSEC(500));
 }
