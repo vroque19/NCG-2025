@@ -142,7 +142,21 @@ int main(void)
 	tmc5272_sg_configureStallGuard2(tmc_y, ALL_MOTORS, 0, 60, TRUE);
 	tmc5272_sg_setStallGuard2(tmc_y, ALL_MOTORS, TRUE);
 
+	/* Test Program */
+	status_PB("Rotate both motors in pos mode");
+	tmc5272_rotateToPosition(tmc_x, ALL_MOTORS, 500000, VEL_X, ACC_X);
+
+	status_PB("Rotate in velocity mode...");
+	tmc5272_rotateAtVelocity(tmc_x, ALL_MOTORS, VEL_X, ACC_X);
+	MXC_Delay(1000000);
+	tmc5272_rotateAtVelocity(tmc_x, ALL_MOTORS, 0, ACC_X);
+	while(!tmc5272_isAtTargetVelocity(tmc_x, MOTOR_1)) {}
+
+	
+
+
 	/**** Main Program ****/
+	status_PB("Press a button to start main program...");
 
 	// StallGuard Homing
 	// Back out from home
@@ -162,7 +176,7 @@ int main(void)
 	tmc5272_sg_clearStall(tmc_x, MOTOR_0);
 
 	// Set home position
-	tmc5272_setHomePosition(tmc_x, MOTOR_0);
+	tmc5272_setPositionValue(tmc_x, MOTOR_0, 0);
 
 	// Far side: Rotate until stall
 	tmc5272_rotateAtVelocity(tmc_x, MOTOR_0, 300000, 4000);
