@@ -1,11 +1,20 @@
-/build
-/ex
+# MSDK
+/build/
+/.vscode/
+!/.vscode/settings.json
+/.settings/
+
+.cproject
+.project
 *.log
 *.mk
 *.launch
-/.vscode
-/.settings
+
+# Application
+/ex/
+/Exclude/
+.cache/
+
 cproject
 *.out
-.cache/
 compile_commands.json
