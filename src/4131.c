@@ -206,7 +206,7 @@ void set_filter_n(void) {
     // ODR: 160 sps
     // uint8_t tx_data[] = {0x0, 0x20, 0xA0};
     // changing to increase ODR -> 1000
-    uint8_t tx_data[] = {0x00, 0x27, 0xFF};
+    uint8_t tx_data[] = {0x00, 0x23, 0xE8};
     for(int i = 0; i <= n; i++) {
         if (i > 1) {
             // 48 sps
