@@ -187,7 +187,10 @@ void set_channel_m(void) {
 void set_config_n(void) {
     size_t bytes = 2;
     int n = 7;
-    uint8_t tx_data[] = {0x0, 0x0C};
+    // gain of 64
+    // uint8_t tx_data[] = {0x0, 0x0C};
+    // gain of 1 
+    uint8_t tx_data[] = {0x0, 0x00};
     for(int i = 0; i <= n; i++) {
         if(i > 1) {
             tx_data[1] = 0x0;
@@ -201,7 +204,9 @@ void set_filter_n(void) {
     int n = 7;
     // filter mode: sinc^3 standalone filter
     // ODR: 160 sps
-    uint8_t tx_data[] = {0x0, 0x20, 0xA0};
+    // uint8_t tx_data[] = {0x0, 0x20, 0xA0};
+    // changing to increase ODR -> 1000
+    uint8_t tx_data[] = {0x00, 0x27, 0xFF};
     for(int i = 0; i <= n; i++) {
         if (i > 1) {
             // 48 sps

@@ -16,10 +16,10 @@ int main(void) {
   spi_main_init();
   write_mem_map();
   read_adc_id();
-  configure_adc_channel(0, 0x00); // disable
+  configure_adc_channel(1, 0x00); // disable
   configure_adc_channel(2, 0x00); // disable
 
-  configure_adc_channel(1, 0x80);
+  configure_adc_channel(0, 0x80); // enable
   // get_adc_data();
   // // base 0: 0.3920992819
   // uint32_t base0 = calibrate(0);
@@ -29,11 +29,27 @@ int main(void) {
   // MXC_Delay(MXC_DELAY_MSEC(1500));
 
   // uint32_t base2 = calibrate(2);
-  uint32_t data = get_calibration_data();
-  printf("\n- - - - - -\nAverage 1: %d\n- - - - - -\n\n", data);
-  uint32_t data2 = get_calibration_data();
-  printf("\n- - - - - -\nAverage 2: %d\n- - - - - -\n\n", data2);
+  // uint32_t data = get_calibration_data();
+  // printf("\n- - - - - -\nAverage 1: %d\n- - - - - -\n\n", data);
+  //uint32_t data2 = get_calibration_data();
+  //printf("\n- - - - - -\nAverage 2: %d\n- - - - - -\n\n", data2);
   while (1) {
+
+    uint16_t test_data[30];
+    // how often to poll (ms) 
+    // polling just more than every 1 ms
+    for (int i = 0; i < 30; i++) {
+      MXC_Delay(MXC_DELAY_MSEC(1));
+      test_data[i] = get_adc_data();
+      printf("code out: %d\n", test_data[i]);
+    }
+    
+    // convert to volts, accounting for gain, ref, and bits
+    // unipolar mode
+    // float V_out = ((float) test_data / 65536.0) * 2.5 / 64.0; 
+    // printf("code out: %d, voltage in: %f\n", test_data, V_out);
+    // printf("code out: %d\n", test_data);
+    
     // printf("Select a load cell 0-2:\n ");
     // uint8_t cell_idx;
     // scanf("%d", &cell_idx);
