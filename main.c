@@ -116,10 +116,9 @@ int main(void)
 	tmc5272_rotateAtVelocity(tmc_y, ALL_MOTORS, 0, 10000);
 
 	// Register dump & pause
-	tmc5272_dumpRegisters(tmc_x);
-  printf("\n-------------------\n");
-  printf("This program demonstrates StallGuard homing on X and Y motors (CS 1 & 2),\n");
-  printf("then has X and Y motors track Tricoders (CS 3) for positioning. \n");
+	printf("\n-------------------\n");
+  	printf("This program demonstrates StallGuard homing on X and Y motors (CS 1 & 2),\n");
+	printf("then has X and Y motors track Tricoders (CS 3) for positioning. \n");
 	printf("\nProgram halted. Press any pushbutton to continue... \n");
 	while(!PB_IsPressedAny()) 
 	{
@@ -145,12 +144,23 @@ int main(void)
 	/* Test Program */
 	status_PB("Rotate both motors in pos mode");
 	tmc5272_rotateToPosition(tmc_x, ALL_MOTORS, 500000, VEL_X, ACC_X);
+	while(!tmc5272_isAtTargetPosition(tmc_x, MOTOR_0)) {}
 
 	status_PB("Rotate in velocity mode...");
 	tmc5272_rotateAtVelocity(tmc_x, ALL_MOTORS, VEL_X, ACC_X);
 	MXC_Delay(1000000);
 	tmc5272_rotateAtVelocity(tmc_x, ALL_MOTORS, 0, ACC_X);
 	while(!tmc5272_isAtTargetVelocity(tmc_x, MOTOR_1)) {}
+
+	status_PB("Enabling synchronous movement...");
+	tmc5272_rotateByMicrosteps(tmc_x, ALL_MOTORS, 0, VEL_X, ACC_X);
+	tmc5272_setSynchronizedPositioning(tmc_x, TRUE);
+
+	status_PB("Moving motors in position mode...");
+	tmc5272_rotateByMicrosteps(tmc_x, MOTOR_0, 0, VEL_X, ACC_X);
+	MXC_Delay(1000000);
+	tmc5272_rotateByMicrosteps(tmc_x, MOTOR_1, 0, VEL_X, ACC_X);
+	
 
 	
 
