@@ -1,7 +1,6 @@
 #ifndef __HANDLERS_H_
 #define __HANDLERS_H_
 // #include <stddef.h>
-#include "TMC5272_SPI.h"
 #include "mode_touchscreen.h"
 #include "mode_manual.h"
 // #include "stack.h"

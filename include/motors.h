@@ -2,7 +2,6 @@
 #define MOTORS_H
 
 #include "TMC5272.h"
-#include "TMC5272_SPI.h"
 // /**** Macros ****/
 
 // // Map tricoder inputs for X and Y axes

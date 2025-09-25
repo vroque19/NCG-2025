@@ -1,6 +1,5 @@
 #include "motors.h"
 #include "TMC5272.h"
-#include "TMC5272_SPI.h"
 
 tmc_devices_t tmc_devices = {};
 void init_motors(void) {

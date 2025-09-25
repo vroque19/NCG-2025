@@ -1,5 +1,5 @@
 #include "handlers.h"
-#include "TMC5272_SPI.h"
+#include "TMC5272.h"
 #include "game_logic.h"
 #include "global_uart_handler.h"
 #include "mode_touchscreen.h"
