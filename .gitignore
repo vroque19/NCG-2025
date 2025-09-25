@@ -7,6 +7,7 @@ Exclude/*
 *.mk
 *.launch
 /.vscode
+!/.vscode/settings.json
 /.settings
 cproject
 *.out
