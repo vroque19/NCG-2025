@@ -38,7 +38,7 @@ void hanoi_init_game(uint8_t num_rings) {
     }
     hanoi_init_game_tower_0();
     init_history(&current_game.move_history);
-    printf("Initialized Hanoi game with %d rings (min moves: %d)\n", 
+    printf("Hanoi game with %d rings (min moves: %d)\n", 
            num_rings, current_game.min_moves);
 }
 
@@ -94,9 +94,6 @@ void hanoi_execute_move(uint8_t source_tower, uint8_t destination_tower) {
 }
 
 move_result_t hanoi_validate_move(uint8_t source_tower, uint8_t destination_tower) {
-    move_tuple move;
-    move.source = source_tower;
-    move.destination = destination_tower;
     if (source_tower >= NUM_TOWERS || destination_tower >= NUM_TOWERS) {
         return MOVE_INVALID_PHYSICAL_MISMATCH;
     }

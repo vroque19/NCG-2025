@@ -86,20 +86,22 @@ void solenoid_handler(void) {
 // automated mode functions --
 // recursive solution for auto solving algorithm
 void auto_solve_hanoi(int num_rings, int source, int dest) {
-	poll_weights();
+	// poll_weights();
 	nextion_write_game_state(&current_game);
 	increment_count();
 
 	if(num_rings == 1) {
+		move_ring(source, dest);
 		hanoi_execute_move(source, dest);
 	}
 	else {
 		int aux = 3 - (source + dest);
 		auto_solve_hanoi(num_rings - 1, source, aux);
+		move_ring(source, dest);
 		hanoi_execute_move(source, dest);
 		auto_solve_hanoi(num_rings - 1, aux, dest);
 	}
-	poll_weights();
+	// poll_weights();
 	nextion_write_game_state(&current_game);
 	increment_count();
 }
@@ -111,6 +113,7 @@ void start_automated(void) {
 		printf("Game Complete :) %d\n", current_game.game_complete);
 		return;
 	}
+	return;
 }
 
 // helper to handle touch-screen mode control
@@ -148,6 +151,7 @@ static void handle_tower_helper(int tower_idx) {
     write_to_txt_component(MAIN_TXT_BOX, txt_responses[result]);
 	if((result)==MOVE_VALID) {
 		nextion_move_rings(source_tower, dest_tower, source_height, dest_height, selected_ring);
+		move_ring(source_tower, dest_tower);
 	}
 	hanoi_execute_move(current_game.selected_tower, tower_idx);
 

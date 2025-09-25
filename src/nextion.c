@@ -70,6 +70,7 @@ void update_weight(double weight, char *objname) {
     // printf("weight str: %s\n", weight_str);
     write_to_txt_component(objname, weight_str);
 }
+int global_base_array[3] = {0, 0, 0};
 
 // testing 3 load cells
 double* poll_weights(void) {

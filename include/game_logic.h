@@ -39,7 +39,7 @@ move_result_t hanoi_validate_move(uint8_t source_tower, uint8_t destination_towe
 bool hanoi_is_solved(void);
 void hanoi_print_game_state(const char* name, game_state_t *game);
 void hanoi_reset_game(void);
-
+void hanoi_execute_move(uint8_t source_tower, uint8_t destination_tower);
 extern game_state_t current_game;
 
 #endif
