@@ -1,8 +1,14 @@
-.settings/*
-.vscode/*
-build/*
 Exclude/*
 .cproject
 .project
+/build
+/ex
 *.log
+*.mk
 *.launch
+/.vscode
+/.settings
+cproject
+*.out
+.cache/
+compile_commands.json
