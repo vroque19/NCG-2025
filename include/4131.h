@@ -49,12 +49,12 @@ void set_offset_n(void);
 void set_gain_n(void);
 void set_misc(void);
 void spi_read_reg(uint8_t* rx_data, uint8_t reg_addr, size_t bytes);
-uint32_t bytes_to_dec(uint8_t *bytes);
-uint32_t hex_to_code(const uint8_t *buff, size_t len);
-uint32_t get_data_from_channel(uint8_t channel_idx);
+uint16_t bytes_to_dec(uint8_t *bytes);
+uint16_t hex_to_code(const uint8_t *buff, size_t len);
+uint16_t get_data_from_channel(uint8_t channel_idx);
 void read_adc_id(void);
 void read_adc_conversion(void);
-uint32_t get_adc_data(void);
+uint16_t get_adc_data(void);
 uint8_t read_status(void);
 
 int spi_send_data(const uint8_t *tx_data, const uint8_t *rx_data, size_t len);

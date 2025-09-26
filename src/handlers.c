@@ -65,6 +65,7 @@ void solenoid_handler(void) {
 		// tmc5272_rotateByMicrosteps(tmc_devices.tmc_y, ALL_MOTORS, 51200);
 		printf("Solenoid is on\n\n");
 		printf("Second Poll:\n");
+		MXC_Delay((MXC_DELAY_MSEC(10)));
 		double *curr_weights = poll_weights();
 		for(int i = 0; i < 3; i++) {
 			printf("\n%d. Curr weight: %.2f\nPrev weight: %.2f\n", i, curr_weights[i], prev_weights[i]);
