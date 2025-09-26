@@ -32,7 +32,7 @@
 #define SPI_MAIN MXC_SPI1
 #define SPI_MASTER_SSIDX 0
 #define VALUE 0xFF
-#define SPI_SPEED 100000 // 100k
+#define SPI_SPEED 10000 // 10k
 #define CS_PIN MXC_GPIO_PIN_23
 #define CS_PORT MXC_GPIO0
 #define TX_DATA_LEN 4

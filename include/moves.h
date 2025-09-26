@@ -10,9 +10,9 @@
 #define RING_0_DEFAULT_POS 10
 #define RING_1_DEFAULT_POS 20
 #define RING_2_DEFAULT_POS 300
-#define TOWER_0_POS 10
-#define TOWER_1_POS 20
-#define TOWER_2_POS 50
+#define TOWER_0_POS -133120
+#define TOWER_1_POS -279040
+#define TOWER_2_POS -432640
 
 // move ring from source tower to destination tower
 void move_ring(uint8_t source_tower, uint8_t destination_tower);

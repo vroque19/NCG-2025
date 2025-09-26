@@ -119,8 +119,6 @@ void auto_solve_hanoi(int num_rings, int source, int dest) {
 		hanoi_execute_move(source, dest);
 		auto_solve_hanoi(num_rings - 1, aux, dest);
 	}
-	double* weights = poll_weights();
-	// update_weights(weights);
 	nextion_write_game_state(&current_game);
 	increment_count();
 }
@@ -211,11 +209,11 @@ void run_manual_mode_logic(tmc5272_dev_t *tmc_x, tmc5272_dev_t *tmc_y, tmc5272_d
 		int32_t tc_y_pos = tmc5272_tricoder_getPosition(tmc_tc, TC_Y);
 		
 		// Rotate each axis to its encoder position
-		tmc5272_rotateToPosition(tmc_x, MOTOR_0, 10*tc_x_pos);
-		tmc5272_rotateToPosition(tmc_y, ALL_MOTORS, 10*tc_y_pos);
+		tmc5272_rotateToPosition(tmc_x, MOTOR_0, 10*tc_x_pos, TMC5272_VEL_MAX, TMC5272_ACC_MAX);
+		tmc5272_rotateToPosition(tmc_y, ALL_MOTORS, 10*tc_y_pos, TMC5272_VEL_MAX, TMC5272_ACC_MAX);
 
-		// printf("Mx0: %d  ENC: %d", tmc5272_getPosition(tmc_x, MOTOR_0), tc_x_pos);
-		// printf("\tMy0: %d  ENC: %d \n", tmc5272_getPosition(tmc_y, MOTOR_0), tc_y_pos);
+		printf("Mx0: %d  ENC: %d", tmc5272_getPosition(tmc_x, MOTOR_0), tc_x_pos);
+		printf("\tMy0: %d  ENC: %d \n", tmc5272_getPosition(tmc_y, MOTOR_0), tc_y_pos);
 }
 
 void switch_page_touchscreen(void) {

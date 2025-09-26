@@ -1,5 +1,6 @@
 // // global_uart_handler.c
 #include "global_uart_handler.h"
+#include "TMC5272.h"
 #include "handlers.h"
 #include "motors.h"
 #include "mxc_delay.h"
@@ -127,6 +128,7 @@ void global_uart_main_loop(void) {
     MXC_Delay(MXC_DELAY_MSEC(1000));
     
     init_motors();
+    tmc5272_setSynchronizedPositioning(tmc_devices.tmc_y, TRUE);
     while (1) {
         // Wait for UART interrupt
         while (!GLOBAL_UART_ISR_FLAG) {

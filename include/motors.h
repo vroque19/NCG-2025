@@ -24,6 +24,7 @@
 #define TMC5272_VEL_MAX 300000
 #define TMC5272_ACC_MAX 10000
 
+
 // Holds all 3 tmc devices
 typedef struct {
     tmc5272_dev_t* tmc_x;
