@@ -111,7 +111,6 @@ void tmc5272_dumpRegisters(tmc5272_dev_t* tmc5272_dev);
 void tmc5272_init(tmc5272_dev_t* tmc5272_dev);
 void tmc5272_setMotorPolarity(tmc5272_dev_t* tmc5272_dev, tmc5272_motor_num_t motor, tmc5272_motor_dir_t dir);
 void tmc5272_setEmergencyStop(tmc5272_dev_t* tmc5272_dev, tmc5272_motor_num_t motor, uint8_t isEnabled);
-void tmc5272_setMotorDirection(tmc5272_dev_t* tmc5272_dev, tmc5272_motor_num_t motor, tmc5272_motor_dir_t dir);
 
 // Note: Motor must enter positioning mode first before enabling synchronization.
 // Recommendation is to do this by using rotateByMicrosteps() to move by 0, 
