@@ -36,7 +36,7 @@ void nextion_send_command(const char *command) {
         MXC_UART_WriteCharacter(GLOBAL_UART_REG, command[i]);
     }
     terminate_command(); // commands must be terminated with three 0xFF bytes.
-    MXC_Delay(5000); // 5ms delay
+    // MXC_Delay(3000); // 3ms delay
     MXC_UART_ClearRXFIFO(GLOBAL_UART_REG); // Clear Receive for errors
 }
 
@@ -72,18 +72,22 @@ void update_weight(double weight, char *objname) {
 }
 int global_base_array[3] = {0, 0, 0};
 
+void update_weights(double *weights) {
+    char *txt_comps[3] = {TXT_WEIGHT_0, TXT_WEIGHT_1, TXT_WEIGHT_2};
+    for(int i = 0; i < 3; i++) {
+        update_weight(weights[i], txt_comps[i]);
+    }
+}
 // testing 3 load cells
 double* poll_weights(void) {
-    double weight0 = get_load_cell_data(LOAD_CELL_0, global_base_array[LOAD_CELL_0]);
-    double weight1 = get_load_cell_data(LOAD_CELL_1, global_base_array[LOAD_CELL_1]);
-    double weight2 = get_load_cell_data(LOAD_CELL_2, global_base_array[LOAD_CELL_2]);
-    update_weight(weight2, TXT_WEIGHT_2);
-    update_weight(weight1, TXT_WEIGHT_1);
-    update_weight(weight0, TXT_WEIGHT_0);
-    
+    double weight0 = get_load_cell_data(LOAD_CELL_0, load_cell_towers.load_cell_0->base_offset);
+    double weight1 = get_load_cell_data(LOAD_CELL_1, load_cell_towers.load_cell_1->base_offset);
+    double weight2 = get_load_cell_data(LOAD_CELL_2, load_cell_towers.load_cell_2->base_offset);
     weight_readings.weights[0] = weight0;
     weight_readings.weights[1] = weight1;
     weight_readings.weights[2] = weight2;
+    update_weights(weight_readings.weights);
+    
     return weight_readings.weights;
 }
 

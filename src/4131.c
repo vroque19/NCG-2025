@@ -67,8 +67,8 @@ void print_buff_received(const uint8_t *buff, size_t len) {
     printf("\n");
 }
 
-uint32_t hex_to_code(const uint8_t *buff, size_t len) {
-    uint32_t decimal = 0;
+uint16_t hex_to_code(const uint8_t *buff, size_t len) {
+    uint16_t decimal = 0;
     for(int i = 0; i < len; i++) {
         decimal = (decimal<<8) | buff[i];
     }
@@ -187,6 +187,7 @@ void set_channel_m(void) {
 void set_config_n(void) {
     size_t bytes = 2;
     int n = 7;
+    // set gain 64
     uint8_t tx_data[] = {0x0, 0x0C};
     for(int i = 0; i <= n; i++) {
         if(i > 1) {
@@ -200,8 +201,9 @@ void set_filter_n(void) {
     size_t bytes = 3;
     int n = 7;
     // filter mode: sinc^3 standalone filter
-    // ODR: 160 sps
-    uint8_t tx_data[] = {0x0, 0x20, 0xA0};
+    // ODR: 1000
+    // uint8_t tx_data[] = {0x00, 0x27, 0xFF};
+    uint8_t tx_data[] = {0x0, 0x20, 0xA0}; // ODR: 160
     for(int i = 0; i <= n; i++) {
         if (i > 1) {
             // 48 sps
@@ -311,11 +313,11 @@ uint8_t read_status(void) {
     return rx_data[0];
 }
 
-uint32_t get_adc_data(void) {
+uint16_t get_adc_data(void) {
     size_t bytes = 3;
     uint8_t rx_data[bytes];
     spi_read_reg(rx_data, ADC_DATA, bytes);
-    uint32_t code = 0;
+    uint16_t code = 0;
     code = hex_to_code(rx_data, bytes);
     return code;
 }

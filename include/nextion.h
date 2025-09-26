@@ -107,6 +107,7 @@ void write_to_txt_component(char* objname, char* txt);
  */
 void write_to_btn_component(char *objname, char *txt);
 
+void update_weights(double *weights);
 
 
 

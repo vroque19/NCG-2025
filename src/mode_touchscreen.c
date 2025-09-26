@@ -73,7 +73,7 @@ void nextion_move_rings(int source, int dest, int source_height, int dest_height
 	x1 = x2;
 	y2 = nextion_ring_pos_y[dest_height];
 	// y pos changes
-	// printf("Move down...%d, %d, %d, %d\n\n", x1, y1, x2, y2);
+	printf("Move down...%d, %d, %d, %d\n\n", x1, y1, x2, y2);
 
 	move_ring_down(comp, x1, y1, x2, y2, 3, 500);
 
