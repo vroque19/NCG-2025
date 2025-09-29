@@ -167,6 +167,8 @@ static void handle_tower_helper(int tower_idx) {
 	move_result_t result = hanoi_validate_move(source_tower, tower_idx);
     write_to_txt_component(MAIN_TXT_BOX, txt_responses[result]);
 	if((result)==MOVE_VALID) {
+		printf("\n ~Handling move from %d to %d~\n\n", source_tower, dest_tower);
+		move_ring(source_tower, dest_tower);
 		nextion_move_rings(source_tower, dest_tower, source_height, dest_height, selected_ring);
 		printf("Moved ring...");
 		double * weights = poll_weights();
