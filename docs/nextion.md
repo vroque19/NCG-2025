@@ -1,4 +1,4 @@
-# NX4827P043-011
+# NX4827P043-011 Touchscreen Interface
 
 ## Overview
 The display used for this system is from the Nextion Intelligent Series, combining a resistive touch display with a powerful onboard processor. It features 128MB of flash memory and 512 KB of RAM, providing ample resources for complex user interfaces. The Nextion MCU communicates with the MAX32650fthr via a standard TTL serial connection, using a straightforward ASCII text-based instruction set. This makes the interaction between the microcontroller and the display simple and highly effective.
@@ -23,6 +23,7 @@ The Nextion editor provides a user-friendly GUI to setup the display with drag-a
 
 ## Instruction Set
 The Nextion instruction set is a series of simple ASCII commands used to control the display and its components. Commands are sent from the host MCU to the Nextion display, and the display can send event data back. Each command is terminated by a special three-byte sequence: `0xFF 0xFF 0xFF`.
+The function *void nextion_send_command*(*const char * *command*)* defined in [nextion.c](src/nextion.c) handles the sneding of nextion instructions to the display.
 
 ### Common Commands
 - `page x`: Switches the display to page x (e.g., `page 1`).

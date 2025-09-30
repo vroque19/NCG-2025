@@ -8,36 +8,37 @@ This project implements a load weigh scale feature using the Analog Devices AD41
 - ADC Data Conversion
 - Scale Calibration
 
+## Register Configurations
+![register configuration png](./img/ad4131_register.png)
+
 ## ADC configuration
 The EVAL-AD4131-8 has programmable registers which require proper configuration to ensure appropriate gain, data conversion, and low noise for the load cells. 
-We utilized ADI's **ACE** (Analysis, Control, Evaluation) software to simulate the evaluation and control of the board with various register configurations. The register configuration that is well-suited for out project is included in `AD4131_mm.csv`.
+We utilized ADI's **ACE** (Analysis, Control, Evaluation) software to simulate the evaluation and control of the board with various register configurations. The register configuration that is well-suited for out project is included in [AD4131_mm.csv](docs/ad4131.csv).
 
 ## Software Setup
 To setup the AD4131 ADC to convert the analog signals from load cells to bits, its registers must be set correctly. There are **56** registers that must be written to via **SPI**. Setting up SPI on the MAX32650 includes specifying the *pin*, *speed*, *data length*, *CS line*, and the pin's *pin alternate function*.
 ### Parameters:
-> Data Length: 4 bytes
+- Data Length: 4 bytes
 
-> Word Size: 8 bits
+- Word Size: 8 bits
 
-> SPI mode: Mode 3
+- SPI mode: Mode 3
+- SPI CS: SS0
+- CS Pin: P0.23
+- SPI Speed: 10kHz
 
->SPI CS: SS0
-
->CS Pin: P0.23
-
->SPI Speed: 100kHz
 
 ### File Structure
 ___
-`4131.c`: Contains the C implementation for interacting with the AD4131-8 ADC via SPI, including register read/write functions and ADC data acquisition.
+[4131.c ](src/4131.c): Contains the C implementation for interacting with the AD4131-8 ADC via SPI, including register read/write functions and ADC data acquisition.
 
-`4131.h`: Header file for 4131.c, defining ADC register addresses and function prototypes.
+[4131.h ](include/4131.h): Header file for 4131.c, defining ADC register addresses and function prototypes.
 
-`load_cell.c`: Implements the load cell specific logic, such as calibration, averaging of ADC readings, and conversion of ADC codes to grams.
+[load_cell.c ](src/load_cell.c): Implements the load cell specific logic, such as calibration, averaging of ADC readings, and conversion of ADC codes to grams.
 
-`load_cell.h`: Header file for load_cell.c, defining load cell related function prototypes.
+[load_cell.h ](include/load_cell.h): Header file for load_cell.c, defining load cell related function prototypes.
 
-`main.c`: The main application entry point, initializing SPI, configuring the ADC, and handling load cell data processing.
+[main.c ](main.c): The main application entry point, initializing SPI, configuring the ADC, and handling load cell data processing.
 
 ### Hardware Setup
 1. Connect MAX32650 to AD4131-EVAL:
