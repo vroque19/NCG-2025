@@ -6,6 +6,7 @@
 * This software is proprietary to Analog Devices, Inc. and its licensors.
 *******************************************************************************/
 #include "TMC5272.h"
+#include "TMC5272_HW_Abstraction.h"
 
 /* Function Definitions */
 
@@ -287,6 +288,7 @@ void tmc5272_setEmergencyStop(tmc5272_dev_t* tmc5272_dev, tmc5272_motor_num_t mo
 void tmc5272_setSynchronizedPositioning(tmc5272_dev_t* tmc5272_dev, bool isEnabled)
 {
 	tmc5272_fieldWrite(tmc5272_dev, TMC5272_RAMPMODE_RAMP_SYN_POS_UPDATE_FIELD, isEnabled);
+	tmc5272_dev->shadow.ramp_syn_pos_update = isEnabled;
 }
 
 // Movement Commands
@@ -455,6 +457,8 @@ void tmc5272_rotateToPosition(tmc5272_dev_t* tmc5272_dev, tmc5272_motor_num_t mo
 			rampmode_reg = tmc5272_dev->shadow.ramp_syn_pos_update << 8;
 			// Write Position mode.
 			tmc5272_writeRegister(tmc5272_dev, TMC5272_RAMPMODE, rampmode_reg);
+			tmc5272_dev->shadow.rampmode[MOTOR_0] = TMC5272_MODE_POSITION;
+			tmc5272_dev->shadow.rampmode[MOTOR_1] = TMC5272_MODE_POSITION;
 		}
 
 		// Clear flag at ALL_MOTORS function completion.

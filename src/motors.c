@@ -44,9 +44,10 @@ void init_motors(void) {
     tmc5272_tricoder_init(tmc_devices.tmc_tc, TC_Y);
     
     // Velocity
-    tmc5272_setVelocityCurve(tmc_devices.tmc_x, MOTOR_0, TMC5272_VEL_MAX, TMC5272_ACC_MAX);
-    tmc5272_setVelocityCurve(tmc_devices.tmc_y, ALL_MOTORS, TMC5272_VEL_MAX, TMC5272_ACC_MAX);
-    tmc5272_setMotorPolarity(tmc_devices.tmc_y, MOTOR_0, MOTOR_DIR_INVERT);
+    // tmc5272_setVelocityCurve(tmc_devices.tmc_x, MOTOR_0, TMC5272_VEL_MAX, TMC5272_ACC_MAX);
+    // tmc5272_setVelocityCurve(tmc_devices.tmc_y, ALL_MOTORS, TMC5272_VEL_MAX, TMC5272_ACC_MAX);
+    tmc5272_setSynchronizedPositioning(tmc_devices.tmc_y, true);
+    // tmc5272_setMotorPolarity(tmc_devices.tmc_y, MOTOR_0, MOTOR_DIR_INVERT);
 
 }
 
