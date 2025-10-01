@@ -121,14 +121,13 @@ void handle_touch_event(uint8_t *rx_data) {
 }
 
 void global_uart_main_loop(void) {
-    calibrate_towers();
-    printf("Calibration data: %.2f, %.2f, %.2f", load_cell_towers.load_cell_0->base_offset, load_cell_towers.load_cell_1->base_offset,load_cell_towers.load_cell_2->base_offset );
     printf("~~Main Loop~~\n\n");
     MXC_UART_TransactionAsync(&global_uart_req);
     MXC_Delay(MXC_DELAY_MSEC(1000));
     
     init_motors();
-    tmc5272_setSynchronizedPositioning(tmc_devices.tmc_y, TRUE);
+    calibrate_towers();
+    printf("Calibration data: %.2f, %.2f, %.2f", load_cell_towers.load_cell_0->base_offset, load_cell_towers.load_cell_1->base_offset,load_cell_towers.load_cell_2->base_offset );
     while (1) {
         // Wait for UART interrupt
         while (!GLOBAL_UART_ISR_FLAG) {

@@ -74,9 +74,9 @@ double get_load_cell_data(uint8_t channel_idx, uint16_t base) {
     // wait before data read to allow the register to populate
     MXC_Delay(MXC_DELAY_MSEC(225));
     uint16_t code = get_adc_data();
-    if(code - base <= 40) {
-        code = base;
-    }
+    // if(code - base <= 40) {
+    //     code = base;
+    // }
     // check the status
     // read_status();
   

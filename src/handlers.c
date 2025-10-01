@@ -211,11 +211,11 @@ void run_manual_mode_logic(tmc5272_dev_t *tmc_x, tmc5272_dev_t *tmc_y, tmc5272_d
 		int32_t tc_y_pos = tmc5272_tricoder_getPosition(tmc_tc, TC_Y);
 		
 		// Rotate each axis to its encoder position
-		tmc5272_rotateToPosition(tmc_x, MOTOR_0, 10*tc_x_pos, TMC5272_VEL_MAX, TMC5272_ACC_MAX);
-		tmc5272_rotateToPosition(tmc_y, ALL_MOTORS, 10*tc_y_pos, TMC5272_VEL_MAX, TMC5272_ACC_MAX);
+		tmc5272_rotateToPosition(tmc_x, MOTOR_0, 10*tc_x_pos, TMC_VEL_MAX, TMC_ACC_MAX);
+		tmc5272_rotateToPosition(tmc_y, ALL_MOTORS, 10*tc_y_pos, TMC_VEL_MAX, TMC_ACC_MAX);
 
-		printf("Mx0: %d  ENC: %d", tmc5272_getPosition(tmc_x, MOTOR_0), tc_x_pos);
-		printf("\tMy0: %d  ENC: %d \n", tmc5272_getPosition(tmc_y, MOTOR_0), tc_y_pos);
+		printf("Mx0: %d  ENC: %d\n", tmc5272_getPosition(tmc_x, MOTOR_0), tc_x_pos);
+		// printf("\tMy0: %d  ENC: %d , RAMPMODE: %d\n", tmc5272_getPosition(tmc_y, MOTOR_0), tc_y_pos, tmc5272_readRegister(tmc_y, TMC5272_RAMPMODE));
 }
 
 void switch_page_touchscreen(void) {

@@ -21,8 +21,8 @@
 #define TMC5272_SPI_CS_IDX_TC	3
 
 // Velocity and Acceleration Curve
-#define TMC5272_VEL_MAX 300000
-#define TMC5272_ACC_MAX 10000
+#define TMC_VEL_MAX 300000
+#define TMC_ACC_MAX 10000
 
 
 // Holds all 3 tmc devices
