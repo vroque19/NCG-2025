@@ -7,9 +7,10 @@
 #include <stdint.h>
 
 // TODO: change these to actual values
-#define RING_0_DEFAULT_POS 10
-#define RING_1_DEFAULT_POS 20
-#define RING_2_DEFAULT_POS 300
+#define LIFTED_POS         1000000
+#define RING_0_DEFAULT_POS 1211200
+#define RING_1_DEFAULT_POS 1331200
+#define RING_2_DEFAULT_POS 1454080
 #define TOWER_0_POS 140880
 #define TOWER_1_POS 307200
 #define TOWER_2_POS 468480

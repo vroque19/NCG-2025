@@ -50,7 +50,6 @@ void init_motors(void) {
     tmc5272_setSynchronizedPositioning(tmc_devices.tmc_y, true);
     
     tmc5272_setMotorPolarity(tmc_devices.tmc_y, MOTOR_0, MOTOR_DIR_INVERT);
-    // tmc5272_setMotorPolarity(tmc_devices.tmc_y, MOTOR_0, MOTOR_DIR_INVERT);
     // StallGuard Homing
 	// Back out from home
     // X Axis
@@ -74,13 +73,34 @@ void init_motors(void) {
 
 	// Set home position
 	tmc5272_setPositionValue(tmc_devices.tmc_x, MOTOR_0, 0);
-
-    uint32_t x_max = tmc5272_getPosition(tmc_devices.tmc_x, MOTOR_0);
-
-	// Move back to center
-	tmc5272_rotateToPosition(tmc_devices.tmc_x, MOTOR_0, x_max/2, TMC_VEL_MAX,TMC_ACC_MAX );
 	tmc5272_sg_clearStall(tmc_devices.tmc_x, MOTOR_0);
-	while(!tmc5272_isAtTargetPosition(tmc_devices.tmc_x, MOTOR_0));
+
+
+
+    // Y Axis
+	tmc5272_sg_configureStallGuard2(tmc_devices.tmc_y, ALL_MOTORS, 0, 60, TRUE);
+	tmc5272_sg_setStallGuard2(tmc_devices.tmc_y, ALL_MOTORS, TRUE);
+	printf("Backing out y from edge... \n");
+    MXC_Delay(MXC_DELAY_MSEC(1000));
+	tmc5272_rotateByMicrosteps(tmc_devices.tmc_y, ALL_MOTORS, 200000, 100000, 3000);
+	while(!tmc5272_isAtTargetPosition(tmc_devices.tmc_y, MOTOR_0)) {}
+
+	// Home side: Rotate until stall
+	tmc5272_rotateAtVelocity(tmc_devices.tmc_y, ALL_MOTORS, -300000, 4000);
+	while(!tmc5272_sg_isStalled(tmc_devices.tmc_y, ALL_MOTORS)) {}
+	// Stop movement before stall clear
+	tmc5272_rotateAtVelocity(tmc_devices.tmc_y, ALL_MOTORS, 0, TMC_ACC_MAX);
+	tmc5272_sg_clearStall(tmc_devices.tmc_y, ALL_MOTORS);
+	// Set home position
+	tmc5272_setPositionValue(tmc_devices.tmc_y, ALL_MOTORS, 0);
+// End Stallguard homing
+	// Move back to center
+	// tmc5272_rotateToPosition(tmc_devices.tmc_x, MOTOR_0, 100, TMC_VEL_MAX,TMC_ACC_MAX );
+	// while(!tmc5272_isAtTargetPosition(tmc_devices.tmc_x, MOTOR_0));
+
+	// tmc5272_rotateToPosition(tmc_devices.tmc_y, ALL_MOTORS, 100, TMC_VEL_MAX,TMC_ACC_MAX );
+	tmc5272_sg_clearStall(tmc_devices.tmc_y, ALL_MOTORS);
+	// while(!tmc5272_isAtTargetPosition(tmc_devices.tmc_y, ALL_MOTORS));
 
 }
 
