@@ -35,7 +35,7 @@ void udpate_status_txt(char *status) {
 void exit_to_main_menu(void) {
 	hanoi_reset_game();
 	switch_mode(MENU);
-	solenoid_off();
+	// solenoid_on();
 	touch_count = 0;
     printf("exiting to main menu. move count: %d\n", current_game.moves_made);
 }
@@ -198,6 +198,7 @@ void handle_tower_2_btn(void) {
 }
 
 static void switch_page_helper(page_t page, game_mode_t mode) {
+	// solenoid_on();
 	hanoi_init_game(MAX_RINGS);
 	hanoi_print_game_state("Initialized game", &current_game);
 	switch_mode(mode);
@@ -214,9 +215,9 @@ void run_manual_mode_logic(tmc5272_dev_t *tmc_x, tmc5272_dev_t *tmc_y, tmc5272_d
 		tmc5272_rotateToPosition(tmc_x, MOTOR_0, 10*tc_x_pos, TMC_VEL_MAX, TMC_ACC_MAX);
 		tmc5272_rotateToPosition(tmc_y, ALL_MOTORS, 10*tc_y_pos, TMC_VEL_MAX, TMC_ACC_MAX);
 
-		// printf("Mx0: %d  ENC: %d\n", tmc5272_getPosition(tmc_x, MOTOR_0), tc_x_pos);
+		printf("Mx0: %d  ENC: %d\n", tmc5272_getPosition(tmc_x, MOTOR_0), tc_x_pos);
 		// printf("\tMy0: %d,  ENC: %d , RAMPMODE: %d\n", tmc5272_getPosition(tmc_y, MOTOR_0), tc_y_pos, tmc5272_readRegister(tmc_y, TMC5272_RAMPMODE));
-		printf("\tMy0: %d, My1:%d,  ENC: %d , RAMPMODE: %d\n", tmc5272_getPosition(tmc_y, MOTOR_0),tmc5272_getPosition(tmc_y, MOTOR_1), tc_y_pos);
+		// printf("\tMy0: %d, My1:%d,  ENC: %d , RAMPMODE: %d\n", tmc5272_getPosition(tmc_y, MOTOR_0),tmc5272_getPosition(tmc_y, MOTOR_1), tc_y_pos);
 }
 
 void switch_page_touchscreen(void) {

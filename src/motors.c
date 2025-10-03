@@ -56,52 +56,43 @@ void init_motors(void) {
 	tmc5272_sg_configureStallGuard2(tmc_devices.tmc_x, ALL_MOTORS, 0, 60, TRUE);
 	tmc5272_sg_setStallGuard2(tmc_devices.tmc_x, ALL_MOTORS, TRUE);
 	printf("Backing out from edge... \n");
-    MXC_Delay(MXC_DELAY_MSEC(1000));
+    MXC_Delay(MXC_DELAY_MSEC(500));
 	tmc5272_rotateByMicrosteps(tmc_devices.tmc_x, MOTOR_0, 150000, 100000, 3000);
 	while(!tmc5272_isAtTargetPosition(tmc_devices.tmc_x, MOTOR_0)) {}
 
-	// Home side: Rotate until stall
+	// Home to left: Rotate until stall
 	tmc5272_rotateAtVelocity(tmc_devices.tmc_x, MOTOR_0, -300000, 4000);
 	while(!tmc5272_sg_isStalled(tmc_devices.tmc_x, MOTOR_0)) {
-		
-		// printf("SGV: %d \n", tmc5272_sg_getSGValue(tmc_devices.tmc_x, MOTOR_0));
-		
 	}
 	// Stop movement before stall clear
 	tmc5272_rotateAtVelocity(tmc_devices.tmc_x, MOTOR_0, 0, TMC_ACC_MAX);
 	tmc5272_sg_clearStall(tmc_devices.tmc_x, MOTOR_0);
-
 	// Set home position
 	tmc5272_setPositionValue(tmc_devices.tmc_x, MOTOR_0, 0);
-	tmc5272_sg_clearStall(tmc_devices.tmc_x, MOTOR_0);
-
-
 
     // Y Axis
-	tmc5272_sg_configureStallGuard2(tmc_devices.tmc_y, ALL_MOTORS, 0, 60, TRUE);
+	tmc5272_sg_configureStallGuard2(tmc_devices.tmc_y, ALL_MOTORS, -1, 60, TRUE);
 	tmc5272_sg_setStallGuard2(tmc_devices.tmc_y, ALL_MOTORS, TRUE);
 	printf("Backing out y from edge... \n");
-    MXC_Delay(MXC_DELAY_MSEC(1000));
-	tmc5272_rotateByMicrosteps(tmc_devices.tmc_y, ALL_MOTORS, 200000, 100000, 3000);
-	while(!tmc5272_isAtTargetPosition(tmc_devices.tmc_y, MOTOR_0)) {}
 
-	// Home side: Rotate until stall
-	tmc5272_rotateAtVelocity(tmc_devices.tmc_y, ALL_MOTORS, -300000, 4000);
-	while(!tmc5272_sg_isStalled(tmc_devices.tmc_y, ALL_MOTORS)) {}
+    MXC_Delay(MXC_DELAY_MSEC(500));
+	tmc5272_rotateByMicrosteps(tmc_devices.tmc_y, ALL_MOTORS, 250000, 100000, 3000);
+	while(!tmc5272_isAtTargetPosition(tmc_devices.tmc_y, MOTOR_0)) {
+        printf("SGV: %d \n", tmc5272_sg_getSGValue(tmc_devices.tmc_x, MOTOR_0));
+    }
+	// Home to top: Rotate until stall
+	tmc5272_rotateAtVelocity(tmc_devices.tmc_y, ALL_MOTORS, -1 * TMC_VEL_MAX, 4000);
+	while(!tmc5272_sg_isStalled(tmc_devices.tmc_y, ALL_MOTORS)) {
+        printf("SGV: %d \n", tmc5272_sg_getSGValue(tmc_devices.tmc_y, MOTOR_0));
+    }
 	// Stop movement before stall clear
 	tmc5272_rotateAtVelocity(tmc_devices.tmc_y, ALL_MOTORS, 0, TMC_ACC_MAX);
 	tmc5272_sg_clearStall(tmc_devices.tmc_y, ALL_MOTORS);
 	// Set home position
 	tmc5272_setPositionValue(tmc_devices.tmc_y, ALL_MOTORS, 0);
+    tmc5272_sg_setStallGuard2(tmc_devices.tmc_x, MOTOR_0, false);
+    tmc5272_sg_setStallGuard2(tmc_devices.tmc_y, ALL_MOTORS, false);
 // End Stallguard homing
-	// Move back to center
-	// tmc5272_rotateToPosition(tmc_devices.tmc_x, MOTOR_0, 100, TMC_VEL_MAX,TMC_ACC_MAX );
-	// while(!tmc5272_isAtTargetPosition(tmc_devices.tmc_x, MOTOR_0));
-
-	// tmc5272_rotateToPosition(tmc_devices.tmc_y, ALL_MOTORS, 100, TMC_VEL_MAX,TMC_ACC_MAX );
-	tmc5272_sg_clearStall(tmc_devices.tmc_y, ALL_MOTORS);
-	// while(!tmc5272_isAtTargetPosition(tmc_devices.tmc_y, ALL_MOTORS));
-
 }
 
 tmc5272_dev_t* get_tmc_x_device(void) {
