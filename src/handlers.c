@@ -12,7 +12,6 @@
 
 static void switch_page_helper(page_t page, game_mode_t mode);
 
-// uint8_t move_count = 0;
 uint8_t touch_count = 0;
 
 // Update Move Count on display
@@ -33,7 +32,9 @@ void udpate_status_txt(char *status) {
 }
 
 void exit_to_main_menu(void) {
-	auto_reset_game();
+	if(current_mode==AUTOMATED_MODE) {
+		auto_reset_game();
+	}
 	hanoi_reset_game();
 	switch_mode(MENU);
 	move_to_home();
@@ -42,7 +43,6 @@ void exit_to_main_menu(void) {
 }
 
 void solenoid_handler(void) {
-	// tmc5272_dev_t *tmc_y = get_tmc_y_device();
 	printf("Initial Poll:\n");
 	double *temp_weights = poll_weights();
 	// MXC_Delay(MXC_DELAY_MSEC(1000));

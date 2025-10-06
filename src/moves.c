@@ -46,7 +46,8 @@ void move_ring(uint8_t source_tower, uint8_t destination_tower) {
 }
 
 void move_to_home(void) {
-    return;
+    y_move(278960);
+    x_move(143360);
 }
 
 void y_move(uint32_t position) {
@@ -61,3 +62,12 @@ void x_move(uint32_t position) {
 }
 
 // TODO: make reset
+void auto_reset_game(void) {
+    int top = current_game.move_history.top_idx;
+    printf("Resetting game\n%d, move:(%d,%d)\n", top, current_game.move_history.moves[top].source, current_game.move_history.moves[top].destination);
+    while(current_game.move_history.top_idx >= 0) {
+        move_tuple curr_move;
+        pop_history(&current_game.move_history, &curr_move);
+        move_ring(curr_move.destination, curr_move.source);
+    }
+}

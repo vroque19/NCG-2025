@@ -4,7 +4,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-#define MAX_MOVES 32 // Maximum number of moves to store in history
+#define MAX_MOVES 20 // Maximum number of moves to store in history
 
 // Structure to represent a single move
 typedef struct {

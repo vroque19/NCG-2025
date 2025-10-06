@@ -14,7 +14,7 @@ uint16_t get_average(uint16_t *list, uint8_t n) {
 
 /* samples load cell and returns the average reading */
 uint16_t get_calibration_data(void) {
-    int n = 10;
+    int n = 5;
     uint16_t data[n];
     MXC_Delay(MXC_DELAY_MSEC(250));
     for(int i = 0; i < n; i++) {
@@ -54,6 +54,7 @@ void calibrate_towers(void) {
     printf("LC 2: %d\n", calibration_data_2);
     load_cell_towers.load_cell_2->base_offset = calibration_data_2;
     load_cell_towers.load_cell_2->conversion_factor = 0.3920992819;
+    return;
 }
 
 /* converts adc code to grams */

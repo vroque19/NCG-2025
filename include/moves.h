@@ -29,9 +29,6 @@ void move_to_home(void);
 void x_move(uint32_t position);
 void y_move(uint32_t position);
 
-
-/**
- * TODO:
- * 1. Add moves (go to tower x, pick up ring, etc.) that call the TMC driver
- */
+// automated ring reset
+void auto_reset_game(void);
  #endif

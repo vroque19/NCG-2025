@@ -37,5 +37,6 @@ tmc5272_dev_t* get_tmc_x_device(void);
 tmc5272_dev_t* get_tmc_y_device(void);
 tmc5272_dev_t* get_tmc_tc_device(void);
 void init_motors(void);
+void init_stallguard(void);
 
 #endif
