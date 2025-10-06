@@ -29,11 +29,12 @@ extern load_cell_towers_t load_cell_towers;
 extern weight_readings_t weight_readings;
 
 uint16_t calibrate(uint8_t idx);
-uint16_t get_calibration_data(void);
+uint16_t get_data(void);
 void calibrate_towers(void);
 uint16_t get_average(uint16_t *list, uint8_t n);
 double code_to_grams(uint16_t base, uint16_t code, double conversion_factor);
 double get_load_cell_data(uint8_t channel_idx, uint16_t base);
 void test_switch(uint16_t base0, uint16_t base1, uint16_t base2);
+void poll_adc(void);
 
 #endif

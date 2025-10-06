@@ -10,19 +10,24 @@ uint16_t get_average(uint16_t *list, uint8_t n) {
         sum += list[i];
     }
     uint16_t res = floor(sum / n);
+    printf("AVG: %d\n", res);
+
     return res;
 }
 
 /* samples load cell and returns the average reading */
-uint16_t get_calibration_data(void) {
-    int n = 10;
+uint16_t get_data(void) {
+    int n = 20;
     uint16_t data[n];
     MXC_Delay(MXC_DELAY_MSEC(250));
     for(int i = 0; i < n; i++) {
         data[i] = get_adc_data();
-        MXC_Delay(MXC_DELAY_MSEC(10));
+        printf("%d\n", data[i]);
+        MXC_Delay(MXC_DELAY_MSEC(5));
     }
-    uint16_t res = get_adc_data();
+    uint16_t res = get_average(data, n-1);
+    printf("AVG: %d\n", res);
+
     return res;
 }
 
@@ -30,10 +35,21 @@ uint16_t get_calibration_data(void) {
 uint16_t calibrate(uint8_t idx) {
     configure_adc_channel(idx, 0x80); // enable
     printf("~~Taring scale %d~~\n", idx);
-    uint16_t base = get_calibration_data();
+    uint16_t base = get_data();
     configure_adc_channel(idx, 0x00); // disable
     printf("~~Calibration %d Complete~~\n", idx);
     return base;
+}
+
+void poll_adc(void) {
+    for(int i = 0; i < 4; i++) {
+        configure_adc_channel(i, 0x80);
+        uint16_t adc_output = get_adc_data();
+        printf("LC %d: %d\n", i, adc_output);
+        configure_adc_channel(i, 0x00); // disable
+        MXC_Delay(MXC_DELAY_MSEC(200));
+    }
+    printf("\n\n");
 }
 
 void calibrate_towers(void) {
