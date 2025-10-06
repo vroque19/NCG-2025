@@ -18,7 +18,7 @@ int main(void) {
 // init_motors();
   global_uart_init();
   solenoid_gpio_init();
-  printf("Step 3: Setting up initial display...\n");
+  printf("Setting up display...\n");
   // Main application loop
   global_uart_main_loop();
   free(load_cell_towers.load_cell_0);

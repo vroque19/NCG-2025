@@ -3,6 +3,7 @@
 #include "TMC5272.h"
 #include "handlers.h"
 #include "motors.h"
+#include "moves.h"
 #include "mxc_delay.h"
 #include "nextion.h"
 #include "game_logic.h"
@@ -126,8 +127,10 @@ void global_uart_main_loop(void) {
     MXC_Delay(MXC_DELAY_MSEC(1000));
     
     init_motors();
+    MXC_Delay(MXC_DELAY_MSEC(100));
     calibrate_towers();
     printf("Calibration data: %.2f, %.2f, %.2f", load_cell_towers.load_cell_0->base_offset, load_cell_towers.load_cell_1->base_offset,load_cell_towers.load_cell_2->base_offset );
+    move_to_home();
     while (1) {
         // Wait for UART interrupt
         while (!GLOBAL_UART_ISR_FLAG) {

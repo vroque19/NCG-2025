@@ -1,5 +1,6 @@
 #include "nextion.h"
 #include "load_cell.h"
+#include "mxc_delay.h"
 
 
 volatile uint32_t *uart_int_en, *uart_int_flags; 
@@ -94,4 +95,12 @@ double* poll_weights(void) {
 void update_reading(int idx, uint32_t base, char *objname) {
     double weight = get_load_cell_data(idx, base);
     update_weight(weight, objname);
+}
+
+void write_game_complete(void) {
+    MXC_Delay(MXC_DELAY_MSEC(500));
+    char *command = "vis t6,1";
+    nextion_send_command(command);
+    char *exit_command = "vis t18,1";
+    nextion_send_command(exit_command);
 }

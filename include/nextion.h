@@ -109,6 +109,8 @@ void write_to_btn_component(char *objname, char *txt);
 
 void update_weights(double *weights);
 
+void write_game_complete(void);
+
 
 
 #endif

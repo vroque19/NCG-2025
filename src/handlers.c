@@ -33,9 +33,10 @@ void udpate_status_txt(char *status) {
 }
 
 void exit_to_main_menu(void) {
+	auto_reset_game();
 	hanoi_reset_game();
 	switch_mode(MENU);
-	// solenoid_on();
+	move_to_home();
 	touch_count = 0;
     printf("exiting to main menu. move count: %d\n", current_game.moves_made);
 }
@@ -127,9 +128,8 @@ void start_automated(void) {
 	printf("Autosolving towers of hanoi in 7 moves\n\n\n");
 	auto_solve_hanoi(MAX_RINGS, 0, 2);
 	if(current_game.game_complete) {
-		printf("Game Complete :) %d\n", current_game.game_complete);
-		return;
-	}
+			write_game_complete();
+		}
 	return;
 }
 
@@ -180,6 +180,9 @@ static void handle_tower_helper(int tower_idx) {
 	increment_count();
 	// nextion_write_game_state(&current_game);
 	touch_count = 0;
+	if(current_game.game_complete) {
+			write_game_complete();
+		}
 
 }
 
@@ -218,7 +221,11 @@ void run_manual_mode_logic(tmc5272_dev_t *tmc_x, tmc5272_dev_t *tmc_y, tmc5272_d
 		printf("Mx0: %d  ENC: %d\n", tmc5272_getPosition(tmc_x, MOTOR_0), tc_x_pos);
 		// printf("\tMy0: %d,  ENC: %d , RAMPMODE: %d\n", tmc5272_getPosition(tmc_y, MOTOR_0), tc_y_pos, tmc5272_readRegister(tmc_y, TMC5272_RAMPMODE));
 		// printf("\tMy0: %d, My1:%d,  ENC: %d , RAMPMODE: %d\n", tmc5272_getPosition(tmc_y, MOTOR_0),tmc5272_getPosition(tmc_y, MOTOR_1), tc_y_pos);
+		if(current_game.game_complete) {
+			write_game_complete();
+		}
 }
+
 
 void switch_page_touchscreen(void) {
 	write_to_txt_component(MAIN_TXT_BOX, "Begin Solving \r\nTowers of Hanoi:)");
