@@ -44,6 +44,8 @@ void exit_to_main_menu(void) {
 
 void solenoid_handler(void) {
 	printf("Initial Poll:\n");
+	MXC_Delay((MXC_DELAY_MSEC(50)));
+
 	double *temp_weights = poll_weights();
 	// MXC_Delay(MXC_DELAY_MSEC(1000));
 	 // Allocate memory for the previous weights and copy the data.
@@ -66,7 +68,7 @@ void solenoid_handler(void) {
 		// tmc5272_rotateByMicrosteps(tmc_devices.tmc_y, ALL_MOTORS, 51200);
 		printf("Solenoid is on\n\n");
 		printf("Second Poll:\n");
-		MXC_Delay((MXC_DELAY_MSEC(10)));
+		MXC_Delay((MXC_DELAY_MSEC(50)));
 		double *curr_weights = poll_weights();
 		for(int i = 0; i < 3; i++) {
 			printf("\n%d. Curr weight: %.2f\nPrev weight: %.2f\n", i, curr_weights[i], prev_weights[i]);
@@ -79,12 +81,16 @@ void solenoid_handler(void) {
 		if(current_game.selected_tower < 0) {
 			solenoid_off();
 		}
+		MXC_Delay((MXC_DELAY_MSEC(50)));
+
 		poll_weights();
 		touch_count++;
 	} else {
 		solenoid_off();
 		printf("Solenoid is off\n\n");
 		printf("Second Poll:\n");
+		MXC_Delay((MXC_DELAY_MSEC(50)));
+
 		double *curr_weights = poll_weights();
 		// update_weights(poll_weights());
 

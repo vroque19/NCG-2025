@@ -203,7 +203,8 @@ void set_filter_n(void) {
     // filter mode: sinc^3 standalone filter
     // ODR: 1000
     // uint8_t tx_data[] = {0x00, 0x27, 0xFF};
-    uint8_t tx_data[] = {0x0, 0x20, 0xA0}; // ODR: 160
+    // uint8_t tx_data[] = {0x0, 0x20, 0xA0}; // ODR: 160
+    uint8_t tx_data[] = {0x0, 0x20, 0x14}; // FS: 20
     for(int i = 0; i <= n; i++) {
         if (i > 1) {
             // 48 sps
