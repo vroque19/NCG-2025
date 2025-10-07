@@ -9,8 +9,8 @@
 #include "uart.h"
 #include "led.h"
 #include "spi.h"
-#include "include/4131.h"
-#include "include/load_cell.h"
+#include "4131.h"
+#include "load_cell.h"
 
 
 int main(void)
