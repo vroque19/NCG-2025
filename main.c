@@ -21,12 +21,12 @@ int main(void) {
   configure_adc_channel(2, 0x00); // disable
   configure_adc_channel(3, 0x00); // disable
 
-  configure_adc_channel(0, 0x80); // enable
+  configure_adc_channel(2, 0x80); // enable
   get_data();
   while(1) {
     uint32_t data = get_adc_data();
-    printf("Code for LC 0: %d\n", data);
-    MXC_Delay(200000);
+    printf("Code for tower 2: %d\n", data);
+    MXC_Delay(1000);
 
   }
   // Close the file

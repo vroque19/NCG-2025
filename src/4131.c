@@ -188,7 +188,7 @@ void set_config_n(void) {
     size_t bytes = 2;
     int n = 7;
     // set gain 64
-    uint8_t tx_data[] = {0x0, 0x0C};
+    uint8_t tx_data[] = {0x0, 0x0A};
     for(int i = 0; i <= n; i++) {
         if(i > 1) {
             tx_data[1] = 0x0;
