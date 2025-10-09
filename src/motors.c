@@ -29,6 +29,7 @@ void init_motors(void) {
         .gpio_cfg_spi = &spi_port_cfg,
         .ss_index = TMC5272_SPI_CS_IDX_TC
     };
+    printf("Motors initialized");
     
     // Assign pointers to the tmc_devices
     tmc_devices.tmc_x = &tmc_x_dev;
@@ -45,13 +46,12 @@ void init_motors(void) {
     tmc5272_tricoder_init(tmc_devices.tmc_tc, TC_Y);
     
     // Velocity
-    // tmc5272_setVelocityCurve(tmc_devices.tmc_x, MOTOR_0, TMC_VEL_MAX, TMC_ACC_MAX);
-    // tmc5272_setVelocityCurve(tmc_devices.tmc_y, ALL_MOTORS, TMC_VEL_MAX, TMC_ACC_MAX);
+    tmc5272_setVelocityCurve(tmc_devices.tmc_x, MOTOR_0, TMC_VEL_MAX, TMC_ACC_MAX);
+    tmc5272_setVelocityCurve(tmc_devices.tmc_y, ALL_MOTORS, TMC_VEL_MAX, TMC_ACC_MAX);
     tmc5272_setSynchronizedPositioning(tmc_devices.tmc_y, true);
     
     tmc5272_setMotorPolarity(tmc_devices.tmc_y, MOTOR_0, MOTOR_DIR_INVERT);
     init_stallguard();
-    printf("Motors initialized");
     
 }
 

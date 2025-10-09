@@ -1,5 +1,6 @@
 // // global_uart_handler.c
 #include "global_uart_handler.h"
+#include "4131.h"
 #include "TMC5272.h"
 #include "handlers.h"
 #include "motors.h"
@@ -29,7 +30,10 @@ const screen_component comp_table[] = {
         {PAGE_AUTOMATED, EXIT_AUTOMATED_ID, exit_to_main_menu},
         {PAGE_MAIN_MENU, PAGE_TOUCHSCREEN_ID, switch_page_touchscreen},
         {PAGE_MAIN_MENU, PAGE_MANUAL_ID, switch_page_manual},
-        {PAGE_MAIN_MENU, PAGE_AUTOMATED_ID, switch_page_automated}
+        {PAGE_MAIN_MENU, PAGE_AUTOMATED_ID, switch_page_automated},
+        {PAGE_MAIN_MENU, PAGE_SCALE_ID, switch_page_scale},
+        {PAGE_SCALE, EXIT_SCALE_ID, exit_to_main_menu},
+        {PAGE_MAIN_MENU, CALIBRATE_ID, start_cal}
 };
 
 
@@ -126,20 +130,26 @@ void global_uart_main_loop(void) {
     MXC_UART_TransactionAsync(&global_uart_req);
     MXC_Delay(MXC_DELAY_MSEC(1000));
     
-    init_motors();
+    // init_motors();
     MXC_Delay(MXC_DELAY_MSEC(100));
     calibrate_towers();
-    printf("Calibration data: %.2f, %.2f, %.2f", load_cell_towers.load_cell_0->base_offset, load_cell_towers.load_cell_1->base_offset,load_cell_towers.load_cell_2->base_offset );
-    move_to_home();
+    printf("Begin\n");
+    // printf("Calibration data: %.2f, %.2f, %.2f", load_cell_towers.load_cell_0->base_offset, load_cell_towers.load_cell_1->base_offset,load_cell_towers.load_cell_2->base_offset );
+    // move_to_home();
     while (1) {
         // Wait for UART interrupt
         while (!GLOBAL_UART_ISR_FLAG) {
+            // printf("waiting\n");
             if(current_mode==MANUAL_MODE) {
-                    run_manual_mode_logic(tmc_devices.tmc_x, tmc_devices.tmc_y, tmc_devices.tmc_tc);
+                    // run_manual_mode_logic(tmc_devices.tmc_x, tmc_devices.tmc_y, tmc_devices.tmc_tc);
                 }
+            else if(current_mode==SCALE) {
+                weigh_scale_routine();
+            }
         }
         __disable_irq(); // debounce
         handle_touch_event(global_rx_buffer);
+        print_buff(global_rx_buffer, 7);
         // Reset flag and re-arm interrupt
         GLOBAL_UART_ISR_FLAG = 0;
         global_uart_req.txCnt = 0;

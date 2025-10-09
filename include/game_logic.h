@@ -21,7 +21,7 @@ typedef struct {
 typedef enum {
     MANUAL_MODE,
     TOUCHSCREEN_MODE,
-    AUTOMATED_MODE, MENU
+    AUTOMATED_MODE, MENU, SCALE
 } game_mode_t;
 // Move validation result
 typedef enum {

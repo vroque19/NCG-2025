@@ -68,6 +68,6 @@ void auto_reset_game(void) {
     while(current_game.move_history.top_idx >= 0) {
         move_tuple curr_move;
         pop_history(&current_game.move_history, &curr_move);
-        move_ring(curr_move.destination, curr_move.source);
+        // move_ring(curr_move.destination, curr_move.source);
     }
 }

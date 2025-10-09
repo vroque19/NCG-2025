@@ -2,6 +2,7 @@
 #include "TMC5272.h"
 #include "game_logic.h"
 #include "global_uart_handler.h"
+#include "load_cell.h"
 #include "mode_touchscreen.h"
 #include "motors.h"
 #include "moves.h"
@@ -32,13 +33,16 @@ void udpate_status_txt(char *status) {
 }
 
 void exit_to_main_menu(void) {
+	// MXC_UART_ClearRXFIFO(GLOBAL_UART_REG);
+	// MXC_UART_ClearTXFIFO(GLOBAL_UART_REG);
 	if(current_mode==AUTOMATED_MODE) {
 		auto_reset_game();
 	}
-	hanoi_reset_game();
 	switch_mode(MENU);
-	move_to_home();
+	hanoi_reset_game();
+	// move_to_home();
 	touch_count = 0;
+
     printf("exiting to main menu. move count: %d\n", current_game.moves_made);
 }
 
@@ -116,13 +120,13 @@ void auto_solve_hanoi(int num_rings, int source, int dest) {
 	increment_count();
 
 	if(num_rings == 1) {
-		move_ring(source, dest);
+		// move_ring(source, dest);
 		hanoi_execute_move(source, dest);
 	}
 	else {
 		int aux = 3 - (source + dest);
 		auto_solve_hanoi(num_rings - 1, source, aux);
-		move_ring(source, dest);
+		// move_ring(source, dest);
 		hanoi_execute_move(source, dest);
 		auto_solve_hanoi(num_rings - 1, aux, dest);
 	}
@@ -174,14 +178,13 @@ static void handle_tower_helper(int tower_idx) {
     write_to_txt_component(MAIN_TXT_BOX, txt_responses[result]);
 	if((result)==MOVE_VALID) {
 		printf("\n ~Handling move from %d to %d~\n\n", source_tower, dest_tower);
-		move_ring(source_tower, dest_tower);
+		// move_ring(source_tower, dest_tower);
 		nextion_move_rings(source_tower, dest_tower, source_height, dest_height, selected_ring);
 		printf("Moved ring...");
 		double * weights = poll_weights();
 		// update_weights(weights);
 	}
 	hanoi_execute_move(current_game.selected_tower, tower_idx);
-
 	nextion_change_ring_color(selected_ring, RING_COLOR_DEFAULT);
 	increment_count();
 	// nextion_write_game_state(&current_game);
@@ -192,6 +195,11 @@ static void handle_tower_helper(int tower_idx) {
 
 }
 
+void weigh_scale_routine(void) {
+	poll_weights();
+	printf("In weigh Scale Routine\n");
+	MXC_Delay(MXC_DELAY_MSEC(10));
+}
 
 // could make a struct instead
 void handle_tower_0_btn(void) {
@@ -207,10 +215,13 @@ void handle_tower_2_btn(void) {
 }
 
 static void switch_page_helper(page_t page, game_mode_t mode) {
-	// solenoid_on();
+	// solenoid_off();
+	switch_mode(mode);
+	if(mode==SCALE) {
+		return;
+	}
 	hanoi_init_game(MAX_RINGS);
 	hanoi_print_game_state("Initialized game", &current_game);
-	switch_mode(mode);
 	nextion_write_game_state(&current_game);
 	poll_weights();
 }
@@ -266,6 +277,10 @@ void nextion_write_game_state(game_state_t *game) {
 	// printf("Rings buffer for tower 0: %s %d\n", rings_str, top_idx);
 }
 
+void start_cal(void) {
+	calibrate_towers();
+}
+
 void switch_page_manual(void) {
 	printf("switching to manual \n\n");
 	switch_page_helper(PAGE_MANUAL, MANUAL_MODE);
@@ -276,6 +291,15 @@ void switch_page_manual(void) {
 void switch_page_automated(void) {
 	printf("switching to automated \n\n");
 	switch_page_helper(PAGE_AUTOMATED, AUTOMATED_MODE);
+}
+
+void switch_page_scale(void) {
+	printf("switching to scale demo \n\n");
+	if(current_mode==SCALE) {
+		exit_to_main_menu();
+	} else {
+		switch_page_helper(PAGE_SCALE, SCALE);
+	}
 }
 
 // Switch to a new operating mode

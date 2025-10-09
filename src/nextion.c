@@ -1,6 +1,8 @@
 #include "nextion.h"
+#include "game_logic.h"
 #include "load_cell.h"
 #include "mxc_delay.h"
+#include "uart.h"
 
 
 volatile uint32_t *uart_int_en, *uart_int_flags; 
@@ -66,6 +68,7 @@ void write_to_btn_component(char *objname, char *txt) {
 
 // update the weight output text on the display
 void update_weight(double weight, char *objname) {
+    // __disable_irq();
     char weight_str[32]; // final command
     snprintf(weight_str, sizeof(weight_str), "%.2fg", weight); // combine obj, pref, weight, suff into one commands
     // printf("weight str: %s\n", weight_str);
@@ -81,6 +84,7 @@ void update_weights(double *weights) {
 }
 // testing 3 load cells
 double* poll_weights(void) {
+    __disable_irq();
     double weight0 = get_load_cell_data(LOAD_CELL_0, load_cell_towers.load_cell_0->base_offset);
     double weight1 = get_load_cell_data(LOAD_CELL_1, load_cell_towers.load_cell_1->base_offset);
     double weight2 = get_load_cell_data(LOAD_CELL_2, load_cell_towers.load_cell_2->base_offset);
@@ -88,7 +92,7 @@ double* poll_weights(void) {
     weight_readings.weights[1] = weight1;
     weight_readings.weights[2] = weight2;
     update_weights(weight_readings.weights);
-    
+    __enable_irq();
     return weight_readings.weights;
 }
 
