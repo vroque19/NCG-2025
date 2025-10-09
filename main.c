@@ -16,8 +16,8 @@ int main(void) {
   spi_main_init();
   write_mem_map();
   read_adc_id();
-  configure_adc_channel(1, 0x00); // disable
   configure_adc_channel(2, 0x00); // disable
+  configure_adc_channel(1, 0x00); // disable
 
   configure_adc_channel(0, 0x80); // enable
   // get_adc_data();
@@ -34,15 +34,20 @@ int main(void) {
   //uint32_t data2 = get_calibration_data();
   //printf("\n- - - - - -\nAverage 2: %d\n- - - - - -\n\n", data2);
   while (1) {
-
-    uint16_t test_data[30];
-    // how often to poll (ms) 
-    // polling just more than every 1 ms
-    for (int i = 0; i < 30; i++) {
-      MXC_Delay(MXC_DELAY_MSEC(1));
-      test_data[i] = get_adc_data();
-      printf("code out: %d\n", test_data[i]);
+    // setting up to take 500 samples
+    for (int j = 0; j < 17; j++) {
+  
+      uint16_t test_data[30];
+      // how often to poll (ms) 
+      // polling just more than every 1 ms
+      for (int i = 0; i < 30; i++) {
+        MXC_Delay(MXC_DELAY_MSEC(34));
+        test_data[i] = get_adc_data();
+        printf("%d\n", test_data[i]);
+      }
     }
+    // stop after
+    while (1);
     
     // convert to volts, accounting for gain, ref, and bits
     // unipolar mode

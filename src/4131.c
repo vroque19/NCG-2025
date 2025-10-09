@@ -187,10 +187,10 @@ void set_channel_m(void) {
 void set_config_n(void) {
     size_t bytes = 2;
     int n = 7;
-    // gain of 64
-    // uint8_t tx_data[] = {0x0, 0x0C};
+    // gain of 64 (110)
+    uint8_t tx_data[] = {0x0, 0x0C};
     // gain of 1 
-    uint8_t tx_data[] = {0x0, 0x00};
+    // uint8_t tx_data[] = {0x0, 0x00};
     for(int i = 0; i <= n; i++) {
         if(i > 1) {
             tx_data[1] = 0x0;
@@ -205,8 +205,8 @@ void set_filter_n(void) {
     // filter mode: sinc^3 standalone filter
     // ODR: 160 sps
     // uint8_t tx_data[] = {0x0, 0x20, 0xA0};
-    // changing to increase ODR -> 1000
-    uint8_t tx_data[] = {0x00, 0x23, 0xE8};
+    // changing to ODR -> 30 -> 0x1E
+    uint8_t tx_data[] = {0x00, 0x20, 0x1E};
     for(int i = 0; i <= n; i++) {
         if (i > 1) {
             // 48 sps
@@ -253,9 +253,11 @@ void set_ctrl(void) {
 
     // testing 0x00, 0x00
     // for unipolar mode, functional
-
     // uint8_t tx_data[] = {0x01, 0x02};
-    uint8_t tx_data[] = {0x00, 0x00};
+    // 0x00, 0x00 for unipolar, no int ref
+    // uint8_t tx_data[] = {0x00, 0x00};
+    // 0x40, 0x00 for bipolar, no int ref
+    uint8_t tx_data[] = {0x40, 0x00};
     set_reg(ADC_CONTROL, tx_data, bytes);
 }
 
