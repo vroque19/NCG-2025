@@ -50,7 +50,7 @@ void init_motors(void) {
     tmc5272_setVelocityCurve(tmc_devices.tmc_y, ALL_MOTORS, TMC_VEL_MAX, TMC_ACC_MAX);
     tmc5272_setSynchronizedPositioning(tmc_devices.tmc_y, true);
     
-    tmc5272_setMotorPolarity(tmc_devices.tmc_y, MOTOR_0, MOTOR_DIR_INVERT);
+    // tmc5272_setMotorPolarity(tmc_devices.tmc_y, MOTOR_0, MOTOR_DIR_INVERT);
     init_stallguard();
     
 }
@@ -80,7 +80,7 @@ tmc5272_dev_t* get_tmc_tc_device(void) {
 // StallGuard Homing
 void init_stallguard(void) {
     // X Axis
-	tmc5272_sg_configureStallGuard2(tmc_devices.tmc_x, ALL_MOTORS, 0, 60, TRUE);
+	tmc5272_sg_configureStallGuard2(tmc_devices.tmc_x, ALL_MOTORS, 1, 60, TRUE);
 	tmc5272_sg_setStallGuard2(tmc_devices.tmc_x, ALL_MOTORS, TRUE);
 	printf("Backing out from edge... \n");
     MXC_Delay(MXC_DELAY_MSEC(500));

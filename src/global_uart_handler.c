@@ -130,7 +130,7 @@ void global_uart_main_loop(void) {
     MXC_UART_TransactionAsync(&global_uart_req);
     MXC_Delay(MXC_DELAY_MSEC(1000));
     
-    // init_motors();
+    init_motors();
     MXC_Delay(MXC_DELAY_MSEC(100));
     calibrate_towers();
     printf("Begin\n");
@@ -141,7 +141,7 @@ void global_uart_main_loop(void) {
         while (!GLOBAL_UART_ISR_FLAG) {
             // printf("waiting\n");
             if(current_mode==MANUAL_MODE) {
-                    // run_manual_mode_logic(tmc_devices.tmc_x, tmc_devices.tmc_y, tmc_devices.tmc_tc);
+                    run_manual_mode_logic(tmc_devices.tmc_x, tmc_devices.tmc_y, tmc_devices.tmc_tc);
                 }
             else if(current_mode==SCALE) {
                 weigh_scale_routine();
