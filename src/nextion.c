@@ -68,10 +68,8 @@ void write_to_btn_component(char *objname, char *txt) {
 
 // update the weight output text on the display
 void update_weight(double weight, char *objname) {
-    // __disable_irq();
     char weight_str[32]; // final command
     snprintf(weight_str, sizeof(weight_str), "%.2fg", weight); // combine obj, pref, weight, suff into one commands
-    // printf("weight str: %s\n", weight_str);
     write_to_txt_component(objname, weight_str);
 }
 int global_base_array[3] = {0, 0, 0};

@@ -10,6 +10,7 @@
 #include "nextion.h"
 #include "solenoid_driver.h"
 #include "stack.h"
+#include <stdint.h>
 
 static void switch_page_helper(page_t page, game_mode_t mode);
 
@@ -35,81 +36,39 @@ void udpate_status_txt(char *status) {
 void exit_to_main_menu(void) {
 	// MXC_UART_ClearRXFIFO(GLOBAL_UART_REG);
 	// MXC_UART_ClearTXFIFO(GLOBAL_UART_REG);
-	if(current_mode==AUTOMATED_MODE) {
+	if(current_mode==AUTOMATED_MODE || current_mode==TOUCHSCREEN_MODE) {
 		auto_reset_game();
 	}
 	switch_mode(MENU);
 	hanoi_reset_game();
-	// move_to_home();
+	move_to_home();
 	touch_count = 0;
 
     printf("exiting to main menu. move count: %d\n", current_game.moves_made);
 }
 
 void solenoid_handler(void) {
-	printf("Initial Poll:\n");
-	MXC_Delay((MXC_DELAY_MSEC(50)));
-
-	double *temp_weights = poll_weights();
-	// MXC_Delay(MXC_DELAY_MSEC(1000));
-	 // Allocate memory for the previous weights and copy the data.
-    double *prev_weights = (double *)malloc(3 * sizeof(double));
-    if (prev_weights == NULL) {
-        // Handle memory allocation failure
-        return;
-    }
-    memcpy(prev_weights, temp_weights, 3 * sizeof(double));
 	if(touch_count == 0) {
-		/*
-		Manual mode game logic
-		1. get the prev weights 
-		2/ actuate and move solenoid
-		3. get curr weights 
-		4. update game state
-		*/
-		
+		printf("touch count: %d\n\n", touch_count);
+		__disable_irq();
+		// uint8_t source_tower = get_tower_from_weight_delta(); // get source tower
 		solenoid_on();
-		// tmc5272_rotateByMicrosteps(tmc_devices.tmc_y, ALL_MOTORS, 51200);
-		printf("Solenoid is on\n\n");
-		printf("Second Poll:\n");
-		MXC_Delay((MXC_DELAY_MSEC(50)));
-		double *curr_weights = poll_weights();
-		for(int i = 0; i < 3; i++) {
-			printf("\n%d. Curr weight: %.2f\nPrev weight: %.2f\n", i, curr_weights[i], prev_weights[i]);
-			current_game.selected_tower = -1;
-			if(prev_weights[i] - curr_weights[i] > 50) {
-				current_game.selected_tower = i;
-			}
-		}
-		// if source < 0, no ring is picked up
-		if(current_game.selected_tower < 0) {
-			solenoid_off();
-		}
-		MXC_Delay((MXC_DELAY_MSEC(50)));
-
-		poll_weights();
+		// uint8_t destination_tower = get_tower_from_weight_delta();
 		touch_count++;
+		printf("Solenoid is on\n\n");
+		// int move = hanoi_validate_move(source_tower, destination_tower);
+		// if(move==MOVE_VALID) {
+		// 	hanoi_execute_move(source_tower, destination_tower);
+		// 	increment_count();
+		// 	nextion_write_game_state(&current_game);
+		// }
+		// __enable_irq();
 	} else {
+		printf("touch count: %d\n\n", touch_count);
 		solenoid_off();
-		printf("Solenoid is off\n\n");
-		printf("Second Poll:\n");
-		MXC_Delay((MXC_DELAY_MSEC(50)));
-
-		double *curr_weights = poll_weights();
-		// update_weights(poll_weights());
-
-		for(int i = 0; i < 3; i++) {
-			current_game.selected_tower = -1;
-			printf("\nCurr weight: %.2f\nPrev weight: %.2f\n", curr_weights[i], prev_weights[i]);
-			if(curr_weights[i] - prev_weights[i] > 50) {
-				int dest_tower_idx = i;
-					hanoi_execute_move(current_game.selected_tower, dest_tower_idx);
-
-			}
-		}
+		// MXC_Delay(MXC_DELAY_MSEC(25));
 		touch_count = 0;
 	}
-	return;
 }
 
 // automated mode functions --
@@ -223,21 +182,33 @@ static void switch_page_helper(page_t page, game_mode_t mode) {
 	hanoi_init_game(MAX_RINGS);
 	hanoi_print_game_state("Initialized game", &current_game);
 	nextion_write_game_state(&current_game);
-	poll_weights();
+	// poll_weights();
 }
 
 // New function to contain the continuous manual mode logic
 void run_manual_mode_logic(tmc5272_dev_t *tmc_x, tmc5272_dev_t *tmc_y, tmc5272_dev_t *tmc_tc) {
+	int towers[3] = {TOWER_0_POS, TOWER_1_POS, TOWER_2_POS};
+	// TODO: if time, add fixed positioning
 		int32_t tc_x_pos = tmc5272_tricoder_getPosition(tmc_tc, TC_X);
 		int32_t tc_y_pos = tmc5272_tricoder_getPosition(tmc_tc, TC_Y);
 		
 		// Rotate each axis to its encoder position
-		tmc5272_rotateToPosition(tmc_x, MOTOR_0, 10*tc_x_pos, TMC_VEL_MAX, TMC_ACC_MAX);
+		if(tmc5272_getPosition(tmc_y, MOTOR_1) < RING_DROP_HEIGHT) {
+			tmc5272_rotateToPosition(tmc_x, MOTOR_0, 10*tc_x_pos, TMC_VEL_MAX, TMC_ACC_MAX);
+		}
+		if(tmc5272_getPosition(tmc_y, MOTOR_1) >= RING_DROP_HEIGHT)
+		{
+			for(int i = 0; i < 3; i++) {
+				if((abs(tmc5272_getPosition(tmc_x, MOTOR_0)-towers[i]) < MANUAL_MODE_ASSISTANCE_THRESH)) {
+					tmc5272_rotateToPosition(tmc_x, MOTOR_0, towers[i], TMC_VEL_MAX, TMC_ACC_MAX);
+				}
+			}
+		}
 		tmc5272_rotateToPosition(tmc_y, ALL_MOTORS, 10*tc_y_pos, TMC_VEL_MAX, TMC_ACC_MAX);
 
-		printf("Mx0: %d  ENC: %d\n", tmc5272_getPosition(tmc_x, MOTOR_0), tc_x_pos);
+		// printf("Mx0: %d  ENC: %d\n", tmc5272_getPosition(tmc_x, MOTOR_0), tc_x_pos);
 		// printf("\tMy0: %d,  ENC: %d , RAMPMODE: %d\n", tmc5272_getPosition(tmc_y, MOTOR_0), tc_y_pos, tmc5272_readRegister(tmc_y, TMC5272_RAMPMODE));
-		// printf("\tMy0: %d, My1:%d,  ENC: %d , RAMPMODE: %d\n", tmc5272_getPosition(tmc_y, MOTOR_0),tmc5272_getPosition(tmc_y, MOTOR_1), tc_y_pos);
+		// printf("\tMy0: %d, My1:%d,  ENC: %d\n", tmc5272_getPosition(tmc_y, MOTOR_0),tmc5272_getPosition(tmc_y, MOTOR_1), tc_y_pos);
 		if(current_game.game_complete) {
 			write_game_complete();
 		}
@@ -284,6 +255,7 @@ void start_cal(void) {
 void switch_page_manual(void) {
 	printf("switching to manual \n\n");
 	switch_page_helper(PAGE_MANUAL, MANUAL_MODE);
+
 	printf("Create Motor IC\n\n");
 }
 

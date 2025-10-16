@@ -1,6 +1,7 @@
 #include "motors.h"
 #include "TMC5272.h"
 #include "mxc_delay.h"
+#include "solenoid_driver.h"
 
 tmc_devices_t tmc_devices = {};
 void init_motors(void) {
@@ -50,7 +51,7 @@ void init_motors(void) {
     tmc5272_setVelocityCurve(tmc_devices.tmc_y, ALL_MOTORS, TMC_VEL_MAX, TMC_ACC_MAX);
     tmc5272_setSynchronizedPositioning(tmc_devices.tmc_y, true);
     
-    // tmc5272_setMotorPolarity(tmc_devices.tmc_y, MOTOR_0, MOTOR_DIR_INVERT);
+    tmc5272_setMotorPolarity(tmc_devices.tmc_x, MOTOR_0, MOTOR_DIR_INVERT);
     init_stallguard();
     
 }
@@ -79,29 +80,12 @@ tmc5272_dev_t* get_tmc_tc_device(void) {
 
 // StallGuard Homing
 void init_stallguard(void) {
-    // X Axis
-	tmc5272_sg_configureStallGuard2(tmc_devices.tmc_x, ALL_MOTORS, 1, 60, TRUE);
-	tmc5272_sg_setStallGuard2(tmc_devices.tmc_x, ALL_MOTORS, TRUE);
-	printf("Backing out from edge... \n");
-    MXC_Delay(MXC_DELAY_MSEC(500));
-	tmc5272_rotateByMicrosteps(tmc_devices.tmc_x, MOTOR_0, 150000, 100000, 3000);
-	while(!tmc5272_isAtTargetPosition(tmc_devices.tmc_x, MOTOR_0)) {}
-
-	// Home to left: Rotate until stall
-	tmc5272_rotateAtVelocity(tmc_devices.tmc_x, MOTOR_0, -300000, 4000);
-	while(!tmc5272_sg_isStalled(tmc_devices.tmc_x, MOTOR_0)) {
-	}
-	// Stop movement before stall clear
-	tmc5272_rotateAtVelocity(tmc_devices.tmc_x, MOTOR_0, 0, TMC_ACC_MAX);
-	tmc5272_sg_clearStall(tmc_devices.tmc_x, MOTOR_0);
-	// Set home position for x
-	tmc5272_setPositionValue(tmc_devices.tmc_x, MOTOR_0, 0);
-
+    solenoid_on();
     // Y Axis
-	tmc5272_sg_configureStallGuard2(tmc_devices.tmc_y, ALL_MOTORS, -2, 60, TRUE);
+	tmc5272_sg_configureStallGuard2(tmc_devices.tmc_y, ALL_MOTORS, -20, 60, TRUE);
 	tmc5272_sg_setStallGuard2(tmc_devices.tmc_y, ALL_MOTORS, TRUE);
 	printf("Backing out y from edge... \n");
-
+    
     MXC_Delay(MXC_DELAY_MSEC(500));
 	tmc5272_rotateByMicrosteps(tmc_devices.tmc_y, ALL_MOTORS, 250000, 100000, 3000);
 	while(!tmc5272_isAtTargetPosition(tmc_devices.tmc_y, MOTOR_0)) {
@@ -117,7 +101,25 @@ void init_stallguard(void) {
 	tmc5272_sg_clearStall(tmc_devices.tmc_y, ALL_MOTORS);
 	// Set home position for y
 	tmc5272_setPositionValue(tmc_devices.tmc_y, ALL_MOTORS, 0);
+    // X Axis
+    tmc5272_sg_configureStallGuard2(tmc_devices.tmc_x, ALL_MOTORS, 1, 60, TRUE);
+    tmc5272_sg_setStallGuard2(tmc_devices.tmc_x, ALL_MOTORS, TRUE);
+    printf("Backing out from edge... \n");
+    MXC_Delay(MXC_DELAY_MSEC(500));
+    tmc5272_rotateByMicrosteps(tmc_devices.tmc_x, MOTOR_0, 150000, 100000, 3000);
+    while(!tmc5272_isAtTargetPosition(tmc_devices.tmc_x, MOTOR_0)) {}
+    
+    // Home to left: Rotate until stall
+    tmc5272_rotateAtVelocity(tmc_devices.tmc_x, MOTOR_0, -300000, 4000);
+    while(!tmc5272_sg_isStalled(tmc_devices.tmc_x, MOTOR_0)) {
+    }
+    // Stop movement before stall clear
+    tmc5272_rotateAtVelocity(tmc_devices.tmc_x, MOTOR_0, 0, TMC_ACC_MAX);
+    tmc5272_sg_clearStall(tmc_devices.tmc_x, MOTOR_0);
+    // Set home position for x
+    tmc5272_setPositionValue(tmc_devices.tmc_x, MOTOR_0, 0);
     tmc5272_sg_setStallGuard2(tmc_devices.tmc_x, MOTOR_0, false);
     tmc5272_sg_setStallGuard2(tmc_devices.tmc_y, ALL_MOTORS, false);
-// End Stallguard homing
+    solenoid_off();
+    // End Stallguard homing
 }

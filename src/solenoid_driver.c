@@ -22,15 +22,13 @@ void solenoid_gpio_init(void) {
 
 void solenoid_on(void) {
     MXC_GPIO_OutSet(SOLENOID_GPIO_PORT_OUT, SOLENOID_GPIO_PIN_OUT);
-    printf("Turning solenoid on. GPIO output state: %d\n\n", MXC_GPIO_OutGet(solenoid_gpio_out.port, SOLENOID_GPIO_PIN_OUT));
-    LED_Off(LED_GREEN);
+    // printf("Turning solenoid on. GPIO output state: %d\n\n", MXC_GPIO_OutGet(solenoid_gpio_out.port, SOLENOID_GPIO_PIN_OUT));
 
 
 }
 void solenoid_off(void) {
     MXC_GPIO_OutClr(solenoid_gpio_out.port, solenoid_gpio_out.mask);
-    printf("Turning solenoid off. GPIO output state: %d\n\n", MXC_GPIO_OutGet(solenoid_gpio_out.port, SOLENOID_GPIO_PIN_OUT));
-    LED_On(LED_GREEN);
+    // printf("Turning solenoid off. GPIO output state: %d\n\n", MXC_GPIO_OutGet(solenoid_gpio_out.port, SOLENOID_GPIO_PIN_OUT));
 }
 
 void solenoid_toggle(void) {

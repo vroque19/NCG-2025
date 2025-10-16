@@ -134,8 +134,6 @@ void global_uart_main_loop(void) {
     MXC_Delay(MXC_DELAY_MSEC(100));
     calibrate_towers();
     printf("Begin\n");
-    // printf("Calibration data: %.2f, %.2f, %.2f", load_cell_towers.load_cell_0->base_offset, load_cell_towers.load_cell_1->base_offset,load_cell_towers.load_cell_2->base_offset );
-    // move_to_home();
     while (1) {
         // Wait for UART interrupt
         while (!GLOBAL_UART_ISR_FLAG) {
@@ -149,7 +147,7 @@ void global_uart_main_loop(void) {
         }
         __disable_irq(); // debounce
         handle_touch_event(global_rx_buffer);
-        print_buff(global_rx_buffer, 7);
+        // print_buff(global_rx_buffer, 7);
         // Reset flag and re-arm interrupt
         GLOBAL_UART_ISR_FLAG = 0;
         global_uart_req.txCnt = 0;

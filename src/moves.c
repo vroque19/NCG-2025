@@ -8,10 +8,11 @@
 #include "nextion.h"
 #include "solenoid_driver.h"
 #include <stdint.h>
+#include <math.h>
 
-// global array of ring positions on y axis
+// array of ring positions on y axis
 uint32_t ring_pos_y[3] = {RING_2_DEFAULT_POS, RING_1_DEFAULT_POS, RING_0_DEFAULT_POS};
-// global array of tower positions on x axis
+// array of tower positions on x axis
 uint32_t tower_pos_x[3] = {TOWER_0_POS, TOWER_1_POS, TOWER_2_POS};
 
 
@@ -33,15 +34,15 @@ void move_ring(uint8_t source_tower, uint8_t destination_tower) {
     uint32_t tower_pos = tower_pos_x[destination_tower];
     x_move(tower_pos);
     // move down
-    // uint32_t pos_drop = ring_pos_y[current_game.towers[destination_tower].top_idx];
     // // drop ring
-    // y_move(pos_drop);
-    y_move(RING_DROP_HEIGHT);
+    // y_move(RING_DROP_HEIGHT);
     solenoid_on();
 
     // move back up
+    y_move(LIFTED_POS);
+
     printf("Successfully moved ring!!!\n\n\n");
-    MXC_Delay(MXC_DELAY_MSEC(500));
+    MXC_Delay(MXC_DELAY_MSEC(200));
     solenoid_off();
 }
 

@@ -1,8 +1,10 @@
 #include "load_cell.h"
 #include "4131.h"
+#include <stdint.h>
 
 
 load_cell_towers_t load_cell_towers = {0};
+
 uint16_t get_average(uint16_t *list, uint8_t n) {
     uint16_t sum = 0;
     for(int i = 0; i < n; i++) {
@@ -75,7 +77,7 @@ double get_load_cell_data(uint8_t channel_idx, uint16_t base) {
     // wait before data read to allow the register to populate
     MXC_Delay(MXC_DELAY_MSEC(225));
     uint16_t code = get_adc_data();
-    // if(code - base <= 40) {
+    // if(code - base < 30) {
     //     code = base;
     // }
     // check the status

@@ -16,12 +16,10 @@ char* txt_responses[5] = {
     "Not valid tower"
 };
 
-// TODO: Add weight thresholds 
 static const double ring_weights[] = {
     1,  // Size 1
     2,  // Size 2
     3,  // Size 3
-    // 50.0,  // Size 4
 };
 static void hanoi_init_game_tower_0(void);
 void hanoi_init_game(uint8_t num_rings) {
@@ -67,20 +65,12 @@ void hanoi_execute_move(uint8_t source_tower, uint8_t destination_tower) {
     }
     tower_stack *source = &current_game.towers[source_tower];
     tower_stack *dest = &current_game.towers[destination_tower];
-    
-    // Move the ring
-    /**
-     * go to source()
-     * pick up ring()
-     * go to dest()
-     * place ring()
-     */
     uint8_t moving_ring = pop_tower(source);
     push_tower(dest, moving_ring);
     push_history(&current_game.move_history, move);
 
     current_game.moves_made++;
-	// hanoi_print_game_state("Current Game State: ", &current_game);
+	hanoi_print_game_state("Current Game State: ", &current_game);
 
     // Check win condition
     if (hanoi_is_solved()) {
