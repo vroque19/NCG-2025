@@ -47,8 +47,8 @@ void move_ring(uint8_t source_tower, uint8_t destination_tower) {
 }
 
 void move_to_home(void) {
-    y_move(278960);
-    x_move(143360);
+    y_move(HOME_Y_POS);
+    x_move(HOME_X_POS);
 }
 
 void y_move(uint32_t position) {

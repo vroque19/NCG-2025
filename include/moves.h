@@ -13,6 +13,8 @@
 // #define RING_0_DEFAULT_POS 100000
 // #define RING_1_DEFAULT_POS 330000
 // #define RING_2_DEFAULT_POS 650240
+#define HOME_X_POS         100000
+#define HOME_Y_POS         400000
 #define LIFTED_POS         601200
 #define RING_DROP_HEIGHT   696020
 #define RING_0_DEFAULT_POS 1308160

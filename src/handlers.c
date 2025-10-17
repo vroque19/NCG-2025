@@ -36,7 +36,7 @@ void udpate_status_txt(char *status) {
 void exit_to_main_menu(void) {
 	// MXC_UART_ClearRXFIFO(GLOBAL_UART_REG);
 	// MXC_UART_ClearTXFIFO(GLOBAL_UART_REG);
-	if(current_mode==AUTOMATED_MODE || current_mode==TOUCHSCREEN_MODE) {
+	if(current_mode==TOUCHSCREEN_MODE) {
 		auto_reset_game();
 	}
 	switch_mode(MENU);
@@ -193,6 +193,10 @@ void run_manual_mode_logic(tmc5272_dev_t *tmc_x, tmc5272_dev_t *tmc_y, tmc5272_d
 		int32_t tc_y_pos = tmc5272_tricoder_getPosition(tmc_tc, TC_Y);
 		
 		// Rotate each axis to its encoder position
+    if(tc_y_pos > HOME_Y_POS) {
+
+		  tmc5272_rotateToPosition(tmc_y, ALL_MOTORS, 10*tc_y_pos, TMC_VEL_MAX, TMC_ACC_MAX);
+    }
 		if(tmc5272_getPosition(tmc_y, MOTOR_1) < RING_DROP_HEIGHT) {
 			tmc5272_rotateToPosition(tmc_x, MOTOR_0, 10*tc_x_pos, TMC_VEL_MAX, TMC_ACC_MAX);
 		}
@@ -204,7 +208,6 @@ void run_manual_mode_logic(tmc5272_dev_t *tmc_x, tmc5272_dev_t *tmc_y, tmc5272_d
 				}
 			}
 		}
-		tmc5272_rotateToPosition(tmc_y, ALL_MOTORS, 10*tc_y_pos, TMC_VEL_MAX, TMC_ACC_MAX);
 
 		// printf("Mx0: %d  ENC: %d\n", tmc5272_getPosition(tmc_x, MOTOR_0), tc_x_pos);
 		// printf("\tMy0: %d,  ENC: %d , RAMPMODE: %d\n", tmc5272_getPosition(tmc_y, MOTOR_0), tc_y_pos, tmc5272_readRegister(tmc_y, TMC5272_RAMPMODE));
