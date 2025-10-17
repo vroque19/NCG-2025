@@ -128,11 +128,12 @@ void handle_touch_event(uint8_t *rx_data) {
 void global_uart_main_loop(void) {
     printf("~~Main Loop~~\n\n");
     MXC_UART_TransactionAsync(&global_uart_req);
-    MXC_Delay(MXC_DELAY_MSEC(1000));
+    MXC_Delay(MXC_DELAY_MSEC(100));
     
     init_motors();
     MXC_Delay(MXC_DELAY_MSEC(100));
     calibrate_towers();
+    move_to_home();
     printf("Begin\n");
     while (1) {
         // Wait for UART interrupt

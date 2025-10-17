@@ -191,25 +191,26 @@ void run_manual_mode_logic(tmc5272_dev_t *tmc_x, tmc5272_dev_t *tmc_y, tmc5272_d
 	// TODO: if time, add fixed positioning
 		int32_t tc_x_pos = tmc5272_tricoder_getPosition(tmc_tc, TC_X);
 		int32_t tc_y_pos = tmc5272_tricoder_getPosition(tmc_tc, TC_Y);
+		int32_t y_pos = tmc5272_getPosition(tmc_y, MOTOR_1);
+		int32_t x_pos = tmc5272_getPosition(tmc_x, MOTOR_0);
 		
-		// Rotate each axis to its encoder position
-    if(tc_y_pos > HOME_Y_POS) {
+		if(tc_y_pos >= (Y_MIN_POS/10) && tc_y_pos < (Y_MAX_POS/10)) {
+			tmc5272_rotateToPosition(tmc_y, ALL_MOTORS, 10*tc_y_pos, TMC_VEL_MAX, TMC_ACC_MAX);
+		}
 
-		  tmc5272_rotateToPosition(tmc_y, ALL_MOTORS, 10*tc_y_pos, TMC_VEL_MAX, TMC_ACC_MAX);
-    }
-		if(tmc5272_getPosition(tmc_y, MOTOR_1) < RING_DROP_HEIGHT) {
+		if(y_pos < RING_DROP_HEIGHT && tc_x_pos > (X_MIN_POS/10) && tc_x_pos < (X_MAX_POS/10)) {
 			tmc5272_rotateToPosition(tmc_x, MOTOR_0, 10*tc_x_pos, TMC_VEL_MAX, TMC_ACC_MAX);
 		}
-		if(tmc5272_getPosition(tmc_y, MOTOR_1) >= RING_DROP_HEIGHT)
+		if(y_pos >= RING_DROP_HEIGHT)
 		{
 			for(int i = 0; i < 3; i++) {
-				if((abs(tmc5272_getPosition(tmc_x, MOTOR_0)-towers[i]) < MANUAL_MODE_ASSISTANCE_THRESH)) {
+				if((abs(x_pos-towers[i]) < MANUAL_MODE_ASSISTANCE_THRESH)) {
 					tmc5272_rotateToPosition(tmc_x, MOTOR_0, towers[i], TMC_VEL_MAX, TMC_ACC_MAX);
 				}
 			}
 		}
 
-		// printf("Mx0: %d  ENC: %d\n", tmc5272_getPosition(tmc_x, MOTOR_0), tc_x_pos);
+		printf("Mx0: %d  ENC: %d\n", tmc5272_getPosition(tmc_x, MOTOR_0), tc_x_pos);
 		// printf("\tMy0: %d,  ENC: %d , RAMPMODE: %d\n", tmc5272_getPosition(tmc_y, MOTOR_0), tc_y_pos, tmc5272_readRegister(tmc_y, TMC5272_RAMPMODE));
 		// printf("\tMy0: %d, My1:%d,  ENC: %d\n", tmc5272_getPosition(tmc_y, MOTOR_0),tmc5272_getPosition(tmc_y, MOTOR_1), tc_y_pos);
 		if(current_game.game_complete) {
