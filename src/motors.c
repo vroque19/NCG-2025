@@ -87,7 +87,7 @@ void init_stallguard(void) {
 	printf("Backing out y from edge... \n");
     
     MXC_Delay(MXC_DELAY_MSEC(500));
-	tmc5272_rotateByMicrosteps(tmc_devices.tmc_y, ALL_MOTORS, 250000, 100000, 3000);
+	tmc5272_rotateByMicrosteps(tmc_devices.tmc_y, ALL_MOTORS, 100000, 100000, 3000);
 	while(!tmc5272_isAtTargetPosition(tmc_devices.tmc_y, MOTOR_0)) {
         printf("SGV: %d \n", tmc5272_sg_getSGValue(tmc_devices.tmc_x, MOTOR_0));
     }
@@ -106,7 +106,7 @@ void init_stallguard(void) {
     tmc5272_sg_setStallGuard2(tmc_devices.tmc_x, ALL_MOTORS, TRUE);
     printf("Backing out from edge... \n");
     MXC_Delay(MXC_DELAY_MSEC(500));
-    tmc5272_rotateByMicrosteps(tmc_devices.tmc_x, MOTOR_0, 150000, 100000, 3000);
+    tmc5272_rotateByMicrosteps(tmc_devices.tmc_x, MOTOR_0, 90000, 100000, 3000);
     while(!tmc5272_isAtTargetPosition(tmc_devices.tmc_x, MOTOR_0)) {}
     
     // Home to left: Rotate until stall

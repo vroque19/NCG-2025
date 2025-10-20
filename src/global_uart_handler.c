@@ -25,6 +25,7 @@ const screen_component comp_table[] = {
 		{PAGE_TOUCHSCREEN, TOWER_2_ID, handle_tower_2_btn},
 		{PAGE_TOUCHSCREEN, EXIT_TOUCHSCREEN_ID, exit_to_main_menu},
 		{PAGE_MANUAL, SOLENOID_ID, solenoid_handler},
+		{PAGE_MANUAL, SOLENOID_PRESSED_ID, solenoid_handler},
         {PAGE_MANUAL, EXIT_MANUAL_ID, exit_to_main_menu},
         {PAGE_AUTOMATED, START_AUTOMATED_ID, start_automated},
         {PAGE_AUTOMATED, EXIT_AUTOMATED_ID, exit_to_main_menu},

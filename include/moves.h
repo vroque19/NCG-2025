@@ -16,19 +16,19 @@
 #define X_MIN_POS          10240
 #define X_MAX_POS          596480
 #define Y_MIN_POS          300000
-#define Y_MAX_POS          1660000
+#define Y_MAX_POS          1690000
 
 #define HOME_X_POS         100000
 #define HOME_Y_POS         400000
-#define LIFTED_POS         601200
+#define LIFTED_POS         600000
 #define RING_DROP_HEIGHT   696020
 #define RING_0_DEFAULT_POS 1308160
 #define RING_1_DEFAULT_POS 1492480
-#define RING_2_DEFAULT_POS 1658880
+#define RING_2_DEFAULT_POS 1679360
 #define TOWER_0_POS 122880
 // 215040 
-#define TOWER_1_POS 294400 
-#define TOWER_2_POS 471040
+#define TOWER_1_POS 302500 
+#define TOWER_2_POS 478050
 #define MANUAL_MODE_ASSISTANCE_THRESH 50000
 
 // move ring from source tower to destination tower

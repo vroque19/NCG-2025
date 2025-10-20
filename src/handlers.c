@@ -36,9 +36,9 @@ void udpate_status_txt(char *status) {
 void exit_to_main_menu(void) {
 	// MXC_UART_ClearRXFIFO(GLOBAL_UART_REG);
 	// MXC_UART_ClearTXFIFO(GLOBAL_UART_REG);
-	if(current_mode==TOUCHSCREEN_MODE) {
-		auto_reset_game();
-	}
+	// if(current_mode==TOUCHSCREEN_MODE) {
+	// 	auto_reset_game();
+	// }
 	switch_mode(MENU);
 	hanoi_reset_game();
 	move_to_home();
@@ -49,7 +49,6 @@ void exit_to_main_menu(void) {
 
 void solenoid_handler(void) {
 	if(touch_count == 0) {
-		printf("touch count: %d\n\n", touch_count);
 		__disable_irq();
 		// uint8_t source_tower = get_tower_from_weight_delta(); // get source tower
 		solenoid_on();
@@ -64,9 +63,8 @@ void solenoid_handler(void) {
 		// }
 		// __enable_irq();
 	} else {
-		printf("touch count: %d\n\n", touch_count);
+		printf("Solenoid is off\n\n");
 		solenoid_off();
-		// MXC_Delay(MXC_DELAY_MSEC(25));
 		touch_count = 0;
 	}
 }
@@ -212,7 +210,7 @@ void run_manual_mode_logic(tmc5272_dev_t *tmc_x, tmc5272_dev_t *tmc_y, tmc5272_d
 
 		printf("Mx0: %d  ENC: %d\n", tmc5272_getPosition(tmc_x, MOTOR_0), tc_x_pos);
 		// printf("\tMy0: %d,  ENC: %d , RAMPMODE: %d\n", tmc5272_getPosition(tmc_y, MOTOR_0), tc_y_pos, tmc5272_readRegister(tmc_y, TMC5272_RAMPMODE));
-		// printf("\tMy0: %d, My1:%d,  ENC: %d\n", tmc5272_getPosition(tmc_y, MOTOR_0),tmc5272_getPosition(tmc_y, MOTOR_1), tc_y_pos);
+		printf("\tMy0: %d, My1:%d,  ENC: %d\n", tmc5272_getPosition(tmc_y, MOTOR_0),tmc5272_getPosition(tmc_y, MOTOR_1), tc_y_pos);
 		if(current_game.game_complete) {
 			write_game_complete();
 		}

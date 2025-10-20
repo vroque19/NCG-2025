@@ -35,7 +35,7 @@ void move_ring(uint8_t source_tower, uint8_t destination_tower) {
     x_move(tower_pos);
     // move down
     // // drop ring
-    // y_move(RING_DROP_HEIGHT);
+    y_move(RING_DROP_HEIGHT);
     solenoid_on();
 
     // move back up
