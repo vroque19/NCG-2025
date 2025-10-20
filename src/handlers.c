@@ -41,7 +41,7 @@ void exit_to_main_menu(void) {
 	}
 	switch_mode(MENU);
 	hanoi_reset_game();
-	move_to_home();
+	// move_to_home();
 	touch_count = 0;
 
     printf("exiting to main menu. move count: %d\n", current_game.moves_made);
@@ -65,6 +65,8 @@ void solenoid_handler(void) {
 		// __enable_irq();
 	} else {
 		printf("touch count: %d\n\n", touch_count);
+		printf("Solenoid is off\n\n");
+
 		solenoid_off();
 		// MXC_Delay(MXC_DELAY_MSEC(25));
 		touch_count = 0;
@@ -79,13 +81,13 @@ void auto_solve_hanoi(int num_rings, int source, int dest) {
 	increment_count();
 
 	if(num_rings == 1) {
-		move_ring(source, dest);
+		// move_ring(source, dest);
 		hanoi_execute_move(source, dest);
 	}
 	else {
 		int aux = 3 - (source + dest);
 		auto_solve_hanoi(num_rings - 1, source, aux);
-		move_ring(source, dest);
+		// move_ring(source, dest);
 		hanoi_execute_move(source, dest);
 		auto_solve_hanoi(num_rings - 1, aux, dest);
 	}
@@ -137,7 +139,7 @@ static void handle_tower_helper(int tower_idx) {
     write_to_txt_component(MAIN_TXT_BOX, txt_responses[result]);
 	if((result)==MOVE_VALID) {
 		printf("\n ~Handling move from %d to %d~\n\n", source_tower, dest_tower);
-		move_ring(source_tower, dest_tower);
+		// move_ring(source_tower, dest_tower);
 		nextion_move_rings(source_tower, dest_tower, source_height, dest_height, selected_ring);
 		printf("Moved ring...");
 		double * weights = poll_weights();
