@@ -15,3 +15,8 @@ Our project aims to create a physical version of the classic mathematical puzzle
 
 ### Resources
 [1] [wikipedia](https://en.wikipedia.org/wiki/Tower_of_Hanoi)
+
+### Acknowledgements & Licensing
+This project is licensed under the MIT license, as detailed in this repo's LICENSE.txt.
+
+This project uses and extends the [TMC-API](https://github.com/analogdevicesinc/TMC-API) provided by Analog Devices' Trinamic, which is licensed under the MIT license.
