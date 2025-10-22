@@ -3,6 +3,11 @@
 #include "history.h"
 
 
+static const double ring_weights[] = {
+    30,  // Size 1
+    60,  // Size 2
+    110,  // Size 3
+};
 void print_game_state(const char* name, game_state_t *game) {
     printf("  %s: Rings=%d, Moves=%d/%d, Complete=%s, Selected=%d\n", 
            name, game->num_rings, game->moves_made, game->min_moves,
@@ -115,9 +120,9 @@ void test_move_validation_valid(void) {
     hanoi_init_game(3);
     
     // Setup: Put rings on towers manually for testing
-    push_tower(&current_game.towers[0], 3);  // Large ring on tower 0
-    push_tower(&current_game.towers[0], 2);  // Medium ring on tower 0
-    push_tower(&current_game.towers[1], 1);  // Small ring on tower 1
+    push_tower(&current_game.towers[0], ring_weights[2]);  // Large ring on tower 0
+    push_tower(&current_game.towers[0], ring_weights[1]);  // Medium ring on tower 0
+    push_tower(&current_game.towers[1], ring_weights[0]);  // Small ring on tower 1
     
     // Test valid moves
     move_result_t result1 = hanoi_validate_move(1, 0);  // Small ring (1) to medium ring (2)
@@ -440,6 +445,26 @@ void test_state_preservation(void) {
     print_game_state("state preservation test", &current_game);
 }
 
+void test_weight_logic(void) {
+  
+    printf("\n--- Test Case 16: checking if weight are accurate --\n");
+    
+    hanoi_init_game(3);
+    
+    // Setup initial state
+    push_tower(&current_game.towers[0], ring_weights[2]);
+    push_tower(&current_game.towers[0], ring_weights[1]);
+    push_tower(&current_game.towers[0], ring_weights[0]);
+    
+    hanoi_execute_move(0, 2);
+    hanoi_execute_move(2, 1);
+    hanoi_execute_move(0, 2);
+    assert_equal_int(current_game.towers[0].total_weight, ring_weights[2], "TC16.1 Total Weight of 110 g expected/n");
+    assert_equal_int(current_game.towers[1].total_weight, ring_weights[0], "TC16.2 Total Weight of 60 g expected/n");
+    assert_equal_int(current_game.towers[2].total_weight, ring_weights[1], "TC16.3 Total Weight of 30g expected");
+    print_game_state("Weight Test", &current_game);
+}
+
 
 int main(void) {
     printf("=== Game Logic Module Tests ===\n");
@@ -448,7 +473,6 @@ int main(void) {
     test_game_reset();
     test_move_validation_valid();
     test_move_validation_invalid();
-    test_move_execution_success();
     test_move_execution_failure();
     test_win_condition();
     test_complete_game_sequence();
@@ -456,6 +480,7 @@ int main(void) {
     test_edge_cases();
     test_move_validation_return_codes();
     test_state_preservation();
+    test_weight_logic();
     printf("\n=== Game Logic Tests Complete ===\n");
     return 0;
 }

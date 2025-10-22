@@ -41,9 +41,9 @@ char* txt_responses[5] = {
 };
 
 static const double ring_weights[] = {
-    1,  // Size 1
-    2,  // Size 2
-    3,  // Size 3
+    30,  // Size 1
+    60,  // Size 2
+    110,  // Size 3
 };
 static void hanoi_init_game_tower_0(void);
 void hanoi_init_game(uint8_t num_rings) {
@@ -77,7 +77,7 @@ void hanoi_reset_game(void) {
 
 
 // robot will 
-void hanoi_execute_move(uint8_t source_tower, uint8_t destination_tower) {
+bool hanoi_execute_move(uint8_t source_tower, uint8_t destination_tower) {
     move_tuple move;
     move.destination = destination_tower;
     move.source = source_tower;
@@ -85,7 +85,7 @@ void hanoi_execute_move(uint8_t source_tower, uint8_t destination_tower) {
     // write_to_txt_component(MAIN_TXT_BOX, txt_responses[result]);
     if (result != MOVE_VALID) {
         printf("Invalid move: %d -> %d (reason: %d)\n", source_tower, destination_tower, result);
-        return;
+        return false;
     }
     tower_stack *source = &current_game.towers[source_tower];
     tower_stack *dest = &current_game.towers[destination_tower];
@@ -104,8 +104,10 @@ void hanoi_execute_move(uint8_t source_tower, uint8_t destination_tower) {
                current_game.moves_made, current_game.min_moves);
     }
     
-    return;
+    return true;
 }
+
+void optimal_solve(void);
 
 move_result_t hanoi_validate_move(uint8_t source_tower, uint8_t destination_tower) {
     if (source_tower >= NUM_TOWERS || destination_tower >= NUM_TOWERS) {
