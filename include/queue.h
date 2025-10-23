@@ -18,7 +18,7 @@ typedef struct {
   int rear;
 } Queue;
 
-Queue_Entry *queue_entry_ctor(int **state, move_tuple move) {
+Queue_Entry *queue_entry_ctor(int (*state)[MAX_RINGS], move_tuple move) {
   Queue_Entry *mem = (Queue_Entry *)malloc(sizeof(Queue_Entry));
   mem->moves[mem->moves_idx].source = move.source;
   mem->moves[mem->moves_idx].destination = move.destination;
