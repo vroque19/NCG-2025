@@ -50,3 +50,12 @@ Queue_Entry queue_pop(Queue *queue) {
   queue->front++;
   return entry;
 }
+
+int find_top_of_state(int state[MAX_RINGS]) {
+  for (int i = 2; i >= 0; i--) {
+    if (state[i] != 0) {
+      return i;
+    }
+  }
+  return -1; // empty if -1
+}

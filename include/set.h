@@ -38,3 +38,12 @@ void set_add(Set *visited, int (*state)[MAX_RINGS]) {
   visited->idx += 1;
   return;
 }
+
+bool in_set(Set *set, int (*state)[MAX_RINGS]) {
+  for (int i = 0; i < set->idx; ++i) {
+    if (states_are_equal(&set->items[i], state)) {
+      return true;
+    }
+  }
+  return false;
+}
