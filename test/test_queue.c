@@ -5,6 +5,7 @@
 #include "set.h"
 #include "stack.h"
 #include "test_api.h"
+#include <stdlib.h>
 #include <string.h>
 
 int print_move(move_tuple move) {

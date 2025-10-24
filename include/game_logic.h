@@ -26,8 +26,6 @@ SOFTWARE.
 #define __HANOI_GAME_H_
 
 #include "history.h"
-#include "queue.h"
-#include "set.h"
 #include "stack.h"
 #define NUM_TOWERS 3
 
@@ -69,7 +67,6 @@ void hanoi_print_game_state(const char *name, game_state_t *game);
 void hanoi_reset_game(void);
 bool hanoi_execute_move(uint8_t source_tower, uint8_t destination_tower);
 void optimal_solve(history_stack *solved_moves);
-Queue_Entry *get_moves(int (*state)[MAX_RINGS], int *entry_idx);
 extern game_state_t current_game;
 
 #endif

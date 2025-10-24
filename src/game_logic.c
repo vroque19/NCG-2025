@@ -26,11 +26,14 @@ SOFTWARE.
 #include <stdio.h>
 // #include <math.h>
 #include "history.h"
+#include "queue.h"
+#include "set.h"
 #include "stack.h"
 #include <string.h>
 // Global game state
 game_state_t current_game = {0};
 
+Queue_Entry *get_moves(int (*state)[MAX_RINGS], int *entry_idx);
 char *txt_responses[5] = {
     "Move Made :)", "Cannot move larger\r\n ring on smaller ring",
     "No ring on start\r tower", "Deselected Tower", "Not valid tower"};
@@ -127,7 +130,11 @@ Queue_Entry *get_moves(int (*state)[3], int *entry_idx) {
         int to_add = state[src][top_idx_src];
         new_state[src][top_idx_src] = 0; // pop off src tower
         new_state[dst][top_idx_dst + 1] = to_add;
-        poss_entries[*entry_idx].state = new_state;
+        for (int i = 0; i < NUM_TOWERS; i++) {
+          for (int j = 0; j < MAX_RINGS; j++) {
+            poss_entries[*entry_idx].state[i][j] = new_state[i][j];
+          }
+        }
         poss_entries[*entry_idx].moves[0] = new_move;
         *entry_idx += 1;
       }
@@ -144,26 +151,35 @@ void optimal_solve(history_stack *solved_moves) {
   q = queue_init();
   Set *visited = set_init();
   while (!queue_empty(q)) {
-    Queue_Entry entry = queue_pop(q);
-    if (states_are_equal(goal_state, entry.state)) {
+    Queue_Entry *entry = queue_pop(q);
+    if (states_are_equal(goal_state, entry->state)) {
       for (int i = 0; i < q->rear; ++i) {
+        // if we arrive at goal state, push latest move to solved_moves-
         push_history(solved_moves, q->entries->moves[i]);
       }
       int entry_idx = 0;
-      Queue_Entry new_entry = get_moves(entry.state, &entry_idx);
+      Queue_Entry *new_entry = get_moves(entry->state, &entry_idx);
       for (int i = 0; i < entry_idx; i++) {
         int new_state[NUM_TOWERS][MAX_RINGS];
         for (int i = 0; i < NUM_TOWERS; i++) {
           for (int j = 0; j < MAX_RINGS; j++) {
-            new_state[i][j] = new_entry.state[i][j];
+            new_state[i][j] = new_entry->state[i][j];
           }
         }
         move_tuple new_move;
-        new_move.source = new_entry.moves[0].source;
-        new_move.destination = new_entry.moves[0].destination;
+        new_move.source = new_entry->moves[0].source;
+        new_move.destination = new_entry->moves[0].destination;
         if (in_set(visited, new_state)) {
           continue;
         }
+        history_stack *new_moves;
+        init_history(new_moves);
+        // copy contents of solved moves in new moves
+        for (int i = 0; i < solved_moves->top_idx; i++) {
+          push_history(new_moves, solved_moves->moves[i]);
+        }
+        queue_push(q, *new_entry);      // push next entry to the queue
+        set_add(visited, entry->state); // add last state to the set
       }
     }
   }

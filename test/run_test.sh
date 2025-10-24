@@ -6,11 +6,13 @@ gcc -I ../include ../src/history.c test_api.c test_history.c -o history_tests.ou
 # echo "\n3. Running Auto Solve Logic Tests..."
 # gcc -I ../include ../src/mode_auto.c test_api.c test_auto.c -o auto_tests.out && ./auto_tests.out
 echo "\n3. Running Game Logic Tests..."
-gcc -I ../include ../src/game_logic.c ../src/stack.c ../src/history.c test_api.c test_game_logic.c -o game_logic_tests.out && ./game_logic_tests.out
+gcc -I ../include ../src/game_logic.c ../src/stack.c ../src/queue.c ../src/set.c \
+  ../src/history.c test_api.c test_game_logic.c -o \
+  game_logic_tests.out && ./game_logic_tests.out
 # echo "\n=== All Tests Complete ==="
 echo "\n4. Running Queue Logic Tests..."
 
-gcc -I ../include ../src/game_logic.c ../src/stack.c ../src/history.c test_api.c ../include/queue.h test_queue.c -o queue_tests.out && ./queue_tests.out
-# Clean up executables
-rm -f *.out
+gcc -I ../include ../src/game_logic.c ../src/stack.c ../src/history.c ../src/queue.c ../src/set.c \
+  test_api.c include/set.h test_queue.c -o queue_tests.out && ./queue_tests.out
 
+rm -f *.out
