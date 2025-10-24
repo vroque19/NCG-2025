@@ -27,7 +27,7 @@ bool states_are_equal(int (*state)[MAX_RINGS], int (*state_to_add)[MAX_RINGS]) {
 // checks if we've already seen this state before
 void set_add(Set *visited, int (*state)[MAX_RINGS]) {
   for (int i = 0; i <= visited->idx; ++i) {
-    if (states_are_equal(&visited->items[i], state)) {
+    if (states_are_equal(visited->items[i], state)) {
       return;
     }
   }
@@ -38,7 +38,7 @@ void set_add(Set *visited, int (*state)[MAX_RINGS]) {
 
 bool in_set(Set *set, int (*state)[MAX_RINGS]) {
   for (int i = 0; i < set->idx; ++i) {
-    if (states_are_equal(&set->items[i], state)) {
+    if (states_are_equal(set->items[i], state)) {
       return true;
     }
   }

@@ -84,7 +84,7 @@ void set_add_test(void) {
   int state[NUM_TOWERS][MAX_RINGS] = {{110, 0, 0}, {60, 0, 0}, {30, 0, 0}};
   assert_equal_int(set->idx, 0, "Should be 0 on init");
   set_add(set, state);
-  assert_equal_int(set->items[0][0], 110, "Should be 110");
+  assert_equal_int(set->items[0][0][0], 110, "Should be 110");
   assert_equal_int(set->idx, 1, "Should be 1 after add");
 }
 
