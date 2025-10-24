@@ -24,12 +24,12 @@ SOFTWARE.
 
 #include "game_logic.h"
 #include <stdio.h>
-// #include <math.h>
+#include <stdlib.h>
+#include <string.h>
 #include "history.h"
 #include "queue.h"
 #include "set.h"
 #include "stack.h"
-#include <string.h>
 // Global game state
 game_state_t current_game = {0};
 
@@ -106,12 +106,13 @@ bool hanoi_execute_move(uint8_t source_tower, uint8_t destination_tower) {
   return true;
 }
 
-Queue_Entry *get_moves(int (*state)[3], int *entry_idx) {
-  int poss_state[NUM_TOWERS][MAX_RINGS];
-  move_tuple poss_moves;
-  Queue_Entry *poss_entries = queue_entry_ctor(poss_state, poss_moves);
+Queue_Entry *get_moves(int (*state)[MAX_RINGS], int *entry_idx) {
+  // Allocate space for max possible moves (each tower can move to 2 other towers = 6 max)
+  Queue_Entry *poss_entries = (Queue_Entry *)malloc(sizeof(Queue_Entry) * 6);
+  *entry_idx = 0;
+
   for (int src = 0; src < NUM_TOWERS; src++) {
-    for (int dst = 0; dst < MAX_RINGS; dst++) {
+    for (int dst = 0; dst < NUM_TOWERS; dst++) {
       // check for validity
       if (dst == src || state[src][0] == 0) {
         continue;
@@ -122,20 +123,20 @@ Queue_Entry *get_moves(int (*state)[3], int *entry_idx) {
       int top_idx_src = find_top_of_state(state[src]);
       int top_idx_dst = find_top_of_state(state[dst]);
 
-      if (top_idx_dst < 0 || state[top_idx_src] < state[top_idx_dst]) {
-        int new_state[NUM_TOWERS][MAX_RINGS];
+      // Valid move: destination empty OR source ring smaller than destination ring
+      if (top_idx_src >= 0 && (top_idx_dst < 0 || state[src][top_idx_src] < state[dst][top_idx_dst])) {
+        // Create new state with this move applied
+        memset(&poss_entries[*entry_idx], 0, sizeof(Queue_Entry));
         for (int tower = 0; tower < NUM_TOWERS; tower++) {
-          memcpy(new_state[tower], state[tower], sizeof(state[0]) * 3);
+          memcpy(poss_entries[*entry_idx].state[tower], state[tower], sizeof(int) * MAX_RINGS);
         }
+
         int to_add = state[src][top_idx_src];
-        new_state[src][top_idx_src] = 0; // pop off src tower
-        new_state[dst][top_idx_dst + 1] = to_add;
-        for (int i = 0; i < NUM_TOWERS; i++) {
-          for (int j = 0; j < MAX_RINGS; j++) {
-            poss_entries[*entry_idx].state[i][j] = new_state[i][j];
-          }
-        }
+        poss_entries[*entry_idx].state[src][top_idx_src] = 0;
+        poss_entries[*entry_idx].state[dst][top_idx_dst + 1] = to_add;
+
         poss_entries[*entry_idx].moves[0] = new_move;
+        poss_entries[*entry_idx].moves_idx = 1;
         *entry_idx += 1;
       }
     }
@@ -143,46 +144,84 @@ Queue_Entry *get_moves(int (*state)[3], int *entry_idx) {
   return poss_entries;
 }
 void optimal_solve(history_stack *solved_moves) {
-  int goal_state[NUM_TOWERS][MAX_RINGS] = {
-      {ring_weights[2], ring_weights[1], ring_weights[0]},
-      {0, 0, 0},
-      {0, 0, 0}};
-  Queue *q;
-  q = queue_init();
+  // Goal: Reset to initial state (all rings on tower 0)
+  // Build goal state dynamically based on number of rings in game
+  int goal_state[NUM_TOWERS][MAX_RINGS] = {{0}};
+
+  // Place all rings on tower 0 in proper order (largest to smallest, bottom to top)
+  // ring_weights = {30, 60, 110} so for 3 rings we want {110, 60, 30}
+  for (int i = 0; i < current_game.num_rings; i++) {
+    goal_state[0][i] = (int)ring_weights[MAX_RINGS - 1 - i];
+  }
+
+  Queue *q = queue_init();
   Set *visited = set_init();
-  while (!queue_empty(q)) {
-    Queue_Entry *entry = queue_pop(q);
-    if (states_are_equal(goal_state, entry->state)) {
-      for (int i = 0; i < q->rear; ++i) {
-        // if we arrive at goal state, push latest move to solved_moves-
-        push_history(solved_moves, q->entries->moves[i]);
-      }
-      int entry_idx = 0;
-      Queue_Entry *new_entry = get_moves(entry->state, &entry_idx);
-      for (int i = 0; i < entry_idx; i++) {
-        int new_state[NUM_TOWERS][MAX_RINGS];
-        for (int i = 0; i < NUM_TOWERS; i++) {
-          for (int j = 0; j < MAX_RINGS; j++) {
-            new_state[i][j] = new_entry->state[i][j];
-          }
-        }
-        move_tuple new_move;
-        new_move.source = new_entry->moves[0].source;
-        new_move.destination = new_entry->moves[0].destination;
-        if (in_set(visited, new_state)) {
-          continue;
-        }
-        history_stack *new_moves;
-        init_history(new_moves);
-        // copy contents of solved moves in new moves
-        for (int i = 0; i < solved_moves->top_idx; i++) {
-          push_history(new_moves, solved_moves->moves[i]);
-        }
-        queue_push(q, *new_entry);      // push next entry to the queue
-        set_add(visited, entry->state); // add last state to the set
-      }
+
+  // Initialize queue with current game state
+  Queue_Entry initial_entry;
+  memset(&initial_entry, 0, sizeof(Queue_Entry));
+  for (int i = 0; i < NUM_TOWERS; i++) {
+    for (int j = 0; j < MAX_RINGS; j++) {
+      initial_entry.state[i][j] = current_game.towers[i].rings[j];
     }
   }
+  initial_entry.moves_idx = 0;
+
+  // Check if already at goal before starting BFS
+  if (states_are_equal(goal_state, initial_entry.state)) {
+    free(q);
+    free(visited);
+    return;
+  }
+
+  queue_push(q, initial_entry);
+  set_add(visited, initial_entry.state);
+
+  // BFS to find shortest path to goal
+  while (!queue_empty(q)) {
+    Queue_Entry *current = queue_pop(q);
+
+    // Check if we've reached the goal
+    if (states_are_equal(goal_state, current->state)) {
+      // Copy solution moves to solved_moves
+      for (int i = 0; i < current->moves_idx; i++) {
+        push_history(solved_moves, current->moves[i]);
+      }
+      free(q);
+      free(visited);
+      return;
+    }
+
+    // Generate all possible next moves from current state
+    int num_moves = 0;
+    Queue_Entry *possible_moves = get_moves(current->state, &num_moves);
+
+    for (int i = 0; i < num_moves; i++) {
+      // Skip if we've already visited this state
+      if (in_set(visited, possible_moves[i].state)) {
+        continue;
+      }
+
+      // Create new queue entry with move history
+      Queue_Entry next_entry = possible_moves[i];
+
+      // Copy previous moves and add new move
+      for (int j = 0; j < current->moves_idx && j < 127; j++) {
+        next_entry.moves[j] = current->moves[j];
+      }
+      next_entry.moves[current->moves_idx] = possible_moves[i].moves[0];
+      next_entry.moves_idx = current->moves_idx + 1;
+
+      queue_push(q, next_entry);
+      set_add(visited, next_entry.state);
+    }
+
+    free(possible_moves);
+  }
+
+  // No solution found (shouldn't happen for valid Hanoi puzzle)
+  free(q);
+  free(visited);
 }
 
 move_result_t hanoi_validate_move(uint8_t source_tower,

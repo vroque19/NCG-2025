@@ -24,4 +24,6 @@ bool queue_empty(Queue *queue);
 Queue_Entry *queue_peek(Queue *queue);
 Queue_Entry *queue_pop(Queue *queue);
 int find_top_of_state(int state[MAX_RINGS]);
+Queue_Entry *get_moves(int (*state)[MAX_RINGS], int *entry_idx);
+
 #endif // QUEUE_H

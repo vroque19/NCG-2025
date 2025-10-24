@@ -15,4 +15,9 @@ echo "\n4. Running Queue Logic Tests..."
 gcc -I ../include ../src/game_logic.c ../src/stack.c ../src/history.c ../src/queue.c ../src/set.c \
   test_api.c test_queue.c -o queue_tests.out && ./queue_tests.out
 
+echo "\n5. Running Solver Tests..."
+
+gcc -I ../include ../src/game_logic.c ../src/stack.c ../src/history.c ../src/queue.c ../src/set.c \
+  test_api.c test_solver.c -o solver_tests.out && ./solver_tests.out
+
 rm -f *.out
