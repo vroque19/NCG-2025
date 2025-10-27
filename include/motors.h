@@ -31,6 +31,7 @@ SOFTWARE.
 // // Map tricoder inputs for X and Y axes
 #define TC_X		MOTOR_0
 #define TC_Y		MOTOR_1
+#define TC_SCALE    10
 
 // // TMC5272 Comms
 #define TMC5272_SPI_PORT			MXC_SPI1
