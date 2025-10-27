@@ -216,13 +216,27 @@ void run_manual_mode_logic(tmc5272_dev_t *tmc_x, tmc5272_dev_t *tmc_y, tmc5272_d
 		int32_t y_pos = tmc5272_getPosition(tmc_y, MOTOR_1);
 		int32_t x_pos = tmc5272_getPosition(tmc_x, MOTOR_0);
 		
+		// Set boundaries for y rails
 		if(tc_y_pos >= (Y_MIN_POS/TC_SCALE) && tc_y_pos < (Y_MAX_POS/TC_SCALE)) {
 			tmc5272_rotateToPosition(tmc_y, ALL_MOTORS, TC_SCALE*tc_y_pos, TMC_VEL_MAX, TMC_ACC_MAX);
 		}
+		else {
+			// Keep encoder value at motor
+			MXC_Delay(500000);
+			tmc5272_tricoder_setEncoderValue(tmc_tc, TC_Y, tmc5272_getPosition(tmc_y, MOTOR_0)/TC_SCALE);
+		}
 
+		// Set boundaries / guardrails for x rail
 		if(y_pos < RING_DROP_HEIGHT && tc_x_pos > (X_MIN_POS/TC_SCALE) && tc_x_pos < (X_MAX_POS/TC_SCALE)) {
 			tmc5272_rotateToPosition(tmc_x, MOTOR_0, TC_SCALE*tc_x_pos, TMC_VEL_MAX, TMC_ACC_MAX);
 		}
+		else {
+			// Keep encoder value at motor
+			MXC_Delay(500000);
+			tmc5272_tricoder_setEncoderValue(tmc_tc, TC_X, tmc5272_getPosition(tmc_x, MOTOR_0)/TC_SCALE);
+		}
+
+		// Aim assist to lock to nearest tower (when approaching tower height)
 		if(y_pos >= RING_DROP_HEIGHT)
 		{
 			for(int i = 0; i < 3; i++) {
