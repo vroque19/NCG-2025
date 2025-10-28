@@ -1,4 +1,4 @@
-/* 
+/*
 MIT License
 
 Copyright (c) 2025 Analog Devices
@@ -42,288 +42,344 @@ uint8_t touch_count = 0;
 
 // Update Move Count on display
 void increment_count(void) {
-	char name[] = MOVE_COUNT_ID;
-	char prefix[] = ".val=";
-	char dest_buff[50]; // final command
-	snprintf(dest_buff, sizeof(dest_buff), "%s%s%d", name, prefix, current_game.moves_made); // combine obj, pref, weight, suff into one commands
-    // printf("Move count : %d\n\n", move_count);
-	for(int i = 0; i < 1; i++) {
-		nextion_send_command(dest_buff);
-	}
+  char name[] = MOVE_COUNT_ID;
+  char prefix[] = ".val=";
+  char dest_buff[50]; // final command
+  snprintf(
+      dest_buff, sizeof(dest_buff), "%s%s%d", name, prefix,
+      current_game
+          .moves_made); // combine obj, pref, weight, suff into one commands
+                        // printf("Move count : %d\n\n", move_count);
+  for (int i = 0; i < 1; i++) {
+    nextion_send_command(dest_buff);
+  }
 }
 
 // Update Debug Status Txt Box
 void udpate_status_txt(char *status) {
-	write_to_txt_component(STATUS_TXT, status);
+  write_to_txt_component(STATUS_TXT, status);
 }
 
 void exit_to_main_menu(void) {
-	// MXC_UART_ClearRXFIFO(GLOBAL_UART_REG);
-	// MXC_UART_ClearTXFIFO(GLOBAL_UART_REG);
-	// if(current_mode==TOUCHSCREEN_MODE) {
-	// 	auto_reset_game();
-	// }
-	switch_mode(MENU);
-	hanoi_reset_game();
-	move_to_home();
-	touch_count = 0;
+  // MXC_UART_ClearRXFIFO(GLOBAL_UART_REG);
+  // MXC_UART_ClearTXFIFO(GLOBAL_UART_REG);
+  // if(current_mode==TOUCHSCREEN_MODE) {
+  // 	auto_reset_game();
+  // }
+  switch_mode(MENU);
+  hanoi_reset_game();
+  move_to_home();
+  touch_count = 0;
 
-    printf("exiting to main menu. move count: %d\n", current_game.moves_made);
+  printf("exiting to main menu. move count: %d\n", current_game.moves_made);
 }
 
 void solenoid_handler(void) {
-	if(touch_count == 0) {
-		__disable_irq();
-		// uint8_t source_tower = get_tower_from_weight_delta(); // get source tower
-		solenoid_on();
-		// uint8_t destination_tower = get_tower_from_weight_delta();
-		touch_count++;
-		printf("Solenoid is on\n\n");
-		// int move = hanoi_validate_move(source_tower, destination_tower);
-		// if(move==MOVE_VALID) {
-		// 	hanoi_execute_move(source_tower, destination_tower);
-		// 	increment_count();
-		// 	nextion_write_game_state(&current_game);
-		// }
-		// __enable_irq();
-	} else {
-		printf("Solenoid is off\n\n");
-		solenoid_off();
-		touch_count = 0;
-	}
+  if (touch_count == 0) {
+    __disable_irq();
+    // uint8_t source_tower = get_tower_from_weight_delta(); // get source tower
+    solenoid_on();
+    // uint8_t destination_tower = get_tower_from_weight_delta();
+    touch_count++;
+    printf("Solenoid is on\n\n");
+    // int move = hanoi_validate_move(source_tower, destination_tower);
+    // if(move==MOVE_VALID) {
+    // 	hanoi_execute_move(source_tower, destination_tower);
+    // 	increment_count();
+    // 	nextion_write_game_state(&current_game);
+    // }
+    // __enable_irq();
+  } else {
+    printf("Solenoid is off\n\n");
+    solenoid_off();
+    touch_count = 0;
+  }
 }
 
 // automated mode functions --
 // recursive solution for auto solving algorithm
 void auto_solve_hanoi(int num_rings, int source, int dest) {
-	// poll_weights();
-	nextion_write_game_state(&current_game);
-	increment_count();
+  // poll_weights();
+  nextion_write_game_state(&current_game);
+  increment_count();
 
-	if(num_rings == 1) {
-		move_ring(source, dest);
-		hanoi_execute_move(source, dest);
-	}
-	else {
-		int aux = 3 - (source + dest);
-		auto_solve_hanoi(num_rings - 1, source, aux);
-		move_ring(source, dest);
-		hanoi_execute_move(source, dest);
-		auto_solve_hanoi(num_rings - 1, aux, dest);
-	}
-	nextion_write_game_state(&current_game);
-	increment_count();
+  if (num_rings == 1) {
+    move_ring(source, dest);
+    hanoi_execute_move(source, dest);
+  } else {
+    int aux = 3 - (source + dest);
+    auto_solve_hanoi(num_rings - 1, source, aux);
+    move_ring(source, dest);
+    hanoi_execute_move(source, dest);
+    auto_solve_hanoi(num_rings - 1, aux, dest);
+  }
+  nextion_write_game_state(&current_game);
+  increment_count();
 }
 
 void start_automated(void) {
-	printf("Autosolving towers of hanoi in 7 moves\n\n\n");
-	auto_solve_hanoi(MAX_RINGS, 0, 2);
-	if(current_game.game_complete) {
-			write_game_complete();
-		}
-	return;
+  printf("Autosolving towers of hanoi in 7 moves\n\n\n");
+  auto_solve_hanoi(MAX_RINGS, 0, 2);
+  if (current_game.game_complete) {
+    write_game_complete();
+  }
+  return;
 }
 
 // helper to handle touch-screen mode control
 static void handle_tower_helper(int tower_idx) {
-	if(current_game.is_busy) {
-		return;
-	}
-	
-	char dest_buff[50];
-	MXC_Delay(MXC_DELAY_MSEC(250)); // wait for arm movement
-	if(touch_count == 0) { // First tower selected
-		sprintf(dest_buff, "move from tower %d", tower_idx);
-		update_txt_box(dest_buff);
-		touch_count++;
-        current_game.selected_tower = tower_idx;
-		uint8_t curr_tower = current_game.selected_tower;
-		int source_height = get_top_idx_from_tower(&current_game.towers[curr_tower]);
-		int selected_ring = peek_tower(&current_game.towers[tower_idx])-1;
-		// only change color if valid tower selected
-		if(source_height >= 0) {
-			nextion_change_ring_color(selected_ring, RING_COLOR_SELECTED);
-		}
-        return;
-	}
-	current_game.is_busy = true;
-	sprintf(dest_buff, "moving to tower  %d", tower_idx);
-	update_txt_box(dest_buff);
-	int source_tower = current_game.selected_tower;
-	int dest_tower = tower_idx;
-	int selected_ring = peek_tower(&current_game.towers[source_tower])-1;
-	int source_height = get_top_idx_from_tower(&current_game.towers[source_tower]);
-	int dest_height = get_top_idx_from_tower(&current_game.towers[dest_tower]) + 1;
-	// animate rings on display
-	move_result_t result = hanoi_validate_move(source_tower, tower_idx);
-    write_to_txt_component(MAIN_TXT_BOX, txt_responses[result]);
-	if((result)==MOVE_VALID) {
-		printf("\n ~Handling move from %d to %d~\n\n", source_tower, dest_tower);
-		move_ring(source_tower, dest_tower);
-		nextion_move_rings(source_tower, dest_tower, source_height, dest_height, selected_ring);
-		printf("Moved ring...");
-		double * weights = poll_weights();
-		// update_weights(weights);
-	}
-	hanoi_execute_move(current_game.selected_tower, tower_idx);
-	nextion_change_ring_color(selected_ring, RING_COLOR_DEFAULT);
-	increment_count();
-	// nextion_write_game_state(&current_game);
-	touch_count = 0;
-	if(current_game.game_complete) {
-			write_game_complete();
-		}
+  if (current_game.is_busy) {
+    return;
+  }
 
+  char dest_buff[50];
+  MXC_Delay(MXC_DELAY_MSEC(250)); // wait for arm movement
+  if (touch_count == 0) {         // First tower selected
+    sprintf(dest_buff, "move from tower %d", tower_idx);
+    update_txt_box(dest_buff);
+    touch_count++;
+    current_game.selected_tower = tower_idx;
+    uint8_t curr_tower = current_game.selected_tower;
+    int source_height =
+        get_top_idx_from_tower(&current_game.towers[curr_tower]);
+    int selected_ring = peek_tower(&current_game.towers[tower_idx]) - 1;
+    // only change color if valid tower selected
+    if (source_height >= 0) {
+      nextion_change_ring_color(selected_ring, RING_COLOR_SELECTED);
+    }
+    return;
+  }
+  current_game.is_busy = true;
+  sprintf(dest_buff, "moving to tower  %d", tower_idx);
+  update_txt_box(dest_buff);
+  int source_tower = current_game.selected_tower;
+  int dest_tower = tower_idx;
+  int selected_ring = peek_tower(&current_game.towers[source_tower]) - 1;
+  int source_height =
+      get_top_idx_from_tower(&current_game.towers[source_tower]);
+  int dest_height =
+      get_top_idx_from_tower(&current_game.towers[dest_tower]) + 1;
+  // animate rings on display
+  move_result_t result = hanoi_validate_move(source_tower, tower_idx);
+  write_to_txt_component(MAIN_TXT_BOX, txt_responses[result]);
+  if ((result) == MOVE_VALID) {
+    printf("\n ~Handling move from %d to %d~\n\n", source_tower, dest_tower);
+    move_ring(source_tower, dest_tower);
+    nextion_move_rings(source_tower, dest_tower, source_height, dest_height,
+                       selected_ring);
+    printf("Moved ring...");
+    double *weights = poll_weights();
+    // update_weights(weights);
+  }
+  hanoi_execute_move(current_game.selected_tower, tower_idx);
+  nextion_change_ring_color(selected_ring, RING_COLOR_DEFAULT);
+  increment_count();
+  // nextion_write_game_state(&current_game);
+  touch_count = 0;
+  if (current_game.game_complete) {
+    write_game_complete();
+  }
 }
 
+void get_state_from_weights(double *weights, int (*state)[3]) {
+  const double RING_WEIGHTS[MAX_RINGS] = {30.0, 60.0, 110.0};
+  const double TOLERANCE = 25.0;
+
+  // Initialize state to zeros
+  for (int i = 0; i < NUM_TOWERS; i++) {
+    for (int j = 0; j < MAX_RINGS; j++) {
+      state[i][j] = 0;
+    }
+  }
+
+  // Track which rings we've assigned
+  bool ring_assigned[MAX_RINGS] = {false, false, false};
+
+  // For each tower, determine which rings are on it
+  for (int tower = 0; tower < NUM_TOWERS; tower++) {
+    double remaining_weight = weights[tower];
+    int stack_idx = 0;
+
+    // Try to match rings from largest to smallest (bottom to top)
+    for (int ring = MAX_RINGS - 1; ring >= 0; ring--) {
+      if (!ring_assigned[ring] &&
+          fabs(remaining_weight - RING_WEIGHTS[ring]) < TOLERANCE) {
+        // This ring is on this tower
+        state[tower][stack_idx] = (int)RING_WEIGHTS[ring];
+        remaining_weight -= RING_WEIGHTS[ring];
+        ring_assigned[ring] = true;
+        stack_idx++;
+      } else if (!ring_assigned[ring] &&
+                 remaining_weight >= RING_WEIGHTS[ring]) {
+        // Check if this ring plus others could sum to remaining weight
+        double test_weight = RING_WEIGHTS[ring];
+
+        for (int smaller = ring - 1; smaller >= 0; smaller--) {
+          if (!ring_assigned[smaller] && test_weight < remaining_weight) {
+            test_weight += RING_WEIGHTS[smaller];
+          }
+        }
+
+        if (fabs(remaining_weight - test_weight) < TOLERANCE ||
+            fabs(remaining_weight - RING_WEIGHTS[ring]) <
+                remaining_weight / 2) {
+          state[tower][stack_idx] = (int)RING_WEIGHTS[ring];
+          remaining_weight -= RING_WEIGHTS[ring];
+          ring_assigned[ring] = true;
+          stack_idx++;
+        }
+      }
+    }
+  }
+}
 void weigh_scale_routine(void) {
-	poll_weights();
-	printf("In weigh Scale Routine\n");
-	MXC_Delay(MXC_DELAY_MSEC(10));
+  poll_weights();
+  printf("In weigh Scale Routine\n");
+  MXC_Delay(MXC_DELAY_MSEC(10));
 }
 
 // could make a struct instead
-void handle_tower_0_btn(void) {
-	handle_tower_helper(0);
-}
+void handle_tower_0_btn(void) { handle_tower_helper(0); }
 
-void handle_tower_1_btn(void) {
-	handle_tower_helper(1);
-}
+void handle_tower_1_btn(void) { handle_tower_helper(1); }
 
-void handle_tower_2_btn(void) {
-	handle_tower_helper(2);
-}
+void handle_tower_2_btn(void) { handle_tower_helper(2); }
 
 static void switch_page_helper(page_t page, game_mode_t mode) {
-	// solenoid_off();
-	switch_mode(mode);
-	if(mode==SCALE) {
-		return;
-	}
-	hanoi_init_game(MAX_RINGS);
-	hanoi_print_game_state("Initialized game", &current_game);
-	nextion_write_game_state(&current_game);
-	// poll_weights();
+  // solenoid_off();
+  switch_mode(mode);
+  if (mode == SCALE) {
+    return;
+  }
+  hanoi_init_game(MAX_RINGS);
+  hanoi_print_game_state("Initialized game", &current_game);
+  nextion_write_game_state(&current_game);
+  // poll_weights();
 }
 
 // New function to contain the continuous manual mode logic
-void run_manual_mode_logic(tmc5272_dev_t *tmc_x, tmc5272_dev_t *tmc_y, tmc5272_dev_t *tmc_tc) {
-	int towers[3] = {TOWER_0_POS, TOWER_1_POS, TOWER_2_POS};
-	// TODO: if time, add fixed positioning
-		int32_t tc_x_pos = tmc5272_tricoder_getPosition(tmc_tc, TC_X);
-		int32_t tc_y_pos = tmc5272_tricoder_getPosition(tmc_tc, TC_Y);
-		int32_t y_pos = tmc5272_getPosition(tmc_y, MOTOR_1);
-		int32_t x_pos = tmc5272_getPosition(tmc_x, MOTOR_0);
-		
-		// Set boundaries for y rails
-		if(tc_y_pos >= (Y_MIN_POS/TC_SCALE) && tc_y_pos < (Y_MAX_POS/TC_SCALE)) {
-			tmc5272_rotateToPosition(tmc_y, ALL_MOTORS, TC_SCALE*tc_y_pos, TMC_VEL_MAX, TMC_ACC_MAX);
-		}
-		else {
-			// Keep encoder value at motor
-			MXC_Delay(500000);
-			tmc5272_tricoder_setEncoderValue(tmc_tc, TC_Y, tmc5272_getPosition(tmc_y, MOTOR_0)/TC_SCALE);
-		}
+void run_manual_mode_logic(tmc5272_dev_t *tmc_x, tmc5272_dev_t *tmc_y,
+                           tmc5272_dev_t *tmc_tc) {
+  int towers[3] = {TOWER_0_POS, TOWER_1_POS, TOWER_2_POS};
+  // TODO: if time, add fixed positioning
+  int32_t tc_x_pos = tmc5272_tricoder_getPosition(tmc_tc, TC_X);
+  int32_t tc_y_pos = tmc5272_tricoder_getPosition(tmc_tc, TC_Y);
+  int32_t y_pos = tmc5272_getPosition(tmc_y, MOTOR_1);
+  int32_t x_pos = tmc5272_getPosition(tmc_x, MOTOR_0);
 
-		// Set boundaries / guardrails for x rail
-		if(y_pos < RING_DROP_HEIGHT && tc_x_pos > (X_MIN_POS/TC_SCALE) && tc_x_pos < (X_MAX_POS/TC_SCALE)) {
-			tmc5272_rotateToPosition(tmc_x, MOTOR_0, TC_SCALE*tc_x_pos, TMC_VEL_MAX, TMC_ACC_MAX);
-		}
-		else {
-			// Keep encoder value at motor
-			MXC_Delay(500000);
-			tmc5272_tricoder_setEncoderValue(tmc_tc, TC_X, tmc5272_getPosition(tmc_x, MOTOR_0)/TC_SCALE);
-		}
+  // Set boundaries for y rails
+  if (tc_y_pos >= (Y_MIN_POS / TC_SCALE) && tc_y_pos < (Y_MAX_POS / TC_SCALE)) {
+    tmc5272_rotateToPosition(tmc_y, ALL_MOTORS, TC_SCALE * tc_y_pos,
+                             TMC_VEL_MAX, TMC_ACC_MAX);
+  } else {
+    // Keep encoder value at motor
+    MXC_Delay(500000);
+    tmc5272_tricoder_setEncoderValue(
+        tmc_tc, TC_Y, tmc5272_getPosition(tmc_y, MOTOR_0) / TC_SCALE);
+  }
 
-		// Aim assist to lock to nearest tower (when approaching tower height)
-		if(y_pos >= RING_DROP_HEIGHT)
-		{
-			for(int i = 0; i < 3; i++) {
-				if((abs(x_pos-towers[i]) < MANUAL_MODE_ASSISTANCE_THRESH)) {
-					tmc5272_rotateToPosition(tmc_x, MOTOR_0, towers[i], TMC_VEL_MAX, TMC_ACC_MAX);
-				}
-			}
-		}
+  // Set boundaries / guardrails for x rail
+  if (y_pos < RING_DROP_HEIGHT && tc_x_pos > (X_MIN_POS / TC_SCALE) &&
+      tc_x_pos < (X_MAX_POS / TC_SCALE)) {
+    tmc5272_rotateToPosition(tmc_x, MOTOR_0, TC_SCALE * tc_x_pos, TMC_VEL_MAX,
+                             TMC_ACC_MAX);
+  } else {
+    // Keep encoder value at motor
+    MXC_Delay(500000);
+    tmc5272_tricoder_setEncoderValue(
+        tmc_tc, TC_X, tmc5272_getPosition(tmc_x, MOTOR_0) / TC_SCALE);
+  }
 
-		printf("Mx0: %d  ENC: %d\n", tmc5272_getPosition(tmc_x, MOTOR_0), tc_x_pos);
-		// printf("\tMy0: %d,  ENC: %d , RAMPMODE: %d\n", tmc5272_getPosition(tmc_y, MOTOR_0), tc_y_pos, tmc5272_readRegister(tmc_y, TMC5272_RAMPMODE));
-		printf("\tMy0: %d, My1:%d,  ENC: %d\n", tmc5272_getPosition(tmc_y, MOTOR_0),tmc5272_getPosition(tmc_y, MOTOR_1), tc_y_pos);
-		if(current_game.game_complete) {
-			write_game_complete();
-		}
+  // Aim assist to lock to nearest tower (when approaching tower height)
+  if (y_pos >= RING_DROP_HEIGHT) {
+    for (int i = 0; i < 3; i++) {
+      if ((abs(x_pos - towers[i]) < MANUAL_MODE_ASSISTANCE_THRESH)) {
+        tmc5272_rotateToPosition(tmc_x, MOTOR_0, towers[i], TMC_VEL_MAX,
+                                 TMC_ACC_MAX);
+      }
+    }
+  }
+
+  printf("Mx0: %d  ENC: %d\n", tmc5272_getPosition(tmc_x, MOTOR_0), tc_x_pos);
+  // printf("\tMy0: %d,  ENC: %d , RAMPMODE: %d\n", tmc5272_getPosition(tmc_y,
+  // MOTOR_0), tc_y_pos, tmc5272_readRegister(tmc_y, TMC5272_RAMPMODE));
+  printf("\tMy0: %d, My1:%d,  ENC: %d\n", tmc5272_getPosition(tmc_y, MOTOR_0),
+         tmc5272_getPosition(tmc_y, MOTOR_1), tc_y_pos);
+  if (current_game.game_complete) {
+    write_game_complete();
+  }
 }
 
-
 void switch_page_touchscreen(void) {
-	write_to_txt_component(MAIN_TXT_BOX, "Begin Solving \r\nTowers of Hanoi:)");
-	printf("switching to touchscreen \n\n");
-	switch_page_helper(PAGE_TOUCHSCREEN, TOUCHSCREEN_MODE);
+  write_to_txt_component(MAIN_TXT_BOX, "Begin Solving \r\nTowers of Hanoi:)");
+  printf("switching to touchscreen \n\n");
+  switch_page_helper(PAGE_TOUCHSCREEN, TOUCHSCREEN_MODE);
 }
 
 // Prints the rings as a stack in string format
-void get_string_from_rings(int top_idx, uint8_t *tower_rings, char *tower_str, uint8_t str_size) {
-	int offset = 0;
-	// 1. write the opening bracket of the stack
-	offset = snprintf(tower_str, str_size, "[");
-	// 2. append each ring up to the top idx
-	for(int i = 0; i <= top_idx; i++) {
-		offset += snprintf(tower_str + offset, str_size - offset, "%d  ", tower_rings[i]);
-	}
-	// 3. append the closing bracket
-	snprintf(tower_str + offset, str_size - offset, "]");
-	printf("\n");
+void get_string_from_rings(int top_idx, uint8_t *tower_rings, char *tower_str,
+                           uint8_t str_size) {
+  int offset = 0;
+  // 1. write the opening bracket of the stack
+  offset = snprintf(tower_str, str_size, "[");
+  // 2. append each ring up to the top idx
+  for (int i = 0; i <= top_idx; i++) {
+    offset +=
+        snprintf(tower_str + offset, str_size - offset, "%d  ", tower_rings[i]);
+  }
+  // 3. append the closing bracket
+  snprintf(tower_str + offset, str_size - offset, "]");
+  printf("\n");
 }
 
 // Writes current towers' states to the display
 void nextion_write_game_state(game_state_t *game) {
-	char *txt_boxes_arr[3] = {"t9", "t11", "t10"};
-	for(int i = 0; i < 3; i++) {
-		uint8_t *tower_rings = get_rings_from_tower(&game->towers[i]);
-		int top_idx = get_top_idx_from_tower(&game->towers[i]);
-		char rings_str[50];
-		get_string_from_rings(top_idx, tower_rings, rings_str, sizeof(rings_str));
-		write_to_txt_component(txt_boxes_arr[i], rings_str);
-	}
-	// printf("Rings buffer for tower 0: %s %d\n", rings_str, top_idx);
+  char *txt_boxes_arr[3] = {"t9", "t11", "t10"};
+  for (int i = 0; i < 3; i++) {
+    uint8_t *tower_rings = get_rings_from_tower(&game->towers[i]);
+    int top_idx = get_top_idx_from_tower(&game->towers[i]);
+    char rings_str[50];
+    get_string_from_rings(top_idx, tower_rings, rings_str, sizeof(rings_str));
+    write_to_txt_component(txt_boxes_arr[i], rings_str);
+  }
+  // printf("Rings buffer for tower 0: %s %d\n", rings_str, top_idx);
 }
 
-void start_cal(void) {
-	calibrate_towers();
-}
+void start_cal(void) { calibrate_towers(); }
 
 void switch_page_manual(void) {
-	printf("switching to manual \n\n");
+  printf("switching to manual \n\n");
 
-	tmc5272_tricoder_setEncoderValue(tmc_devices.tmc_tc, TC_X, 
-									 tmc5272_getPosition(tmc_devices.tmc_x, MOTOR_0)/TC_SCALE);
-	tmc5272_tricoder_setEncoderValue(tmc_devices.tmc_tc, TC_Y, 
-									 tmc5272_getPosition(tmc_devices.tmc_y, MOTOR_0)/TC_SCALE);
+  tmc5272_tricoder_setEncoderValue(
+      tmc_devices.tmc_tc, TC_X,
+      tmc5272_getPosition(tmc_devices.tmc_x, MOTOR_0) / TC_SCALE);
+  tmc5272_tricoder_setEncoderValue(
+      tmc_devices.tmc_tc, TC_Y,
+      tmc5272_getPosition(tmc_devices.tmc_y, MOTOR_0) / TC_SCALE);
 
-	switch_page_helper(PAGE_MANUAL, MANUAL_MODE);
+  switch_page_helper(PAGE_MANUAL, MANUAL_MODE);
 
-	printf("Create Motor IC\n\n");
+  printf("Create Motor IC\n\n");
 }
 
-
 void switch_page_automated(void) {
-	printf("switching to automated \n\n");
-	switch_page_helper(PAGE_AUTOMATED, AUTOMATED_MODE);
+  printf("switching to automated \n\n");
+  switch_page_helper(PAGE_AUTOMATED, AUTOMATED_MODE);
 }
 
 void switch_page_scale(void) {
-	printf("switching to scale demo \n\n");
-	if(current_mode==SCALE) {
-		exit_to_main_menu();
-	} else {
-		switch_page_helper(PAGE_SCALE, SCALE);
-	}
+  printf("switching to scale demo \n\n");
+  if (current_mode == SCALE) {
+    exit_to_main_menu();
+  } else {
+    switch_page_helper(PAGE_SCALE, SCALE);
+  }
 }
 
 // Switch to a new operating mode
 void switch_mode(game_mode_t new_mode) {
-	if (new_mode == current_mode) return;
-    current_mode = new_mode;
-	printf("Mode: %d\n", current_mode);
-
+  if (new_mode == current_mode)
+    return;
+  current_mode = new_mode;
+  printf("Mode: %d\n", current_mode);
 }
