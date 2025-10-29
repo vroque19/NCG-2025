@@ -63,9 +63,15 @@ void udpate_status_txt(char *status) {
 void exit_to_main_menu(void) {
   // MXC_UART_ClearRXFIFO(GLOBAL_UART_REG);
   // MXC_UART_ClearTXFIFO(GLOBAL_UART_REG);
-  // if(current_mode==TOUCHSCREEN_MODE) {
-  // 	auto_reset_game();
-  // }
+  printf("Failsafe! \n");
+  tmc5272_rotateAtVelocity(tmc_devices.tmc_x, MOTOR_0, 0, 50000);
+  tmc5272_rotateAtVelocity(tmc_devices.tmc_x, MOTOR_1, 0, 50000);
+  tmc5272_rotateAtVelocity(tmc_devices.tmc_y, MOTOR_0, 0, 50000);
+  tmc5272_rotateAtVelocity(tmc_devices.tmc_y, MOTOR_1, 0, 50000);
+  MXC_Delay(MXC_DELAY_MSEC(200));
+  if (current_mode == TOUCHSCREEN_MODE) {
+    auto_reset_game();
+  }
   switch_mode(MENU);
   hanoi_reset_game();
   move_to_home();
@@ -183,7 +189,7 @@ static void handle_tower_helper(int tower_idx) {
 
 void get_state_from_weights(double *weights, int (*state)[3]) {
   const double RING_WEIGHTS[MAX_RINGS] = {30.0, 60.0, 110.0};
-  const double TOLERANCE = 25.0;
+  const double TOLERANCE = 15.5;
 
   // Initialize state to zeros
   for (int i = 0; i < NUM_TOWERS; i++) {
@@ -202,9 +208,14 @@ void get_state_from_weights(double *weights, int (*state)[3]) {
 
     // Try to match rings from largest to smallest (bottom to top)
     for (int ring = MAX_RINGS - 1; ring >= 0; ring--) {
+      if (remaining_weight < RING_WEIGHTS[0] * 0.5) {
+        break;
+      }
       if (!ring_assigned[ring] &&
           fabs(remaining_weight - RING_WEIGHTS[ring]) < TOLERANCE) {
         // This ring is on this tower
+        printf("Detected: %d.2f from %d.2f\n", RING_WEIGHTS[ring],
+               remaining_weight);
         state[tower][stack_idx] = (int)RING_WEIGHTS[ring];
         remaining_weight -= RING_WEIGHTS[ring];
         ring_assigned[ring] = true;
@@ -272,16 +283,15 @@ void run_manual_mode_logic(tmc5272_dev_t *tmc_x, tmc5272_dev_t *tmc_y,
     tmc5272_rotateToPosition(tmc_y, ALL_MOTORS, TC_SCALE * tc_y_pos,
                              TMC_VEL_MAX, TMC_ACC_MAX);
   } else {
-	if(y_pos < RING_DROP_HEIGHT) {
-		// rotate to max, no delay
-		tmc5272_tricoder_setEncoderValue(
-        tmc_tc, TC_Y, Y_MAX_POS);
-	} else {
-		// Keep encoder value at motor
-		MXC_Delay(200000);
-		tmc5272_tricoder_setEncoderValue(
-			tmc_tc, TC_Y, tmc5272_getPosition(tmc_y, MOTOR_0) / TC_SCALE);
-	}
+    if (y_pos < RING_DROP_HEIGHT) {
+      // rotate to max, no delay
+      tmc5272_tricoder_setEncoderValue(tmc_tc, TC_Y, Y_MAX_POS);
+    } else {
+      // Keep encoder value at motor
+      MXC_Delay(200000);
+      tmc5272_tricoder_setEncoderValue(
+          tmc_tc, TC_Y, tmc5272_getPosition(tmc_y, MOTOR_0) / TC_SCALE);
+    }
   }
 
   // Set boundaries / guardrails for x rail
@@ -290,11 +300,12 @@ void run_manual_mode_logic(tmc5272_dev_t *tmc_x, tmc5272_dev_t *tmc_y,
     tmc5272_rotateToPosition(tmc_x, MOTOR_0, TC_SCALE * tc_x_pos, TMC_VEL_MAX,
                              TMC_ACC_MAX);
   } else {
-		if(tc_x_pos <= (X_MIN_POS / TC_SCALE) || tc_x_pos >= (X_MAX_POS / TC_SCALE))
-    	// Keep encoder value at motor
-		MXC_Delay(200000);
-		tmc5272_tricoder_setEncoderValue(
-			tmc_tc, TC_X, tmc5272_getPosition(tmc_x, MOTOR_0) / TC_SCALE);
+    if (tc_x_pos <= (X_MIN_POS / TC_SCALE) ||
+        tc_x_pos >= (X_MAX_POS / TC_SCALE))
+      // Keep encoder value at motor
+      MXC_Delay(200000);
+    tmc5272_tricoder_setEncoderValue(
+        tmc_tc, TC_X, tmc5272_getPosition(tmc_x, MOTOR_0) / TC_SCALE);
   }
 
   // Aim assist to lock to nearest tower (when approaching tower height)

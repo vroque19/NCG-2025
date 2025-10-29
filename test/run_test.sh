@@ -20,4 +20,8 @@ echo "\n5. Running Solver Tests..."
 gcc -I ../include ../src/game_logic.c ../src/stack.c ../src/history.c ../src/queue.c ../src/set.c \
   test_api.c test_solver.c -o solver_tests.out && ./solver_tests.out
 
+echo "\n6. Running Weight Detection Tests..."
+
+gcc -I ../include weight_detection_stub.c test_api.c test_weight_detection.c -o weight_detection_tests.out -lm && ./weight_detection_tests.out
+
 rm -f *.out

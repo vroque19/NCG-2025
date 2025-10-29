@@ -23,13 +23,13 @@ SOFTWARE.
 */
 
 #include "game_logic.h"
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 #include "history.h"
 #include "queue.h"
 #include "set.h"
 #include "stack.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 // Global game state
 game_state_t current_game = {0};
 
@@ -39,8 +39,8 @@ char *txt_responses[5] = {
     "No ring on start\r tower", "Deselected Tower", "Not valid tower"};
 
 static const double ring_weights[] = {
-    1,  // Size 1
-    2,  // Size 2
+    1, // Size 1
+    2, // Size 2
     3, // Size 3
 };
 static void hanoi_init_game_tower_0(void);
@@ -107,7 +107,8 @@ bool hanoi_execute_move(uint8_t source_tower, uint8_t destination_tower) {
 }
 
 Queue_Entry *get_moves(int (*state)[MAX_RINGS], int *entry_idx) {
-  // Allocate space for max possible moves (each tower can move to 2 other towers = 6 max)
+  // Allocate space for max possible moves (each tower can move to 2 other
+  // towers = 6 max)
   Queue_Entry *poss_entries = (Queue_Entry *)malloc(sizeof(Queue_Entry) * 6);
   *entry_idx = 0;
 
@@ -123,12 +124,16 @@ Queue_Entry *get_moves(int (*state)[MAX_RINGS], int *entry_idx) {
       int top_idx_src = find_top_of_state(state[src]);
       int top_idx_dst = find_top_of_state(state[dst]);
 
-      // Valid move: destination empty OR source ring smaller than destination ring
-      if (top_idx_src >= 0 && (top_idx_dst < 0 || state[src][top_idx_src] < state[dst][top_idx_dst])) {
+      // Valid move: destination empty OR source ring smaller than destination
+      // ring
+      if (top_idx_src >= 0 &&
+          (top_idx_dst < 0 ||
+           state[src][top_idx_src] < state[dst][top_idx_dst])) {
         // Create new state with this move applied
         memset(&poss_entries[*entry_idx], 0, sizeof(Queue_Entry));
         for (int tower = 0; tower < NUM_TOWERS; tower++) {
-          memcpy(poss_entries[*entry_idx].state[tower], state[tower], sizeof(int) * MAX_RINGS);
+          memcpy(poss_entries[*entry_idx].state[tower], state[tower],
+                 sizeof(int) * MAX_RINGS);
         }
 
         int to_add = state[src][top_idx_src];
@@ -147,11 +152,11 @@ void optimal_solve(history_stack *solved_moves) {
   // Goal: Reset to initial state (all rings on tower 0)
   // Build goal state dynamically based on number of rings in game
   int goal_state[NUM_TOWERS][MAX_RINGS] = {{0}};
-
-  // Place all rings on tower 0 in proper order (largest to smallest, bottom to top)
-  // ring_weights = {30, 60, 110} so for 3 rings we want {110, 60, 30}
+  int actual_weights[3] = {30, 60, 110};
+  // Place all rings on tower 0 in proper order (largest to smallest, bottom to
+  // top) ring_weights = {30, 60, 110} so for 3 rings we want {110, 60, 30}
   for (int i = 0; i < current_game.num_rings; i++) {
-    goal_state[0][i] = (int)ring_weights[MAX_RINGS - 1 - i];
+    goal_state[0][i] = (int)actual_weights[MAX_RINGS - 1 - i];
   }
 
   Queue *q = queue_init();

@@ -120,7 +120,8 @@ void auto_reset_game(void) {
     move_tuple curr_move = reset_moves.moves[i];
     printf("Reset move %d: Tower %d -> Tower %d\n", i + 1, curr_move.source,
            curr_move.destination);
-    move_ring(curr_move.source, curr_move.destination);
+    // TODO: make moves
+    // move_ring(curr_move.source, curr_move.destination);
     hanoi_execute_move(curr_move.source, curr_move.destination);
   }
 

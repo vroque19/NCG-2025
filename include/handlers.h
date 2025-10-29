@@ -77,4 +77,5 @@ void start_cal(void);
 void solenoid_handler(void);
 void weigh_scale_routine(void);
 void get_state_from_weights(double *weights, int (*state)[NUM_TOWERS]);
+
 #endif
