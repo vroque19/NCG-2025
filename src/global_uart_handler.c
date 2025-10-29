@@ -156,7 +156,7 @@ void global_uart_main_loop(void) {
     MXC_Delay(MXC_DELAY_MSEC(100));
     
     init_motors();
-    MXC_Delay(MXC_DELAY_MSEC(100));
+    // MXC_Delay(MXC_DELAY_MSEC(100));
     calibrate_towers();
     move_to_home();
     printf("Begin\n");

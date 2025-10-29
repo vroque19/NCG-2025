@@ -26,6 +26,7 @@ SOFTWARE.
 #include "TMC5272.h"
 #include "mxc_delay.h"
 #include "solenoid_driver.h"
+#include <stdbool.h>
 
 tmc_devices_t tmc_devices = {};
 void init_motors(void) {
@@ -77,6 +78,9 @@ void init_motors(void) {
     
     tmc5272_setMotorPolarity(tmc_devices.tmc_x, MOTOR_0, MOTOR_DIR_INVERT);
     init_stallguard();
+    // disable stallguard after homing sequence
+    tmc5272_sg_setStallGuard2(tmc_devices.tmc_x, MOTOR_0, false);
+    tmc5272_sg_setStallGuard2(tmc_devices.tmc_y, ALL_MOTORS, false);
     
 }
 

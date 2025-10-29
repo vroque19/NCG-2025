@@ -39,9 +39,9 @@ char *txt_responses[5] = {
     "No ring on start\r tower", "Deselected Tower", "Not valid tower"};
 
 static const double ring_weights[] = {
-    30,  // Size 1
-    60,  // Size 2
-    110, // Size 3
+    1,  // Size 1
+    2,  // Size 2
+    3, // Size 3
 };
 static void hanoi_init_game_tower_0(void);
 void hanoi_init_game(uint8_t num_rings) {

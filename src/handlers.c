@@ -272,10 +272,16 @@ void run_manual_mode_logic(tmc5272_dev_t *tmc_x, tmc5272_dev_t *tmc_y,
     tmc5272_rotateToPosition(tmc_y, ALL_MOTORS, TC_SCALE * tc_y_pos,
                              TMC_VEL_MAX, TMC_ACC_MAX);
   } else {
-    // Keep encoder value at motor
-    MXC_Delay(500000);
-    tmc5272_tricoder_setEncoderValue(
-        tmc_tc, TC_Y, tmc5272_getPosition(tmc_y, MOTOR_0) / TC_SCALE);
+	if(y_pos < RING_DROP_HEIGHT) {
+		// rotate to max, no delay
+		tmc5272_tricoder_setEncoderValue(
+        tmc_tc, TC_Y, Y_MAX_POS);
+	} else {
+		// Keep encoder value at motor
+		MXC_Delay(200000);
+		tmc5272_tricoder_setEncoderValue(
+			tmc_tc, TC_Y, tmc5272_getPosition(tmc_y, MOTOR_0) / TC_SCALE);
+	}
   }
 
   // Set boundaries / guardrails for x rail
@@ -284,14 +290,15 @@ void run_manual_mode_logic(tmc5272_dev_t *tmc_x, tmc5272_dev_t *tmc_y,
     tmc5272_rotateToPosition(tmc_x, MOTOR_0, TC_SCALE * tc_x_pos, TMC_VEL_MAX,
                              TMC_ACC_MAX);
   } else {
-    // Keep encoder value at motor
-    MXC_Delay(500000);
-    tmc5272_tricoder_setEncoderValue(
-        tmc_tc, TC_X, tmc5272_getPosition(tmc_x, MOTOR_0) / TC_SCALE);
+		if(tc_x_pos <= (X_MIN_POS / TC_SCALE) || tc_x_pos >= (X_MAX_POS / TC_SCALE))
+    	// Keep encoder value at motor
+		MXC_Delay(200000);
+		tmc5272_tricoder_setEncoderValue(
+			tmc_tc, TC_X, tmc5272_getPosition(tmc_x, MOTOR_0) / TC_SCALE);
   }
 
   // Aim assist to lock to nearest tower (when approaching tower height)
-  if (y_pos >= RING_DROP_HEIGHT) {
+  if (y_pos >= RING_DROP_HEIGHT && tc_x_pos != x_pos) {
     for (int i = 0; i < 3; i++) {
       if ((abs(x_pos - towers[i]) < MANUAL_MODE_ASSISTANCE_THRESH)) {
         tmc5272_rotateToPosition(tmc_x, MOTOR_0, towers[i], TMC_VEL_MAX,
