@@ -75,7 +75,7 @@ void calibrate_towers(void) {
   uint16_t calibration_data_0 = calibrate(LOAD_CELL_0);
   printf("LC 0: %d\n", calibration_data_0);
   load_cell_towers.load_cell_0->base_offset = calibration_data_0;
-  load_cell_towers.load_cell_0->conversion_factor = 0.75;
+  load_cell_towers.load_cell_0->conversion_factor = 0.70;
   MXC_DELAY_MSEC(MXC_DELAY_MSEC(1000));
   uint16_t calibration_data_1 = calibrate(LOAD_CELL_1);
   printf("LC 1: %d\n", calibration_data_1);
@@ -86,7 +86,7 @@ void calibrate_towers(void) {
   uint16_t calibration_data_2 = calibrate(LOAD_CELL_2);
   printf("LC 2: %d\n", calibration_data_2);
   load_cell_towers.load_cell_2->base_offset = calibration_data_2;
-  load_cell_towers.load_cell_2->conversion_factor = 0.75;
+  load_cell_towers.load_cell_2->conversion_factor = 0.77;
 
   return;
 }
@@ -109,7 +109,7 @@ double get_load_cell_data(uint8_t channel_idx, uint16_t base) {
   // enable channel
   configure_adc_channel(channel_idx, 0x80);
   // wait before data read to allow the register to populate
-  MXC_Delay(MXC_DELAY_MSEC(800));
+  MXC_Delay(MXC_DELAY_MSEC(1000));
   uint16_t code = get_adc_data();
   // if(code - base < 30) {
   //     code = base;

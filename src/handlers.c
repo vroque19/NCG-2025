@@ -188,8 +188,8 @@ static void handle_tower_helper(int tower_idx) {
 }
 
 void get_state_from_weights(double *weights, int (*state)[3]) {
-  const double RING_WEIGHTS[MAX_RINGS] = {30.0, 60.0, 110.0};
-  const double TOLERANCE = 15.5;
+  const double RING_WEIGHTS[MAX_RINGS] = {35.0, 59.0, 111.0};
+  const double TOLERANCE = 10.5;
 
   // Initialize state to zeros
   for (int i = 0; i < NUM_TOWERS; i++) {
@@ -285,12 +285,12 @@ void run_manual_mode_logic(tmc5272_dev_t *tmc_x, tmc5272_dev_t *tmc_y,
   } else {
     if (y_pos < RING_DROP_HEIGHT) {
       // rotate to max, no delay
-      tmc5272_tricoder_setEncoderValue(tmc_tc, TC_Y, Y_MAX_POS);
+      tmc5272_tricoder_setEncoderValue(tmc_tc, TC_Y, Y_MIN_POS/TC_SCALE);
     } else {
       // Keep encoder value at motor
       MXC_Delay(200000);
       tmc5272_tricoder_setEncoderValue(
-          tmc_tc, TC_Y, tmc5272_getPosition(tmc_y, MOTOR_0) / TC_SCALE);
+          tmc_tc, TC_Y, Y_MAX_POS/TC_SCALE);
     }
   }
 

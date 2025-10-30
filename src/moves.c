@@ -110,6 +110,8 @@ int findIndex(int arr[], int size, int target) {
     return -1; // Return -1 if the element is not found
 }
 void auto_reset_game(void) {
+  const double RING_WEIGHTS[MAX_RINGS] = {35.0, 59.0, 111.0};
+
   history_stack reset_moves;
   init_history(&reset_moves);
   // Get current state from weight readings
@@ -137,9 +139,9 @@ void auto_reset_game(void) {
       printf("%d\n", current_state[tower][ring]);
       if (current_state[tower][ring] != 0) {
         int hanoi_ring = 0;
-        if(current_state[tower][ring] == 30) {
+        if(current_state[tower][ring] == RING_WEIGHTS[0]) {
           hanoi_ring = 1;
-        } else if(current_state[tower][ring] == 60) {
+        } else if(current_state[tower][ring] == RING_WEIGHTS[1]) {
           hanoi_ring = 2;
         } else {
           hanoi_ring = 3;
@@ -154,17 +156,17 @@ void auto_reset_game(void) {
   optimal_solve(&reset_moves);
   print_hanoi_solution(&reset_moves);
 
-  // printf("Resetting game with %d moves\n", reset_moves.top_idx + 1);
+  printf("Resetting game with %d moves\n", reset_moves.top_idx + 1);
 
   // Execute each move in the solution
-  // for (int i = 0; i <= reset_moves.top_idx; i++) {
-  //   move_tuple curr_move = reset_moves.moves[i];
-  //   printf("Reset move %d: Tower %d -> Tower %d\n", i + 1, curr_move.source,
-  //          curr_move.destination);
-  //   // TODO: make moves
-  //   // move_ring(curr_move.source, curr_move.destination);
-  //   hanoi_execute_move(curr_move.source, curr_move.destination);
-  // }
+  for (int i = 0; i <= reset_moves.top_idx; i++) {
+    move_tuple curr_move = reset_moves.moves[i];
+    printf("Reset move %d: Tower %d -> Tower %d\n", i + 1, curr_move.source,
+           curr_move.destination);
+    // TODO: make moves
+    move_ring(curr_move.source, curr_move.destination);
+    hanoi_execute_move(curr_move.source, curr_move.destination);
+  }
 
   printf("Game reset complete!\n");
 }
