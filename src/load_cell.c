@@ -24,6 +24,7 @@ SOFTWARE.
 
 #include "load_cell.h"
 #include "4131.h"
+#include "mxc_delay.h"
 #include <stdint.h>
 
 load_cell_towers_t load_cell_towers = {0};
@@ -53,6 +54,7 @@ uint16_t get_calibration_data(void) {
 /* calibrates load cell */
 uint16_t calibrate(uint8_t idx) {
   configure_adc_channel(idx, 0x80); // enable
+  MXC_Delay(MXC_DELAY_MSEC(1500));
   printf("~~Taring scale %d~~\n", idx);
   uint16_t base = get_calibration_data();
   configure_adc_channel(idx, 0x00); // disable
@@ -62,23 +64,30 @@ uint16_t calibrate(uint8_t idx) {
 
 void calibrate_towers(void) {
   // Correctly allocate memory for each load_cell_t struct on the heap
+  configure_adc_channel(0, 0x00); // disable
+  configure_adc_channel(1, 0x00); // disable
+  configure_adc_channel(2, 0x00); // disable
   load_cell_towers.load_cell_0 = (load_cell_t *)malloc(sizeof(load_cell_t));
   load_cell_towers.load_cell_1 = (load_cell_t *)malloc(sizeof(load_cell_t));
   load_cell_towers.load_cell_2 = (load_cell_t *)malloc(sizeof(load_cell_t));
+  MXC_DELAY_MSEC(MXC_DELAY_MSEC(1000));
+
   uint16_t calibration_data_0 = calibrate(LOAD_CELL_0);
   printf("LC 0: %d\n", calibration_data_0);
   load_cell_towers.load_cell_0->base_offset = calibration_data_0;
-  load_cell_towers.load_cell_0->conversion_factor = 0.3920992819;
-
+  load_cell_towers.load_cell_0->conversion_factor = 0.75;
+  MXC_DELAY_MSEC(MXC_DELAY_MSEC(1000));
   uint16_t calibration_data_1 = calibrate(LOAD_CELL_1);
   printf("LC 1: %d\n", calibration_data_1);
   load_cell_towers.load_cell_1->base_offset = calibration_data_1;
-  load_cell_towers.load_cell_1->conversion_factor = 0.3920992819;
+  load_cell_towers.load_cell_1->conversion_factor = 0.75;
+  MXC_DELAY_MSEC(MXC_DELAY_MSEC(1000));
 
   uint16_t calibration_data_2 = calibrate(LOAD_CELL_2);
   printf("LC 2: %d\n", calibration_data_2);
   load_cell_towers.load_cell_2->base_offset = calibration_data_2;
-  load_cell_towers.load_cell_2->conversion_factor = 0.3920992819;
+  load_cell_towers.load_cell_2->conversion_factor = 0.75;
+
   return;
 }
 
@@ -86,8 +95,10 @@ void calibrate_towers(void) {
 double code_to_grams(uint16_t base, uint16_t code, double conversion_factor) {
   printf("Code - Reference : %d - %d\n", code, base);
   double delta = abs((int)code - (int)base);
-  if (delta > 1) {
+  if (delta > 20) {
     double grams = delta * conversion_factor;
+    // printf("Delta(%lf) * Conversion(%lf) = Weight(%lf)\n", delta, conversion_factor, grams);
+
     return grams;
   }
   return 0;
@@ -98,7 +109,7 @@ double get_load_cell_data(uint8_t channel_idx, uint16_t base) {
   // enable channel
   configure_adc_channel(channel_idx, 0x80);
   // wait before data read to allow the register to populate
-  MXC_Delay(MXC_DELAY_MSEC(400));
+  MXC_Delay(MXC_DELAY_MSEC(800));
   uint16_t code = get_adc_data();
   // if(code - base < 30) {
   //     code = base;
@@ -106,7 +117,7 @@ double get_load_cell_data(uint8_t channel_idx, uint16_t base) {
   // check the status
   // read_status();
 
-  double weight = code_to_grams(base, code, .39);
+  double weight = code_to_grams(base, code, load_cell_towers.load_cell_0->conversion_factor);
   // disable channel
   configure_adc_channel(channel_idx, 0x00);
   return weight;

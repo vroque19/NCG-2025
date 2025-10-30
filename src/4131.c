@@ -277,8 +277,8 @@ void set_ctrl(void) {
     // testing 0x00, 0x00
     // for unipolar mode, functional
 
-    // uint8_t tx_data[] = {0x01, 0x02};
-    uint8_t tx_data[] = {0x00, 0x00};
+    uint8_t tx_data[] = {0x40, 0x00};
+    // uint8_t tx_data[] = {0x00, 0x00};
     set_reg(ADC_CONTROL, tx_data, bytes);
 }
 

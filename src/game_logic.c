@@ -148,15 +148,25 @@ Queue_Entry *get_moves(int (*state)[MAX_RINGS], int *entry_idx) {
   }
   return poss_entries;
 }
+void print_hanoi_solution(history_stack *solution) {
+  printf("  Solution (%d moves):\n ", solution->top_idx + 1);
+  if (solution->top_idx < 0) {
+    printf("[No moves needed]\n");
+    return;
+  }
+  for (int i = 0; i <= solution->top_idx; i++) {
+    printf("(%d->%d) \n", solution->moves[i].source, solution->moves[i].destination);
+  }
+  printf("\n");
+}
 void optimal_solve(history_stack *solved_moves) {
   // Goal: Reset to initial state (all rings on tower 0)
   // Build goal state dynamically based on number of rings in game
   int goal_state[NUM_TOWERS][MAX_RINGS] = {{0}};
-  int actual_weights[3] = {30, 60, 110};
   // Place all rings on tower 0 in proper order (largest to smallest, bottom to
   // top) ring_weights = {30, 60, 110} so for 3 rings we want {110, 60, 30}
   for (int i = 0; i < current_game.num_rings; i++) {
-    goal_state[0][i] = (int)actual_weights[MAX_RINGS - 1 - i];
+    goal_state[0][i] = MAX_RINGS - i;
   }
 
   Queue *q = queue_init();

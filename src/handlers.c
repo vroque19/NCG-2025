@@ -69,7 +69,7 @@ void exit_to_main_menu(void) {
   tmc5272_rotateAtVelocity(tmc_devices.tmc_y, MOTOR_0, 0, 50000);
   tmc5272_rotateAtVelocity(tmc_devices.tmc_y, MOTOR_1, 0, 50000);
   MXC_Delay(MXC_DELAY_MSEC(200));
-  if (current_mode == TOUCHSCREEN_MODE) {
+  if (current_mode == MANUAL_MODE) {
     auto_reset_game();
   }
   switch_mode(MENU);
@@ -214,8 +214,8 @@ void get_state_from_weights(double *weights, int (*state)[3]) {
       if (!ring_assigned[ring] &&
           fabs(remaining_weight - RING_WEIGHTS[ring]) < TOLERANCE) {
         // This ring is on this tower
-        printf("Detected: %d.2f from %d.2f\n", RING_WEIGHTS[ring],
-               remaining_weight);
+        // printf("Detected: %d.2f from %d.2f\n", RING_WEIGHTS[ring],
+            //    remaining_weight);
         state[tower][stack_idx] = (int)RING_WEIGHTS[ring];
         remaining_weight -= RING_WEIGHTS[ring];
         ring_assigned[ring] = true;

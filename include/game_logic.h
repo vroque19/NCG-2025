@@ -67,6 +67,7 @@ void hanoi_print_game_state(const char *name, game_state_t *game);
 void hanoi_reset_game(void);
 bool hanoi_execute_move(uint8_t source_tower, uint8_t destination_tower);
 void optimal_solve(history_stack *solved_moves);
+void print_hanoi_solution(history_stack *solution);
 extern game_state_t current_game;
 
 #endif

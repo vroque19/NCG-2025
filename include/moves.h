@@ -71,6 +71,8 @@ void y_move(uint32_t position);
 // automated ring reset
 void auto_reset_game(void);
 
+void print_curr_state(const char *label, int (*state)[3]);
+
 // get source tower
 int get_source_tower(int pos_x);
  #endif

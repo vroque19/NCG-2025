@@ -107,6 +107,7 @@ void update_weights(double *weights) {
 // testing 3 load cells
 double* poll_weights(void) {
      __disable_irq();
+     // have to handle load cell differences
     double weight0 = get_load_cell_data(LOAD_CELL_0, load_cell_towers.load_cell_0->base_offset);
     double weight1 = get_load_cell_data(LOAD_CELL_1, load_cell_towers.load_cell_1->base_offset);
     double weight2 = get_load_cell_data(LOAD_CELL_2, load_cell_towers.load_cell_2->base_offset);

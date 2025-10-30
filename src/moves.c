@@ -89,41 +89,82 @@ void x_move(uint32_t position) {
   while (!tmc5272_isAtTargetPosition(tmc_devices.tmc_x, MOTOR_0)) {
   }
 }
-
+void print_curr_state(const char *label, int (*state)[3]) {
+  printf("  %s:\n", label);
+  for (int tower = 0; tower < NUM_TOWERS; tower++) {
+    printf("    Tower %d: [", tower);
+    for (int i = 0; i < MAX_RINGS; i++) {
+   
+      printf("%d ", state[tower][i]);
+      
+    }
+    printf("]\n");
+  }
+}
+int findIndex(int arr[], int size, int target) {
+    for (int i = 0; i < size; i++) {
+        if (arr[i] == target) {
+            return i; // Return the index if the element is found
+        }
+    }
+    return -1; // Return -1 if the element is not found
+}
 void auto_reset_game(void) {
-  double *curr_weights = poll_weights();
-  int current_state[NUM_TOWERS][MAX_RINGS];
   history_stack reset_moves;
   init_history(&reset_moves);
-
   // Get current state from weight readings
+  #if 1
+  double *curr_weights = poll_weights();
+  int current_state[NUM_TOWERS][MAX_RINGS];
   get_state_from_weights(curr_weights, current_state);
-
+  #else
+  int current_state[NUM_TOWERS][MAX_RINGS] = {
+    {110, 0, 0},
+    {60, 0, 0},
+    {30, 0, 0}
+  };
+  #endif
+  print_curr_state("State Detected", current_state);
+  // Initialize towers
+  for (int i = 0; i < NUM_TOWERS; i++) {
+    current_game.towers[i].tower_id = i;
+    init_stack(&current_game.towers[i]);
+    memset(current_game.towers[i].rings, 0, sizeof(current_game.towers[i].rings));
+  }
   // Update current_game towers to match physical state
   for (int tower = 0; tower < NUM_TOWERS; tower++) {
-    init_stack(&current_game.towers[tower]);
-    current_game.towers[tower].tower_id = tower;
     for (int ring = 0; ring < MAX_RINGS; ring++) {
+      printf("%d\n", current_state[tower][ring]);
       if (current_state[tower][ring] != 0) {
-        push_tower(&current_game.towers[tower], current_state[tower][ring]);
+        int hanoi_ring = 0;
+        if(current_state[tower][ring] == 30) {
+          hanoi_ring = 1;
+        } else if(current_state[tower][ring] == 60) {
+          hanoi_ring = 2;
+        } else {
+          hanoi_ring = 3;
+        }
+        printf("Current Tower: %d Ring: %d pushing %d", tower, current_state[tower][ring], hanoi_ring);
+        push_tower(&current_game.towers[tower], hanoi_ring);
       }
     }
   }
 
   // Find optimal solution to reset to initial state (all rings on tower 0)
   optimal_solve(&reset_moves);
+  print_hanoi_solution(&reset_moves);
 
-  printf("Resetting game with %d moves\n", reset_moves.top_idx + 1);
+  // printf("Resetting game with %d moves\n", reset_moves.top_idx + 1);
 
   // Execute each move in the solution
-  for (int i = 0; i <= reset_moves.top_idx; i++) {
-    move_tuple curr_move = reset_moves.moves[i];
-    printf("Reset move %d: Tower %d -> Tower %d\n", i + 1, curr_move.source,
-           curr_move.destination);
-    // TODO: make moves
-    // move_ring(curr_move.source, curr_move.destination);
-    hanoi_execute_move(curr_move.source, curr_move.destination);
-  }
+  // for (int i = 0; i <= reset_moves.top_idx; i++) {
+  //   move_tuple curr_move = reset_moves.moves[i];
+  //   printf("Reset move %d: Tower %d -> Tower %d\n", i + 1, curr_move.source,
+  //          curr_move.destination);
+  //   // TODO: make moves
+  //   // move_ring(curr_move.source, curr_move.destination);
+  //   hanoi_execute_move(curr_move.source, curr_move.destination);
+  // }
 
   printf("Game reset complete!\n");
 }
